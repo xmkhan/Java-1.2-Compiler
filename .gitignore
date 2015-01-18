@@ -1,3 +1,4 @@
+# Java class files
 *.class
 
 # Mobile Tools for Java (J2ME)
@@ -7,6 +8,12 @@
 *.jar
 *.war
 *.ear
+
+# intelliJ ignores
+*.idea
+CS444.iml
+CS444.ipr
+CS444.iws
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
