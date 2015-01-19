@@ -15,14 +15,14 @@ public class Token {
   /**
    * Gets the underlying lexeme.
    */
-  String getLexeme() {
+  public String getLexeme() {
     return lexeme;
   }
 
   /**
    * Get the underlying tokenType type.
    */
-  TokenType getTokenType() {
+  public TokenType getTokenType() {
     return tokenType;
   }
 }
