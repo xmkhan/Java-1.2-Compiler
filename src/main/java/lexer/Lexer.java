@@ -20,6 +20,7 @@ public class Lexer {
   private final DFA[] dfas;
 
   public Lexer(IdentifierDFA identifierDFA, LiteralDFA literalDFA, NumericDFA numericDFA, ReservedDFA reservedDFA) {
+    // The ordering is preserved by precedence, so that equal length maximal tokens takes the first occurrence.
     dfas = new DFA[] { reservedDFA, literalDFA, numericDFA, identifierDFA };
     resetDFAs();
   }
