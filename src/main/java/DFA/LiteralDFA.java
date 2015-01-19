@@ -9,7 +9,7 @@ public class LiteralDFA implements DFA {
   private StringBuilder builder;
   private Token token = null;
 
-  private enum states {ERROR, START, OPEN_QUOTE ,ASCII, ZERO_TO_THREE,  , CLOSE_QUOTE, ACCEPT};
+  private enum states {ERROR, START, OPEN_QUOTE ,ASCII, ZERO_TO_THREE, ONE_TO_SEVEN1, CLOSE_QUOTE, ACCEPT};
   private states state;
 
   @Override
