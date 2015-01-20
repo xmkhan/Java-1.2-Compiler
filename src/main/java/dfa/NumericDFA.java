@@ -8,10 +8,11 @@ import token.TokenType;
  */
 public class NumericDFA implements DFA {
   private StringBuilder builder;
-  private Token token = null;
+  private Token token;
 
-  private enum states {ERROR, START, NEGATIVE, ACCEPT};
+  private enum states {ERROR, START, ACCEPT};
   private states state;
+  private boolean startsWithZero;
 
   public NumericDFA() {
     reset();
@@ -20,9 +21,14 @@ public class NumericDFA implements DFA {
   @Override
   public void reset() {
     state = states.START;
+    startsWithZero = false;
     builder = new StringBuilder();
     token = null;
+  }
 
+  private boolean isDigit(char c)
+  {
+    return c >= '0' && c <= '9';
   }
 
   @Override
@@ -31,25 +37,16 @@ public class NumericDFA implements DFA {
       case ERROR:
         break;
       case START:
-        if (c >= 0 && c <= 9) {
-          state = states.ACCEPT;
-          builder.append(c);
-        } else if (c == '-') {
-          state = states.NEGATIVE;
-          builder.append(c);
-        }
-        else state = states.ERROR;
-        break;
-      case NEGATIVE:
-        if (c >= 0 && c <= 9) {
+        if (isDigit(c)) {
+          if (c == '0') startsWithZero = true;
           state = states.ACCEPT;
           builder.append(c);
         } else state = states.ERROR;
+        break;
       case ACCEPT:
-        if (c >= 0 && c <= 9) {
+          if (isDigit(c) && !startsWithZero) {
           builder.append(c);
-        }
-        else {
+        } else {
           state = states.ERROR;
           token = new Token(builder.toString(), TokenType.INT_LITERAL);
         }
