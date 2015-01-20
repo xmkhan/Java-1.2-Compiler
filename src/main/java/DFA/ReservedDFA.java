@@ -1,11 +1,18 @@
 package dfa;
 
+import algorithm.trie.Trie;
 import token.Token;
 
 /**
  *
  */
 public class ReservedDFA implements DFA {
+  private Trie trie;
+
+  public ReservedDFA() {
+    trie = new Trie();
+  }
+
   @Override
   public void reset() {
 
