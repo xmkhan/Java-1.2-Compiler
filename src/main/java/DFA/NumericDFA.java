@@ -8,9 +8,9 @@ import token.TokenType;
  */
 public class NumericDFA implements DFA {
   private StringBuilder builder;
-  private Token token = null;
+  private Token token;
 
-  private enum states {ERROR, START, NEGATIVE, ACCEPT};
+  private enum states {ERROR, START, NEGATIVE, ACCEPT}
   private states state;
 
   public NumericDFA() {
@@ -22,7 +22,6 @@ public class NumericDFA implements DFA {
     state = states.START;
     builder = new StringBuilder();
     token = null;
-
   }
 
   @Override
@@ -37,8 +36,7 @@ public class NumericDFA implements DFA {
         } else if (c == '-') {
           state = states.NEGATIVE;
           builder.append(c);
-        }
-        else state = states.ERROR;
+        } else state = states.ERROR;
         break;
       case NEGATIVE:
         if (c >= 0 && c <= 9) {

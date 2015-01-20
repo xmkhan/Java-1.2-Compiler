@@ -77,9 +77,11 @@ public enum TokenType {
   DOUBLE_QUOTE("\""),
   SINGLE_QUOTE("\'"),
   // Non-reserved keywords
+  RESERVED_LENGTH("reserved_length"),
   INT_LITERAL("int_literal"),
   IMPORT_NAME("import_name"),
-  COMPOUND_NAME("compound_name");
+  COMPOUND_NAME("compound_name"),
+  NOT_USED("not_used");
 
   private final String name;
 
