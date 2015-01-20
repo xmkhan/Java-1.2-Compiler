@@ -13,8 +13,7 @@ import static org.junit.Assert.assertTrue;
 public class IdentifierDFATest {
 
   @Test
-  public void testOneChar()
-  {
+  public void testOneChar() {
     IdentifierDFA dfa = new IdentifierDFA();
 
     dfa.consume('d');
@@ -26,8 +25,7 @@ public class IdentifierDFATest {
   }
 
   @Test
-  public void testOneCharSpecial()
-  {
+  public void testOneCharSpecial() {
     IdentifierDFA dfa = new IdentifierDFA();
 
     dfa.consume('$');
@@ -39,8 +37,7 @@ public class IdentifierDFATest {
   }
 
   @Test
-  public void testJavaString()
-  {
+  public void testJavaString() {
     IdentifierDFA dfa = new IdentifierDFA();
     String javaString = "abcdefghijklmnoqprstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
 
@@ -56,8 +53,7 @@ public class IdentifierDFATest {
   }
 
   @Test
-  public void testJavaDigitsAndLetters()
-  {
+  public void testJavaDigitsAndLetters() {
     IdentifierDFA dfa = new IdentifierDFA();
     String javaString = "test0123456789";
 
@@ -73,13 +69,11 @@ public class IdentifierDFATest {
   }
 
   @Test
-  public void testJavaDigitsAndLettersProper()
-  {
+  public void testJavaDigitsAndLettersProper() {
     IdentifierDFA dfa = new IdentifierDFA();
     String javaString = "_test43 = 52;\n";
 
-    for(char c: javaString.toCharArray())
-    {
+    for(char c: javaString.toCharArray()) {
       dfa.consume(c);
     }
 
@@ -89,13 +83,11 @@ public class IdentifierDFATest {
   }
 
   @Test
-  public void testJavaDigits()
-  {
+  public void testJavaDigits() {
     IdentifierDFA dfa = new IdentifierDFA();
     String javaString = "01234test";
 
-    for(char c: javaString.toCharArray())
-    {
+    for(char c: javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume(' ');
@@ -104,8 +96,7 @@ public class IdentifierDFATest {
   }
 
   @Test
-  public void testOneDigit()
-  {
+  public void testOneDigit() {
     IdentifierDFA dfa = new IdentifierDFA();
 
     dfa.consume('4');
@@ -115,20 +106,17 @@ public class IdentifierDFATest {
   }
 
   @Test
-  public void testEmpty()
-  {
+  public void testEmpty() {
     IdentifierDFA dfa = new IdentifierDFA();
     assertTrue(dfa.getToken() == null);
   }
 
   @Test
-  public void testInvalid()
-  {
+  public void testInvalid() {
     IdentifierDFA dfa = new IdentifierDFA();
     String javaString = "ab3243^&abcd";
 
-    for(char c: javaString.toCharArray())
-    {
+    for(char c: javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume(' ');
@@ -139,13 +127,11 @@ public class IdentifierDFATest {
   }
 
   @Test
-  public void testInvalidEscapes()
-  {
+  public void testInvalidEscapes() {
     IdentifierDFA dfa = new IdentifierDFA();
     String javaString = "\"abcdef33\'";
 
-    for(char c: javaString.toCharArray())
-    {
+    for(char c: javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume(' ');

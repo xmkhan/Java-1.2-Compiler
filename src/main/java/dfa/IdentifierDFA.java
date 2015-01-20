@@ -12,7 +12,7 @@ import token.TokenType;
  */
 public class IdentifierDFA implements DFA {
   private StringBuilder builder;
-  private Token token = null;
+  private Token token;
 
   private enum states {ERROR, START, ACCEPT};
   private states state;
@@ -30,8 +30,7 @@ public class IdentifierDFA implements DFA {
   }
 
   // Checks if it is a Java letter which is $, _, a - z, A - Z
-  private boolean isJavaLetter(char c)
-  {
+  private boolean isJavaLetter(char c) {
     return c == '_' || c == '$' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
   }
 
