@@ -11,6 +11,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * Defines the Lexer algorithm for parsing the Joos 1W language.
@@ -18,10 +20,18 @@ import java.util.ArrayList;
 public class Lexer {
 
   private final DFA[] dfas;
+  private HashSet<Character> skipSet;
 
   public Lexer(IdentifierDFA identifierDFA, LiteralDFA literalDFA, NumericDFA numericDFA, ReservedDFA reservedDFA) {
     // The ordering is preserved by precedence, so that equal length maximal tokens takes the first occurrence.
     dfas = new DFA[] { reservedDFA, literalDFA, numericDFA, identifierDFA };
+    skipSet = new HashSet<>(Arrays.asList(new Character[] {
+        new Character('\n'),
+        new Character('\r'),
+        new Character(' '),
+        new Character('\t'),
+        new Character('\f')
+    }));
     resetDFAs();
   }
 
@@ -72,11 +82,12 @@ public class Lexer {
       char c = (char) input;
       if (!consumeDFAs(c)) {
         Token maxToken = getMaximalToken();
-        if (maxToken == null) {
-          throw new LexerException("All DFAs encountered an error, without a valid token.");
+        if (!skipSet.contains(c)) {
+          if (maxToken == null) {
+            throw new LexerException("All DFAs encountered an error, without a valid token.");
+          }
+          tokens.add(maxToken);
         }
-        tokens.add(maxToken);
-
         // Because the last character led all the DFAs to their error state, re-run
         // the for-loop without incrementing input.
         resetDFAs();
