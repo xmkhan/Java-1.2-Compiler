@@ -26,8 +26,7 @@ public class NumericDFA implements DFA {
     token = null;
   }
 
-  private boolean isDigit(char c)
-  {
+  private boolean isDigit(char c) {
     return c >= '0' && c <= '9';
   }
 
