@@ -73,6 +73,22 @@ public class IdentifierDFATest {
   }
 
   @Test
+  public void testJavaDigitsAndLettersProper()
+  {
+    IdentifierDFA dfa = new IdentifierDFA();
+    String javaString = "_test43 = 52;\n";
+
+    for(char c: javaString.toCharArray())
+    {
+      dfa.consume(c);
+    }
+
+    Token result = dfa.getToken();
+    assertTrue(result.getTokenType() == TokenType.IDENTIFIER);
+    assertTrue(result.getLexeme().equals("_test43"));
+  }
+
+  @Test
   public void testJavaDigits()
   {
     IdentifierDFA dfa = new IdentifierDFA();
@@ -120,5 +136,20 @@ public class IdentifierDFATest {
     Token result = dfa.getToken();
     assertTrue(result.getTokenType() == TokenType.IDENTIFIER);
     assertTrue(result.getLexeme().equals("ab3243"));
+  }
+
+  @Test
+  public void testInvalidEscapes()
+  {
+    IdentifierDFA dfa = new IdentifierDFA();
+    String javaString = "\"abcdef33\'";
+
+    for(char c: javaString.toCharArray())
+    {
+      dfa.consume(c);
+    }
+    dfa.consume(' ');
+
+    assertTrue(dfa.getToken() == null);
   }
 }
