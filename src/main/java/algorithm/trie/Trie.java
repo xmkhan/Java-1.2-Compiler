@@ -2,10 +2,34 @@ package algorithm.trie;
 
 /**
  * Implementation of a trie data structure, supports 8-bit ASCII
+ * Supports the concept of an on-going traversal via Path class.
+ *  use case: useful for parsing because it can hold internal state.
  */
 public class Trie {
   private static final int ASCII_SIZE = 128;
   private node head;
+
+  public static class Path {
+    public enum states {ERROR, ONGOING, WORD}
+    private states state;
+    private node node;
+    private StringBuilder builder;
+
+    public Path(Trie.node node) {
+      this.node = node;
+      state = states.ONGOING;
+      builder = new StringBuilder();
+    }
+
+    public states getState() {
+      return state;
+    }
+
+    @Override
+    public String toString() {
+      return builder.toString();
+    }
+  }
 
   public Trie() {
     head = new node();
@@ -40,6 +64,27 @@ public class Trie {
       traverse = traverse.children[c];
     }
     return traverse.isWord;
+  }
+
+  public Path constructPath() {
+    return new Path(head);
+  }
+
+  public Path traverse(Path p, char c) {
+    if (p.node.children[c] == null) {
+      p.state = Path.states.ERROR;
+      return p;
+    }
+
+    if (p.node.children[c].isWord) {
+      p.state = Path.states.WORD;
+    } else {
+      p.state = Path.states.ONGOING;
+    }
+
+    p.node = p.node.children[c];
+    p.builder.append(c);
+    return p;
   }
 
   private class node {
