@@ -9,17 +9,39 @@ public enum TokenType {
   BOOLEAN_FALSE("false"),
   NULL("null"),
   THIS("this"),
-  SUEPR("super"),
+  SUPER("super"),
   NEW("new"),
   INSTANCEOF("instanceof"),
   RETURN("return"),
   // Control flow
   IF("if"),
+  ELSE("else"),
   WHILE("while"),
   FOR("for"),
   // Java keywords
   PACKAGE("package"),
   IMPORT("import"),
+  // Other Java keywords (not implemented)
+  BREAK("break"),
+  CASE("case"),
+  CATCH("catch"),
+  CONST("const"),
+  CONTINUE("continue"),
+  DEFAULT("default"),
+  DO("do"),
+  FINALLY("finally"),
+  FLOAT("float"),
+  GOTO("goto"),
+  LONG("long"),
+  STRICTFP("strictfp"),
+  SWITCH("switch"),
+  SYNCHRONIZED("synchronized"),
+  THROW("throw"),
+  THROWS("throws"),
+  TRANSIENT("transient"),
+  TRY("try"),
+  VOLATILE("volatile"),
+  DOUBLE("double"),
   // Modifiers
   FINAL("final"),
   STATIC("static"),
@@ -67,6 +89,7 @@ public enum TokenType {
   EQUAL("="),
   // Punctuation
   DOT("."),
+  COMMA(","),
   SEMI_COLON(";"),
   LEFT_PARAN("("),
   RIGHT_PARAN(")"),
@@ -79,7 +102,8 @@ public enum TokenType {
   // Non-reserved keywords
   INT_LITERAL("int_literal"),
   IMPORT_NAME("import_name"),
-  COMPOUND_NAME("compound_name");
+  COMPOUND_NAME("compound_name"),
+  IDENTIFIER("identifier");
 
   private final String name;
 
