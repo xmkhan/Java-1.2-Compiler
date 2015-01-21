@@ -45,11 +45,11 @@ public class Lexer {
    * @return false if ALL DFAs failed to consume (all are in error state), true otherwise.
    */
   private boolean consumeDFAs(char c) {
-    boolean failConsume = false;
+    boolean isConsumed = false;
     for (DFA dfa : dfas) {
-      failConsume |= dfa.consume(c);
+      isConsumed |= dfa.consume(c);
     }
-    return failConsume;
+    return isConsumed;
   }
 
   /**

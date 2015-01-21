@@ -29,8 +29,8 @@ public class LexerTest {
   }
 
   private void testInputOutput(String inputFile, String outputFile) throws IOException, Lexer.LexerException {
-    InputStreamReader inputReader = new InputStreamReader(new FileInputStream(inputFile));
-    InputStreamReader outputReader = new InputStreamReader(new FileInputStream(outputFile));
+    InputStreamReader inputReader = new InputStreamReader(new FileInputStream(inputFile), "US-ASCII");
+    InputStreamReader outputReader = new InputStreamReader(new FileInputStream(outputFile), "US-ASCII");
     ArrayList<Token> tokens = lexer.parse(inputReader);
     // Skip BOF token.
     int i = 1;
