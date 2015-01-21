@@ -27,8 +27,12 @@ public class LexerTest {
 
   @Test
   public void testReservedOnly() throws IOException, Lexer.LexerException {
-    InputStreamReader inputReader = new InputStreamReader(new FileInputStream("src/test/resources/input1"));
-    InputStreamReader outputReader = new InputStreamReader(new FileInputStream("src/test/resources/output1"));
+    computeTest("src/test/resources/input1", "src/test/resources/output1");
+  }
+
+  private void computeTest(String inputFile, String outputFile) throws IOException, Lexer.LexerException {
+    InputStreamReader inputReader = new InputStreamReader(new FileInputStream(inputFile));
+    InputStreamReader outputReader = new InputStreamReader(new FileInputStream(outputFile));
     ArrayList<Token> tokens = lexer.parse(inputReader);
     // Skip BOF token.
     int i = 1;
@@ -37,5 +41,6 @@ public class LexerTest {
     while ((s = bufferedReader.readLine()) != null) {
       assertEquals(s, tokens.get(i++).getLexeme());
     }
+
   }
 }
