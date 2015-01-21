@@ -10,7 +10,7 @@ public class NumericDFA implements DFA {
   private StringBuilder builder;
   private Token token;
 
-  private enum states {ERROR, START, ACCEPT};
+  private enum states {ERROR, START, ACCEPT}
   private states state;
   private boolean startsWithZero;
 
