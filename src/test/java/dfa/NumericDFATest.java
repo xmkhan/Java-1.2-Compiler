@@ -1,31 +1,35 @@
 package dfa;
 
+import org.junit.Before;
 import org.junit.Test;
 import token.Token;
 import token.TokenType;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Basic tests to test the Numeric DFA.
  */
 public class NumericDFATest {
+  private NumericDFA dfa;
+
+  @Before
+  public void setUp() {
+    dfa = new NumericDFA();
+  }
 
   @Test
   public void testOneDigit() {
-    NumericDFA dfa = new NumericDFA();
-
     dfa.consume('4');
     dfa.consume(' ');
 
     Token result = dfa.getToken();
-    assertTrue(result.getTokenType() == TokenType.INT_LITERAL);
-    assertTrue(result.getLexeme().equals("4"));
+    assertEquals(TokenType.INT_LITERAL, result.getTokenType());
+    assertEquals("4", result.getLexeme());
   }
 
   @Test
   public void testJavaNumber() {
-    NumericDFA dfa = new NumericDFA();
     String javaString = "1234567890";
 
     for (char c : javaString.toCharArray()) {
@@ -34,13 +38,12 @@ public class NumericDFATest {
     dfa.consume('\r');
 
     Token result = dfa.getToken();
-    assertTrue(result.getTokenType() == TokenType.INT_LITERAL);
-    assertTrue(result.getLexeme().equals(javaString));
+    assertEquals(TokenType.INT_LITERAL, result.getTokenType());
+    assertEquals(javaString, result.getLexeme());
   }
 
   @Test
   public void testJavaDigitsAndLetters() {
-    NumericDFA dfa = new NumericDFA();
     String javaString = "123t9";
 
     for (char c : javaString.toCharArray()) {
@@ -49,33 +52,28 @@ public class NumericDFATest {
     dfa.consume('\n');
 
     Token result = dfa.getToken();
-    assertTrue(result.getTokenType() == TokenType.INT_LITERAL);
-    assertTrue(result.getLexeme().equals("123"));
+    assertEquals(TokenType.INT_LITERAL, result.getTokenType());
+    assertEquals("123", result.getLexeme());
   }
 
   @Test
   public void testOneCharSpecial() {
-    NumericDFA dfa = new NumericDFA();
-
     dfa.consume('$');
     dfa.consume(' ');
 
-    assertTrue(dfa.getToken() == null);
+    assertEquals(null, dfa.getToken());
   }
 
   @Test
   public void testOneChar() {
-    NumericDFA dfa = new NumericDFA();
-
     dfa.consume('c');
     dfa.consume(' ');
 
-    assertTrue(dfa.getToken() == null);
+    assertEquals(null, dfa.getToken());
   }
 
   @Test
   public void testInvalidJavaDigitsAndLetters() {
-    NumericDFA dfa = new NumericDFA();
     String javaString = "test343";
 
     for (char c : javaString.toCharArray()) {
@@ -83,12 +81,11 @@ public class NumericDFATest {
     }
     dfa.consume('\n');
 
-    assertTrue(dfa.getToken() == null);
+    assertEquals(null, dfa.getToken());
   }
 
   @Test
   public void testInvalidJavaDigits() {
-    NumericDFA dfa = new NumericDFA();
     String javaString = "01234";
 
     for (char c : javaString.toCharArray()) {
@@ -96,8 +93,8 @@ public class NumericDFATest {
     }
 
     Token result = dfa.getToken();
-    assertTrue(result.getTokenType() == TokenType.INT_LITERAL);
-    assertTrue(result.getLexeme().equals("0"));
+    assertEquals(TokenType.INT_LITERAL, result.getTokenType());
+    assertEquals("0", result.getLexeme());
 
     dfa.reset();
     javaString = "12340";
@@ -108,19 +105,17 @@ public class NumericDFATest {
     dfa.consume(' ');
 
     result = dfa.getToken();
-    assertTrue(result.getTokenType() == TokenType.INT_LITERAL);
-    assertTrue(result.getLexeme().equals("12340"));
+    assertEquals(TokenType.INT_LITERAL, result.getTokenType());
+    assertEquals("12340", result.getLexeme());
   }
 
   @Test
   public void testEmpty() {
-    NumericDFA dfa = new NumericDFA();
-    assertTrue(dfa.getToken() == null);
+    assertEquals(null, dfa.getToken());
   }
 
   @Test
   public void testInvalid() {
-    NumericDFA dfa = new NumericDFA();
     String javaString = "1234^&abcd";
 
     for (char c : javaString.toCharArray()) {
@@ -129,7 +124,7 @@ public class NumericDFATest {
     dfa.consume(' ');
 
     Token result = dfa.getToken();
-    assertTrue(result.getTokenType() == TokenType.INT_LITERAL);
-    assertTrue(result.getLexeme().equals("1234"));
+    assertEquals(TokenType.INT_LITERAL, result.getTokenType());
+    assertEquals("1234", result.getLexeme());
   }
 }
