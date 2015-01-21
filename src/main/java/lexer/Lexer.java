@@ -1,5 +1,6 @@
 package lexer;
 
+import dfa.CommentDFA;
 import dfa.DFA;
 import dfa.IdentifierDFA;
 import dfa.LiteralDFA;
@@ -23,16 +24,10 @@ public class Lexer {
   private final DFA[] dfas;
   private HashSet<Character> skipSet;
 
-  public Lexer(IdentifierDFA identifierDFA, LiteralDFA literalDFA, NumericDFA numericDFA, ReservedDFA reservedDFA) {
+  public Lexer() {
     // The ordering is preserved by precedence, so that equal length maximal tokens takes the first occurrence.
-    dfas = new DFA[] { reservedDFA, literalDFA, numericDFA, identifierDFA };
-    skipSet = new HashSet<>(Arrays.asList(new Character[] {
-        new Character('\n'),
-        new Character('\r'),
-        new Character(' '),
-        new Character('\t'),
-        new Character('\f')
-    }));
+    dfas = new DFA[] {new CommentDFA(), new ReservedDFA(), new LiteralDFA(), new NumericDFA(), new IdentifierDFA()};
+    skipSet = new HashSet<>(Arrays.asList(new Character[] {'\n', '\r', ' ', '\t', '\f'}));
     resetDFAs();
   }
 
@@ -88,7 +83,8 @@ public class Lexer {
           if (maxToken == null) {
             throw new LexerException("All DFAs encountered an error, without a valid token.");
           }
-          tokens.add(maxToken);
+          // Add exclusion around commentDFA adding in tokens.
+          if (dfas[0].getToken() != maxToken) tokens.add(maxToken);
         }
         // Because the last character led all the DFAs to their error state, re-run
         // the for-loop without incrementing input.
