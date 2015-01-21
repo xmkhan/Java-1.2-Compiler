@@ -1,113 +1,110 @@
 package dfa;
 
-import dfa.LiteralDFA;
+import org.junit.Before;
 import org.junit.Test;
 import token.Token;
 import token.TokenType;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 /**
  * Basic tests to test the Literal DFA.
  */
 public class LiteralDFATest {
+    private LiteralDFA dfa = new LiteralDFA();
+
+    @Before
+    public void setUp() {
+        dfa.reset();
+    }
+
     @Test
     public void testEmptySingleQuoteLiteral() {
-        LiteralDFA dfa = new LiteralDFA();
         String literal = "''";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("''"));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "''");
     }
 
     @Test
     public void testEmptyDoubleQuoteLiteral() {
-        LiteralDFA dfa = new LiteralDFA();
         String literal = "\"\"";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("\"\""));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "\"\"");
     }
 
 
     @Test
     public void testSingleQuoteInSingleQuotes() {
-        LiteralDFA dfa = new LiteralDFA();
-        String literal =  "'\\''";
+        String literal = "'\\''";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("'\\''"));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "'\\''");
     }
 
     @Test
     public void testDoubleQuoteInDoubleQuotes() {
-        LiteralDFA dfa = new LiteralDFA();
-        String literal =  "\"\\\"\"";
+        String literal = "\"\\\"\"";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("\"\\\"\""));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "\"\\\"\"");
     }
 
     @Test
     public void testSingleQuoteInDoubleQuotes() {
-        LiteralDFA dfa = new LiteralDFA();
         String literal = "\"\\'\"";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("\"\\'\""));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "\"\\'\"");
     }
 
     @Test
     public void testDoubleQuoteInSingleQuotes() {
-        LiteralDFA dfa = new LiteralDFA();
-        String literal =  "'\\\"'";
+        String literal = "'\\\"'";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("'\\\"'"));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "'\\\"'");
     }
 
     @Test
     public void testLongSingleQuoteLiteral() {
-        LiteralDFA dfa = new LiteralDFA();
-
         dfa.consume('\'');
         dfa.consume('a');
         dfa.consume('b');
@@ -116,83 +113,77 @@ public class LiteralDFATest {
 
     @Test
     public void testValidDoubleQuoteLiteral() {
-        LiteralDFA dfa = new LiteralDFA();
-        String literal =  "\"abc123\\'\\\"\"";
+        String literal = "\"abc123\\'\\\"\"";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("\"abc123\\'\\\"\""));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "\"abc123\\'\\\"\"");
     }
 
     @Test
     public void testEscapeCharactersInDoubleQuotes() {
-        LiteralDFA dfa = new LiteralDFA();
-        String literal =  "\"\\b\\t\\n\\f\\r\\'\\\"\"";
+        String literal = "\"\\b\\t\\n\\f\\r\\'\\\"\"";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("\"\\b\\t\\n\\f\\r\\'\\\"\""));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "\"\\b\\t\\n\\f\\r\\'\\\"\"");
     }
 
     @Test
-    public void testEscapeHexInDoubleQuotes() {
-        LiteralDFA dfa = new LiteralDFA();
-        String literal =  "\"\\377a\"";
+    public void testEscapeOctalInDoubleQuotes() {
+        String literal = "\"\\377a\"";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("\"\\377a\""));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "\"\\377a\"");
     }
 
     @Test
     public void testEscapeCharacterInSingleQuotes() {
-        LiteralDFA dfa = new LiteralDFA();
-        String literal =  "'\t'";
+        String literal = "'\t'";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("'\t'"));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "'\t'");
     }
 
     @Test
-    public void testEscapeHexInSingleQuotes() {
-        LiteralDFA dfa = new LiteralDFA();
-        String literal =  "'\\377'";
+    public void testEscapeOctalInSingleQuotes() {
+        String literal = "'\\377'";
 
-        for(char c: literal.toCharArray()) {
+        for (char c : literal.toCharArray()) {
             dfa.consume(c);
         }
         dfa.consume('\n');
 
         Token result = dfa.getToken();
-        assertEquals(true, result.getTokenType() == TokenType.STR_LITERAL);
-        assertEquals(true, result.getLexeme().equals("'\\377'"));
+        assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+        assertEquals(result.getLexeme(), "'\\377'");
     }
 
     @Test
-    public void testHexEscapeOutOfRange() {
-        LiteralDFA dfa = new LiteralDFA();
-        String literal =  "'\\378'";
+    public void testOctalEscapeOutOfRange() {
+        String literal = "'\\378'";
 
         dfa.consume('\'');
         dfa.consume('\\');
