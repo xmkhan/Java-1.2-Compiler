@@ -6,9 +6,7 @@ import token.Token;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
@@ -26,11 +24,11 @@ public class LexerTest {
   }
 
   @Test
-  public void testReservedOnly() throws IOException, Lexer.LexerException {
-    computeTest("src/test/resources/input1", "src/test/resources/output1");
+  public void testInput1() throws IOException, Lexer.LexerException {
+    testInputOutput("src/test/resources/input1", "src/test/resources/output1");
   }
 
-  private void computeTest(String inputFile, String outputFile) throws IOException, Lexer.LexerException {
+  private void testInputOutput(String inputFile, String outputFile) throws IOException, Lexer.LexerException {
     InputStreamReader inputReader = new InputStreamReader(new FileInputStream(inputFile));
     InputStreamReader outputReader = new InputStreamReader(new FileInputStream(outputFile));
     ArrayList<Token> tokens = lexer.parse(inputReader);
