@@ -1,0 +1,10 @@
+public static class RogerDodger() {
+  public int yolo();
+}
+
+int x = 3;
+int x=3;
+short x=45;
+String s = "This is an\n escaped string\t\r\n";
+// this is some comment
+

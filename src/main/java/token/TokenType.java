@@ -101,6 +101,8 @@ public enum TokenType {
   SINGLE_QUOTE("\'"),
   // Non-reserved keywords
   RESERVED_LENGTH("reserved_length"),
+  BOF("beginning_of_file"),
+  EOF("end_of_file"),
   INT_LITERAL("int_literal"),
   STR_LITERAL("str_literal"),
   IMPORT_NAME("import_name"),
