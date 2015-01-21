@@ -28,7 +28,7 @@ public class NumericDFATest {
     NumericDFA dfa = new NumericDFA();
     String javaString = "1234567890";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume('\r');
@@ -43,7 +43,7 @@ public class NumericDFATest {
     NumericDFA dfa = new NumericDFA();
     String javaString = "123t9";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume('\n');
@@ -78,7 +78,7 @@ public class NumericDFATest {
     NumericDFA dfa = new NumericDFA();
     String javaString = "test343";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume('\n');
@@ -91,7 +91,7 @@ public class NumericDFATest {
     NumericDFA dfa = new NumericDFA();
     String javaString = "01234";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
 
@@ -102,7 +102,7 @@ public class NumericDFATest {
     dfa.reset();
     javaString = "12340";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume(' ');
@@ -123,7 +123,7 @@ public class NumericDFATest {
     NumericDFA dfa = new NumericDFA();
     String javaString = "1234^&abcd";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume(' ');

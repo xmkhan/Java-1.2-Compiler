@@ -100,16 +100,19 @@ public enum TokenType {
   DOUBLE_QUOTE("\""),
   SINGLE_QUOTE("\'"),
   // Non-reserved keywords
+  RESERVED_LENGTH("reserved_length"),
   INT_LITERAL("int_literal"),
   IMPORT_NAME("import_name"),
   COMPOUND_NAME("compound_name"),
-  IDENTIFIER("identifier");
+  IDENTIFIER("identifier"),
+  NOT_USED("not_used");
 
   private final String name;
 
   private TokenType(String name) {
     this.name = name;
   }
+
   @Override
   public String toString(){
     return name;
