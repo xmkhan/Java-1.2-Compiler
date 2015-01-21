@@ -28,13 +28,13 @@ public class LexerTest {
   @Test
   public void testReservedOnly() throws IOException, Lexer.LexerException {
     InputStreamReader inputReader = new InputStreamReader(new FileInputStream("src/test/resources/input1"));
-    InputStreamReader outputReader = new InputStreamReader(new FileInputStream("src/test/resources/input1"));
+    InputStreamReader outputReader = new InputStreamReader(new FileInputStream("src/test/resources/output1"));
     ArrayList<Token> tokens = lexer.parse(inputReader);
-    int i = 0;
+    int i = 1;
     BufferedReader bufferedReader = new BufferedReader(outputReader);
     String s;
     while ((s = bufferedReader.readLine()) != null) {
-      assertEquals(s, tokens.get(i).getLexeme());
+      assertEquals(s, tokens.get(i++).getLexeme());
     }
   }
 }

@@ -81,7 +81,6 @@ public class Lexer {
         Token maxToken = getMaximalToken();
         if (maxToken != null && !isCommentToken(maxToken)) {
           tokens.add(maxToken);
-          System.out.println(maxToken.getLexeme());
         }
 
         if (maxToken == null) {
@@ -91,9 +90,7 @@ public class Lexer {
             throw new LexerException("All DFAs encountered an error, without a valid token.");
           }
         }
-
-        // Because the last character led all the DFAs to their error state, re-run
-        // the for-loop without incrementing input.
+        // Because the last character led all the DFAs to their error state, reset the DFAs.
         resetDFAs();
       } else {
         input = bufferedReader.read();

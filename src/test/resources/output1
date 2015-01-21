@@ -30,4 +30,5 @@ x
 String
 s
 =
-"This is an\n escaped string\t\r\n";
+"This is an\n escaped string\t\r\n"
+;

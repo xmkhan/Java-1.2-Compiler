@@ -16,12 +16,10 @@ public class LiteralDFA implements DFA {
 
   private enum LiteralType {SINGLE_QUOTE, DOUBLE_QUOTE}
 
-  ;
   private LiteralType literalType;
 
   private enum states {ERROR, START, LITERAL, ESCAPE, ZERO_TO_THREE, ZERO_TO_SEVEN, ACCEPT}
 
-  ;
   private states state;
 
   // used for detecting single quote literals with size > 1
@@ -31,7 +29,7 @@ public class LiteralDFA implements DFA {
 
   Set<Character> escapeCharacters;
 
-  LiteralDFA() {
+  public LiteralDFA() {
     escapeCharacters = new HashSet<Character>(Arrays.asList('b', 't', 'n', 'f', 'r', '\'', '"'));
     reset();
   }
