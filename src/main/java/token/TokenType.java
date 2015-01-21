@@ -101,6 +101,7 @@ public enum TokenType {
   SINGLE_QUOTE("\'"),
   // Non-reserved keywords
   INT_LITERAL("int_literal"),
+  STR_LITERAL("str_literal"),
   IMPORT_NAME("import_name"),
   COMPOUND_NAME("compound_name"),
   IDENTIFIER("identifier");
