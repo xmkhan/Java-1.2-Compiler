@@ -79,13 +79,19 @@ public class Lexer {
       char c = (char) input;
       if (!consumeDFAs(c)) {
         Token maxToken = getMaximalToken();
-        if (!skipSet.contains(c)) {
-          if (maxToken == null) {
+        if (maxToken != null && !isCommentToken(maxToken)) {
+          tokens.add(maxToken);
+          System.out.println(maxToken.getLexeme());
+        }
+
+        if (maxToken == null) {
+          if (skipSet.contains(c)) {
+            input = bufferedReader.read();
+          } else {
             throw new LexerException("All DFAs encountered an error, without a valid token.");
           }
-          // Add exclusion around commentDFA adding in tokens.
-          if (dfas[0].getToken() != maxToken) tokens.add(maxToken);
         }
+
         // Because the last character led all the DFAs to their error state, re-run
         // the for-loop without incrementing input.
         resetDFAs();
@@ -95,6 +101,10 @@ public class Lexer {
     }
     tokens.add(new Token("", TokenType.EOF));
     return tokens;
+  }
+
+  private boolean isCommentToken(Token token) {
+    return token == dfas[0].getToken();
   }
 
   public static class LexerException extends Exception {
