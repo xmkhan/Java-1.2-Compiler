@@ -7,16 +7,16 @@ package algorithm.trie;
  */
 public class Trie {
   private static final int ASCII_SIZE = 128;
-  private node head;
+  private Node head;
 
   public static class Path {
     public enum states {ERROR, ONGOING, WORD}
 
     private states state;
-    private node node;
+    private Node node;
     private StringBuilder builder;
 
-    public Path(Trie.node node) {
+    public Path(Node node) {
       this.node = node;
       state = states.ONGOING;
       builder = new StringBuilder();
@@ -33,15 +33,15 @@ public class Trie {
   }
 
   public Trie() {
-    head = new node();
+    head = new Node();
   }
 
   public void insert(String word) {
-    node traverse = head;
+    Node traverse = head;
     for (int i = 0; i < word.length(); ++i) {
       char c = word.charAt(i);
       if (traverse.children[c] == null) {
-        traverse.children[c] = new node();
+        traverse.children[c] = new Node();
       }
       traverse = traverse.children[c];
     }
@@ -49,7 +49,7 @@ public class Trie {
   }
 
   public void remove(String word) {
-    node traverse = head;
+    Node traverse = head;
     for (int i = 0; i < word.length(); ++i) {
       char c = word.charAt(i);
       traverse = traverse.children[c];
@@ -58,7 +58,7 @@ public class Trie {
   }
 
   public boolean contains(String word) {
-    node traverse = head;
+    Node traverse = head;
     for (int i = 0; i < word.length(); ++i) {
       char c = word.charAt(i);
       if (traverse.children[c] == null) return false;
@@ -88,9 +88,9 @@ public class Trie {
     return p;
   }
 
-  private class node {
+  private class Node {
     boolean isWord = false;
-    public node[] children = new node[ASCII_SIZE];
+    public Node[] children = new Node[ASCII_SIZE];
   }
 
 
