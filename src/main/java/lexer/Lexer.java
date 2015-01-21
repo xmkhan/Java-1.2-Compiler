@@ -6,6 +6,7 @@ import dfa.LiteralDFA;
 import dfa.NumericDFA;
 import dfa.ReservedDFA;
 import token.Token;
+import token.TokenType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -78,6 +79,7 @@ public class Lexer {
   public ArrayList<Token> parse(InputStreamReader inputStreamReader) throws IOException, LexerException {
     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
     ArrayList<Token> tokens = new ArrayList<>();
+    tokens.add(new Token("", TokenType.BOF));
     for (int input = bufferedReader.read(); input != -1; ) {
       char c = (char) input;
       if (!consumeDFAs(c)) {
@@ -95,6 +97,7 @@ public class Lexer {
         input = bufferedReader.read();
       }
     }
+    tokens.add(new Token("", TokenType.EOF));
     return tokens;
   }
 
