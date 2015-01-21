@@ -102,6 +102,7 @@ public enum TokenType {
   // Non-reserved keywords
   RESERVED_LENGTH("reserved_length"),
   INT_LITERAL("int_literal"),
+  STR_LITERAL("str_literal"),
   IMPORT_NAME("import_name"),
   COMPOUND_NAME("compound_name"),
   IDENTIFIER("identifier"),
