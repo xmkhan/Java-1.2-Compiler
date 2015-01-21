@@ -7,7 +7,11 @@ import token.TokenType;
 import java.util.HashMap;
 
 /**
- *
+ * Handles parsing of Reserved keywords defined in TokenType.
+ * <p/>
+ * Requirements:
+ * Any string that matches a reserved keyword.
+ * Tokens from ordinal: 0...TokenType.RESERVED_LENGTH - 1
  */
 public class ReservedDFA implements DFA {
   private Token token;
@@ -27,8 +31,8 @@ public class ReservedDFA implements DFA {
   private void addReservedKeywords() {
     for (int i = 0; i < TokenType.RESERVED_LENGTH.ordinal(); ++i) {
       TokenType token = TokenType.values()[i];
-      trie.insert(token.name());
-      reverseTokenTypeMap.put(token.name(), token);
+      trie.insert(token.toString());
+      reverseTokenTypeMap.put(token.toString(), token);
     }
   }
 
@@ -40,7 +44,11 @@ public class ReservedDFA implements DFA {
 
   @Override
   public boolean consume(char c) {
-    path = trie.traverse(path, c);
+    if (path.getState() == Trie.Path.states.ERROR) {
+      return false;
+    }
+
+    trie.traverse(path, c);
     if (path.getState() == Trie.Path.states.WORD) {
       String word = path.toString();
       token = new Token(word, reverseTokenTypeMap.get(word));
