@@ -30,6 +30,7 @@ public class LexerTest {
     InputStreamReader inputReader = new InputStreamReader(new FileInputStream("src/test/resources/input1"));
     InputStreamReader outputReader = new InputStreamReader(new FileInputStream("src/test/resources/output1"));
     ArrayList<Token> tokens = lexer.parse(inputReader);
+    // Skip BOF token.
     int i = 1;
     BufferedReader bufferedReader = new BufferedReader(outputReader);
     String s;
