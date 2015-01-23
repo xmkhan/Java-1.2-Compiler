@@ -104,9 +104,10 @@ public enum TokenType {
   BOF("beginning_of_file"),
   EOF("end_of_file"),
   INT_LITERAL("int_literal"),
+  BOOLEAN_LITERAL("boolean_literal"),
+  CHAR_LITERAL("char_literal"),
   STR_LITERAL("str_literal"),
   IMPORT_NAME("import_name"),
-  COMPOUND_NAME("compound_name"),
   IDENTIFIER("identifier"),
   NOT_USED("not_used");
 
