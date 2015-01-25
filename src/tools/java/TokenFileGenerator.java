@@ -12,18 +12,21 @@ public class TokenFileGenerator {
     writer.println("package token;");
     writer.println();
     writer.println("import java.util.ArrayList;");
-    writer.println("import visitor.Visitee;");
     writer.println("import visitor.Visitor;");
     writer.println();
-    writer.println("public class " + tokenName + " extends Token implements Visitee {");
+    writer.println("public class " + tokenName + " extends Token {");
     writer.println();
     writer.println("  public ArrayList<Token> children;");
     writer.println();
     writer.println("  public " + tokenName + "(ArrayList<Token> children) {");
     writer.println("    super(\"\", TokenType." + tokenName + ");");
+    writer.println("    this.children = children;");
     writer.println("  }");
     writer.println();
     writer.println("  public void accept(Visitor v) {");
+    writer.println("    for (Token token : children) {");
+    writer.println("      token.accept(v);");
+    writer.println("    }");
     writer.println("    v.visit(this);");
     writer.println("  }");
     writer.println("}");
@@ -53,10 +56,18 @@ public class TokenFileGenerator {
       } else {
         writer.println("  public void visit(" + token + " token) {");
         writer.println("  }");
-
       }
       writer.println();
     }
+
+    // Add a visitor for the token base class.
+    if (prefix.equals("")) {
+      writer.println("  public void visit(Token token);");
+    } else {
+      writer.println("  public void visit(Token token) {");
+      writer.println("  }");
+    }
+    writer.println();
 
     writer.println("}");
     writer.close();
