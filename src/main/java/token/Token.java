@@ -1,5 +1,7 @@
 package token;
 
+import visitor.Visitor;
+
 /**
  * Interface for implementing a tokenType for the Java ASTda.
  */
@@ -24,5 +26,13 @@ public class Token {
    */
   public TokenType getTokenType() {
     return tokenType;
+  }
+
+  /**
+   * Pass the current token to the visitor
+   * to perform what it does.
+   */
+  public void accept(Visitor v) {
+    v.visit(this);
   }
 }
