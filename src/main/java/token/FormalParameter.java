@@ -1,18 +1,21 @@
 package token;
 
 import java.util.ArrayList;
-import visitor.Visitee;
 import visitor.Visitor;
 
-public class FormalParameter extends Token implements Visitee {
+public class FormalParameter extends Token {
 
   public ArrayList<Token> children;
 
   public FormalParameter(ArrayList<Token> children) {
     super("", TokenType.FormalParameter);
+    this.children = children;
   }
 
   public void accept(Visitor v) {
+    for (Token token : children) {
+      token.accept(v);
+    }
     v.visit(this);
   }
 }

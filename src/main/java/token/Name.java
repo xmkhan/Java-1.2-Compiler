@@ -1,18 +1,21 @@
 package token;
 
 import java.util.ArrayList;
-import visitor.Visitee;
 import visitor.Visitor;
 
-public class Name extends Token implements Visitee {
+public class Name extends Token {
 
   public ArrayList<Token> children;
 
   public Name(ArrayList<Token> children) {
     super("", TokenType.Name);
+    this.children = children;
   }
 
   public void accept(Visitor v) {
+    for (Token token : children) {
+      token.accept(v);
+    }
     v.visit(this);
   }
 }
