@@ -1,5 +1,7 @@
 package token;
 
+import java.util.HashMap;
+
 /**
  * Enum for TokenType.
  */
@@ -112,6 +114,21 @@ public enum TokenType {
   NOT_USED("not_used");
 
   private final String name;
+
+  private static HashMap<String, TokenType> reverseTokenTypeMap;
+
+  public static TokenType getTokenType(String name) {
+    if (reverseTokenTypeMap == null) {
+      int size = TokenType.RESERVED_LENGTH.ordinal();
+      reverseTokenTypeMap = new HashMap<>(size);
+      for (int i = 0; i < size; ++i) {
+        TokenType token = TokenType.values()[i];
+        reverseTokenTypeMap.put(token.toString(), token);
+      }
+    }
+    return reverseTokenTypeMap.get(name);
+  }
+
 
   private TokenType(String name) {
     this.name = name;

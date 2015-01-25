@@ -1,4 +1,4 @@
-package lr.machine;
+package algorithm.parsing.lr.machine;
 
 import algorithm.base.Pair;
 import token.Token;
@@ -13,18 +13,17 @@ public class MachineState {
   public enum Action { SHIFT, REDUCE }
 
   private int stateId = -1;
-
-  private HashMap<Token, Pair<Action, MachineState>> transitions;
+  private HashMap<String, Pair<Action, Integer>> transitions;
 
   public MachineState(int stateId) {
     this.stateId = stateId;
   }
 
-  public void addTransition(Token token, Action action, MachineState state) {
-    transitions.put(token, new Pair<>(action, state));
+  public void addTransition(String token, Action action, Integer stateOrRule) {
+    transitions.put(token, new Pair<>(action, stateOrRule));
   }
 
-  public Pair<Action, MachineState> getTransition(Token token) {
+  public Pair<Action, Integer> getTransition(Token token) {
     return transitions.get(token);
   }
 
