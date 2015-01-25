@@ -190,4 +190,6 @@ public interface Visitor {
 
   public void visit(MethodBody token);
 
+  public void visit(Token token);
+
 }

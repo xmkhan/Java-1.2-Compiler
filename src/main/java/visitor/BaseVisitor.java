@@ -283,4 +283,7 @@ public class BaseVisitor implements Visitor {
   public void visit(MethodBody token) {
   }
 
+  public void visit(Token token) {
+  }
+
 }
