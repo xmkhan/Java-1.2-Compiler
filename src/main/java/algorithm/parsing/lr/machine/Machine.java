@@ -61,8 +61,7 @@ public class Machine {
         // Use the 0th element as the reduction class.
         try {
           Class<? extends Token> lhsClass = Class.forName(productionRule.get(0)).asSubclass(Token.class);
-          Token reducedToken = lhsClass.getConstructor(List.class).newInstance(rhs);
-          tokens.push(reducedToken);
+          tokens.push(lhsClass.getConstructor(List.class).newInstance(rhs));
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
             NoSuchMethodException | InvocationTargetException e) {
           throw new MachineException(e.getMessage());
@@ -70,7 +69,8 @@ public class Machine {
         // Finally perform the transition using the reduced token.
         actionPair = states.peek().getTransition(token);
         if (actionPair == null || actionPair.getFirst() == MachineState.Action.REDUCE) {
-          throw new MachineException("Invalid token, there is no transition state, token: " + token);
+          throw new MachineException("After reduction, there was no transition state for token: " + token
+              + " for rule: " + actionPair.getSecond());
         }
         // Fall-through
       case SHIFT:

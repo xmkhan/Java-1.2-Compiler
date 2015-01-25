@@ -6,7 +6,7 @@ import token.Token;
 import java.util.HashMap;
 
 /**
- * Represents a LR(1) machine state.
+ * Represents a LR(1) machine state information.
  */
 public class MachineState {
 
