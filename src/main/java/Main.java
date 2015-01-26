@@ -17,10 +17,10 @@ public class Main {
   public static void main(String[] args) {
     try {
       InputStreamReader reader = new InputStreamReader(new FileInputStream(args[1]), "US-ASCII");
-      InputStreamReader cfgReader = new InputStreamReader(new FileInputStream(ShiftReduceAlgorithm.DEFAULT_LR1_FILE));
+      InputStreamReader lr1Reader = new InputStreamReader(new FileInputStream(ShiftReduceAlgorithm.DEFAULT_LR1_FILE));
 
       Lexer lexer = new Lexer();
-      ShiftReduceAlgorithm shiftReduceAlgorithm = new ShiftReduceAlgorithm(cfgReader);
+      ShiftReduceAlgorithm shiftReduceAlgorithm = new ShiftReduceAlgorithm(lr1Reader);
 
       ArrayList<Token> tokens = lexer.parse(reader);
       CompilationUnit compilationUnit = shiftReduceAlgorithm.constructAST(tokens);

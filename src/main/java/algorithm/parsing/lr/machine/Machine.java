@@ -45,8 +45,9 @@ public class Machine {
         states.peek().getTransition(token).getFirst() == MachineState.Action.REDUCE) {
       performReduction(states.peek().getTransition(token));
     }
-
-    performShift(token, states.peek().getTransition(token));
+    if (token.getTokenType() != TokenType.EOF) {
+      performShift(token, states.peek().getTransition(token));
+    }
   }
 
 
