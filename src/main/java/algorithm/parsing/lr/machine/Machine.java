@@ -6,6 +6,7 @@ import token.CompilationUnit;
 import token.Token;
 import token.TokenType;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,44 +40,53 @@ public class Machine {
   }
 
   public void applyAction(Token token) throws MachineException {
-    Pair<MachineState.Action, Integer> actionPair = states.peek().getTransition(token);
-    if (actionPair == null) {
-      throw new MachineException("Invalid token, there is no transition state, token: " + token);
+    // This is looped so that after each reduction, we imply that token is incoming (nested reduction).
+    while (states.peek().getTransition(token) != null &&
+        states.peek().getTransition(token).getFirst() == MachineState.Action.REDUCE) {
+      performReduction(states.peek().getTransition(token));
+    }
+
+    performShift(token, states.peek().getTransition(token));
+  }
+
+
+  private void performReduction(Pair<MachineState.Action, Integer> actionPair) throws MachineException {
+    while (actionPair != null && actionPair.getFirst() == MachineState.Action.REDUCE) {
+      // Get the reduction production rule.
+      List<String> productionRule = productionRules.get(actionPair.getSecond());
+
+      // Check in reverse because a stack is an reverse insertion order.
+      List<Token> rhs = new ArrayList<>();
+      for (int i = productionRule.size() - 1; i > 0; --i) {
+        if (!tokens.peek().getTokenType().toString().equals(productionRule.get(i))) {
+          throw new MachineException("Parse error on token: " + tokens.peek().getTokenType().toString() +
+              " vs. " + productionRule.get(i));
+        }
+        rhs.add(tokens.pop());
+        states.pop();
+      }
+      // Use the 0th element as the reduction class.
+      Token reducedToken;
+      try {
+        Class<? extends Token> lhsClass = Class.forName("token." + productionRule.get(0)).asSubclass(Token.class);
+        reducedToken = lhsClass.getConstructor(ArrayList.class).newInstance(rhs);
+      } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
+          NoSuchMethodException | InvocationTargetException e) {
+        throw new MachineException(e.getMessage());
+      }
+      // Finally perform the transition using the reduced token.
+      actionPair = states.peek().getTransition(reducedToken);
+      tokens.push(reducedToken);
+      states.push(machineStates.get(actionPair.getSecond()));
+    }
+  }
+
+  private void performShift(Token token, Pair<MachineState.Action, Integer> actionPair) throws MachineException {
+    if (actionPair == null || actionPair.getFirst() != MachineState.Action.SHIFT) {
+      return;
     }
     tokens.push(token);
-    switch (actionPair.getFirst()) {
-      case REDUCE:
-        // Get the reduction production rule.
-        List<String> productionRule = productionRules.get(actionPair.getSecond());
-
-        // Check in reverse because a stack is an reverse insertion order.
-        List<Token> rhs = new ArrayList<>();
-        for (int i = productionRule.size(); i > 0; --i) {
-          if (tokens.peek().getTokenType() != TokenType.getTokenType(productionRule.get(i))) {
-            throw new MachineException("Parse error on token: " + token);
-          }
-          rhs.add(tokens.pop());
-          states.pop();
-        }
-        // Use the 0th element as the reduction class.
-        try {
-          Class<? extends Token> lhsClass = Class.forName(productionRule.get(0)).asSubclass(Token.class);
-          tokens.push(lhsClass.getConstructor(List.class).newInstance(rhs));
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
-            NoSuchMethodException | InvocationTargetException e) {
-          throw new MachineException(e.getMessage());
-        }
-        // Finally perform the transition using the reduced token.
-        actionPair = states.peek().getTransition(token);
-        if (actionPair == null || actionPair.getFirst() == MachineState.Action.REDUCE) {
-          throw new MachineException("After reduction, there was no transition state for token: " + token
-              + " for rule: " + actionPair.getSecond());
-        }
-        // Fall-through
-      case SHIFT:
-        states.push(machineStates.get(actionPair.getSecond()));
-        break;
-    }
+    states.push(machineStates.get(actionPair.getSecond()));
   }
 
   public CompilationUnit getResult() throws MachineException {

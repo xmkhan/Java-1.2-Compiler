@@ -1,0 +1,27 @@
+package this.is.a.positive.test
+
+import java.util.HashMap;
+
+public static class PositiveTest {
+  private final int x = 123;
+  private static final String name = "PositiveTest";
+
+  public void randomMethodOne() {
+    short test = 0;
+    /** Let's add a random for-loop */
+    for (int j = 1; j < x; j=j+1) {
+      test = test + 1;
+    }
+    // Let's do some comparisons, shall we.
+    if (test == 10) {
+      test = 2;
+    } else if (test == 11) {
+      test = 3;
+    } else {
+      test = 4;
+    }
+
+    test = 1;
+    test = test + test * 2 + 3;
+  }
+}

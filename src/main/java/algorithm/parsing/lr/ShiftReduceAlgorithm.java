@@ -16,6 +16,7 @@ import java.util.List;
  * This is a special instance of the Shift-reduce algorithm that reads the CS444 .LR1 file.
  */
 public class ShiftReduceAlgorithm {
+  public static String DEFAULT_LR1_FILE = "src/main/resources/output.lr1";
   private Machine machine;
 
 
@@ -29,6 +30,9 @@ public class ShiftReduceAlgorithm {
     // 2. Number of non-terminals
     Integer numNonterminals = Integer.valueOf(bufferedReader.readLine());
     for (int i = 0; i < numNonterminals; ++i) bufferedReader.readLine();
+
+    // Ignore start state.
+    bufferedReader.readLine();
 
     // 3. Production rules
     Integer numProductionRules = Integer.valueOf(bufferedReader.readLine());

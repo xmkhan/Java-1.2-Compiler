@@ -2,6 +2,7 @@ package algorithm.parsing.lr.machine;
 
 import algorithm.base.Pair;
 import token.Token;
+import token.TokenType;
 
 import java.util.HashMap;
 
@@ -17,6 +18,11 @@ public class MachineState {
 
   public MachineState(int stateId) {
     this.stateId = stateId;
+    transitions = new HashMap<>();
+  }
+
+  public int getStateId() {
+    return stateId;
   }
 
   public void addTransition(String token, Action action, Integer stateOrRule) {
@@ -24,7 +30,7 @@ public class MachineState {
   }
 
   public Pair<Action, Integer> getTransition(Token token) {
-    return transitions.get(token);
+    return transitions.get(token.getTokenType().toString());
   }
 
 }
