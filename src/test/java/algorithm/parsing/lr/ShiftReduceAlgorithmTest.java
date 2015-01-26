@@ -30,7 +30,6 @@ public class ShiftReduceAlgorithmTest {
   }
 
   @Test
-  @Ignore
   public void testASTInput1() throws IOException, Lexer.LexerException, Machine.MachineException {
     testASTConstruction("src/test/resources/ast_input1");
   }
