@@ -1,7 +1,6 @@
 package algorithm.parsing.lr.machine;
 
 import algorithm.base.Pair;
-import sun.tools.java.ClassNotFound;
 import token.CompilationUnit;
 import token.Token;
 import token.TokenType;

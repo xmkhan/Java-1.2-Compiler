@@ -32,6 +32,8 @@ Literal null
 BooleanLiteral true
 BooleanLiteral false
 
+Program CompilationUnit EOF
+
 CompilationUnit PackageDeclaration
 CompilationUnit ImportDeclarations
 CompilationUnit TypeDeclarations

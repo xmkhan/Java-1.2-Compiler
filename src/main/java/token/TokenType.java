@@ -104,7 +104,7 @@ public enum TokenType {
   // Non-reserved keywords
   RESERVED_LENGTH("reserved_length"),
   BOF("beginning_of_file"),
-  EOF("end_of_file"),
+  EOF("EOF"),
   INT_LITERAL("IntLiteral"),
   BOOLEAN_LITERAL("BooleanLiteral"),
   CHAR_LITERAL("CharLiteral"),
