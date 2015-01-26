@@ -56,7 +56,7 @@ public class InputFileGenerator
     }
 
     // Print Start symbol
-    writer.println("CompilationUnit");
+    writer.println("Program");
 
     // Print production rule
     writer.println(productionRules.size());

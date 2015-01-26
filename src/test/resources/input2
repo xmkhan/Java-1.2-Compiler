@@ -1,0 +1,5 @@
+public static class A {
+   int mainMethod(int a, int b, int c) {
+     return -1;
+   }
+ }

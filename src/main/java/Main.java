@@ -1,4 +1,7 @@
+import algorithm.parsing.lr.ShiftReduceAlgorithm;
+import algorithm.parsing.lr.machine.Machine;
 import lexer.Lexer;
+import token.CompilationUnit;
 import token.Token;
 
 import java.io.FileInputStream;
@@ -14,9 +17,14 @@ public class Main {
   public static void main(String[] args) {
     try {
       InputStreamReader reader = new InputStreamReader(new FileInputStream(args[1]), "US-ASCII");
+      InputStreamReader lr1Reader = new InputStreamReader(new FileInputStream(ShiftReduceAlgorithm.DEFAULT_LR1_FILE));
+
       Lexer lexer = new Lexer();
+      ShiftReduceAlgorithm shiftReduceAlgorithm = new ShiftReduceAlgorithm(lr1Reader);
+
       ArrayList<Token> tokens = lexer.parse(reader);
-    } catch (IOException | Lexer.LexerException e) {
+      CompilationUnit compilationUnit = shiftReduceAlgorithm.constructAST(tokens);
+    } catch (IOException | Lexer.LexerException | Machine.MachineException e) {
       e.printStackTrace();
     }
   }

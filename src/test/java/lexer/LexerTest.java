@@ -27,13 +27,16 @@ public class LexerTest {
   public void testInput1() throws IOException, Lexer.LexerException {
     testInputOutput("src/test/resources/input1", "src/test/resources/output1");
   }
+  @Test
+  public void testInput2() throws IOException, Lexer.LexerException {
+    testInputOutput("src/test/resources/input2", "src/test/resources/output2");
+  }
 
   private void testInputOutput(String inputFile, String outputFile) throws IOException, Lexer.LexerException {
     InputStreamReader inputReader = new InputStreamReader(new FileInputStream(inputFile), "US-ASCII");
     InputStreamReader outputReader = new InputStreamReader(new FileInputStream(outputFile), "US-ASCII");
     ArrayList<Token> tokens = lexer.parse(inputReader);
-    // Skip BOF token.
-    int i = 1;
+    int i = 0;
     BufferedReader bufferedReader = new BufferedReader(outputReader);
     String s;
     while ((s = bufferedReader.readLine()) != null) {

@@ -1,5 +1,7 @@
 package token;
 
+import java.util.HashMap;
+
 /**
  * Enum for TokenType.
  */
@@ -102,13 +104,12 @@ public enum TokenType {
   // Non-reserved keywords
   RESERVED_LENGTH("reserved_length"),
   BOF("beginning_of_file"),
-  EOF("end_of_file"),
-  INT_LITERAL("int_literal"),
-  BOOLEAN_LITERAL("boolean_literal"),
-  CHAR_LITERAL("char_literal"),
-  STR_LITERAL("str_literal"),
-  IMPORT_NAME("import_name"),
-  IDENTIFIER("identifier"),
+  EOF("EOF"),
+  INT_LITERAL("IntLiteral"),
+  BOOLEAN_LITERAL("BooleanLiteral"),
+  CHAR_LITERAL("CharLiteral"),
+  STR_LITERAL("StringLiteral"),
+  IDENTIFIER("Identifier"),
   // Non-terminals
   ExpressionStatement("ExpressionStatement"),
   FieldDeclaration("FieldDeclaration"),
@@ -203,6 +204,21 @@ public enum TokenType {
   NOT_USED("not_used");
 
   private final String name;
+
+  private static HashMap<String, TokenType> reverseTokenTypeMap;
+
+  public static TokenType getTokenType(String name) {
+    if (reverseTokenTypeMap == null) {
+      int size = TokenType.NOT_USED.ordinal();
+      reverseTokenTypeMap = new HashMap<>(size);
+      for (int i = 0; i < size; ++i) {
+        TokenType token = TokenType.values()[i];
+        reverseTokenTypeMap.put(token.toString(), token);
+      }
+    }
+    return reverseTokenTypeMap.get(name);
+  }
+
 
   private TokenType(String name) {
     this.name = name;
