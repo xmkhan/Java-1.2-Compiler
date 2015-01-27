@@ -12,6 +12,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class ReservedDFATest {
   private ReservedDFA dfa;
+  private char[] delimiters = {'\n', '\r', '\t', ' '};
 
   @Before
   public void setUp() {
@@ -24,7 +25,7 @@ public class ReservedDFATest {
       dfa.reset();
       String word = TokenType.values()[i].toString();
       consumeString(word);
-      assertEqualsTokenType(dfa.getToken(), TokenType.values()[i]);
+      assertEqualsTokenType(TokenType.values()[i], dfa.getToken());
     }
   }
 
@@ -62,11 +63,10 @@ public class ReservedDFATest {
     for (char c : word.toCharArray()) {
       dfa.consume(c);
     }
-    // Randomized invalid token.
-    dfa.consume((char) (Math.random() * 128));
+    dfa.consume(delimiters[(int)(Math.random() * delimiters.length)]);
   }
 
-  private void assertEqualsTokenType(Token token, TokenType type) {
+  private void assertEqualsTokenType(TokenType type, Token token) {
     assertEquals(token.getTokenType(), type);
   }
 }

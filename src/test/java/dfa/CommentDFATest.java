@@ -12,6 +12,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class CommentDFATest {
   private CommentDFA dfa;
+  private char[] delimiters = {'\n', '\r', '\t', ' '};
 
   @Before
   public void setUp() {
@@ -77,8 +78,7 @@ public class CommentDFATest {
     for (char c : comment.toCharArray()) {
       dfa.consume(c);
     }
-    // Randomized invalid token.
-    dfa.consume((char)(Math.random() * 128));
+    dfa.consume(delimiters[(int)(Math.random() * delimiters.length)]);
   }
 
   private void assertEqualsToken(Token result, TokenType type, String comment) {
