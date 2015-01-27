@@ -28,6 +28,7 @@ public class FieldDeclaration extends Token {
 
   public void accept(Visitor v) {
     v.visit(variableDeclarator);
+    v.visit(modifiers);
     v.visit(this);
   }
 }

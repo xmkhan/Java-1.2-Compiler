@@ -31,6 +31,7 @@ public class InterfaceDeclaration extends Token {
 
   public void accept(Visitor v) {
     v.visit(interfaceBody);
+    v.visit(modifiers);
     v.visit(this);
   }
 }

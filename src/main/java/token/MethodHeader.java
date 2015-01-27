@@ -35,6 +35,7 @@ public class MethodHeader extends Token {
 
   public void accept(Visitor v) {
     v.visit(methodDeclarator);
+    v.visit(modifiers);
     v.visit(this);
   }
 }
