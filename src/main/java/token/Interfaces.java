@@ -4,18 +4,15 @@ import java.util.ArrayList;
 import visitor.Visitor;
 
 public class Interfaces extends Token {
-
-  public ArrayList<Token> children;
+  public InterfaceTypeList interfaceTypeList;
 
   public Interfaces(ArrayList<Token> children) {
     super("", TokenType.Interfaces);
-    this.children = children;
+    interfaceTypeList = (InterfaceTypeList) children.get(1);
   }
 
   public void accept(Visitor v) {
-    for (Token token : children) {
-      token.accept(v);
-    }
+    v.visit(interfaceTypeList);
     v.visit(this);
   }
 }

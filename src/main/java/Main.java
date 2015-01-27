@@ -24,8 +24,9 @@ public class Main {
 
       ArrayList<Token> tokens = lexer.parse(reader);
       CompilationUnit compilationUnit = shiftReduceAlgorithm.constructAST(tokens);
-    } catch (IOException | Lexer.LexerException | Machine.MachineException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      System.exit(42);
     }
+    System.exit(0);
   }
 }

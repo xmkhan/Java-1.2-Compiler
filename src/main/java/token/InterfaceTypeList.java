@@ -5,17 +5,20 @@ import visitor.Visitor;
 
 public class InterfaceTypeList extends Token {
 
-  public ArrayList<Token> children;
+  public ArrayList<InterfaceType> types;
 
   public InterfaceTypeList(ArrayList<Token> children) {
     super("", TokenType.InterfaceTypeList);
-    this.children = children;
+    types = new ArrayList<>();
+    if (children.get(0) instanceof InterfaceTypeList) {
+      InterfaceTypeList childList = (InterfaceTypeList) children.get(0);
+      types.addAll(childList.types);
+    } else {
+      types.add((InterfaceType) children.get(0));
+    }
   }
 
   public void accept(Visitor v) {
-    for (Token token : children) {
-      token.accept(v);
-    }
     v.visit(this);
   }
 }
