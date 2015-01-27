@@ -47,11 +47,22 @@ public class NumericDFA implements DFA {
           builder.append(c);
         } else {
           state = states.ERROR;
-          token = new Token(builder.toString(), TokenType.INT_LITERAL);
+          if (isValidNumber()) {
+            token = new Token(builder.toString(), TokenType.INT_LITERAL);
+          }
         }
         break;
     }
     return state != states.ERROR;
+  }
+
+  private boolean isValidNumber() {
+    try {
+      Integer.parseInt(builder.toString());
+      return true;
+    } catch (NumberFormatException e) {
+      return false;
+    }
   }
 
   @Override

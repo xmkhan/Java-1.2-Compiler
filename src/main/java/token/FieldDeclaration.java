@@ -5,17 +5,30 @@ import visitor.Visitor;
 
 public class FieldDeclaration extends Token {
 
-  public ArrayList<Token> children;
+  public Modifiers modifiers;
+  public Type type;
+  public VariableDeclarator variableDeclarator;
 
   public FieldDeclaration(ArrayList<Token> children) {
     super("", TokenType.FieldDeclaration);
-    this.children = children;
+    for (Token token : children) {
+      assignType(token);
+    }
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof Modifiers) {
+      modifiers = (Modifiers) token;
+    } else if (token instanceof Type) {
+      type = (Type) token;
+    } else if (token instanceof VariableDeclarator) {
+      variableDeclarator = (VariableDeclarator) token;
+    }
   }
 
   public void accept(Visitor v) {
-    for (Token token : children) {
-      token.accept(v);
-    }
+    v.visit(variableDeclarator);
+    v.visit(modifiers);
     v.visit(this);
   }
 }

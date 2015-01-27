@@ -5,17 +5,18 @@ import visitor.Visitor;
 
 public class MethodDeclaration extends Token {
 
-  public ArrayList<Token> children;
+  public MethodHeader methodHeader;
+  public MethodBody methodBody;
 
   public MethodDeclaration(ArrayList<Token> children) {
     super("", TokenType.MethodDeclaration);
-    this.children = children;
+    methodHeader = (MethodHeader) children.get(0);
+    methodBody = (MethodBody) children.get(1);
   }
 
   public void accept(Visitor v) {
-    for (Token token : children) {
-      token.accept(v);
-    }
+    v.visit(methodHeader);
+    v.visit(methodBody);
     v.visit(this);
   }
 }

@@ -5,17 +5,18 @@ import visitor.Visitor;
 
 public class Modifier extends Token {
 
-  public ArrayList<Token> children;
+  private Token modifier;
+
+  public Token getModifier() {
+    return modifier;
+  }
 
   public Modifier(ArrayList<Token> children) {
-    super("", TokenType.Modifier);
-    this.children = children;
+    super(children.get(0).getLexeme(), TokenType.Modifier);
+    modifier = children.get(0);
   }
 
   public void accept(Visitor v) {
-    for (Token token : children) {
-      token.accept(v);
-    }
     v.visit(this);
   }
 }

@@ -5,17 +5,28 @@ import visitor.Visitor;
 
 public class Modifiers extends Token {
 
-  public ArrayList<Token> children;
+  private ArrayList<Modifier> modifiers;
+
+  /**
+   * Gets the list of modifiers
+   */
+  public ArrayList<Modifier> getModifiers() {
+    return modifiers;
+  }
 
   public Modifiers(ArrayList<Token> children) {
     super("", TokenType.Modifiers);
-    this.children = children;
+    modifiers = new ArrayList<>();
+    if (children.get(0) instanceof Modifier) {
+      lexeme = children.get(0).getLexeme();
+      modifiers.add((Modifier) children.get(0));
+    } else {
+      Modifiers childModifiers = (Modifiers) children.get(0);
+     modifiers.addAll(childModifiers.modifiers);
+    }
   }
 
   public void accept(Visitor v) {
-    for (Token token : children) {
-      token.accept(v);
-    }
     v.visit(this);
   }
 }

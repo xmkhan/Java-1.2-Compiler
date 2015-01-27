@@ -83,7 +83,7 @@ public class Machine {
 
   private void performShift(Token token, Pair<MachineState.Action, Integer> actionPair) throws MachineException {
     if (actionPair == null || actionPair.getFirst() != MachineState.Action.SHIFT) {
-      return;
+      throw new MachineException("Expected a shift on token: " + token.getTokenType().toString());
     }
     tokens.push(token);
     states.push(machineStates.get(actionPair.getSecond()));

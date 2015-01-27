@@ -6,8 +6,8 @@ import visitor.Visitor;
  * Interface for implementing a tokenType for the Java ASTda.
  */
 public class Token {
-  private final String lexeme;
-  private final TokenType tokenType;
+  protected String lexeme;
+  protected TokenType tokenType;
 
   public Token(String lexeme, TokenType tokenType) {
     this.lexeme = lexeme;
