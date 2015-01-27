@@ -52,8 +52,6 @@ public interface Visitor {
 
   public void visit(ForStatement token);
 
-  public void visit(TypeDeclarations token);
-
   public void visit(ConditionalAndExpression token);
 
   public void visit(TypeImportOnDemandDeclaration token);
