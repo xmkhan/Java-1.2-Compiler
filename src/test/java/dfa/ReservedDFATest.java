@@ -67,6 +67,6 @@ public class ReservedDFATest {
   }
 
   private void assertEqualsTokenType(TokenType type, Token token) {
-    assertEquals(token.getTokenType(), type);
+    assertEquals(type, token.getTokenType());
   }
 }
