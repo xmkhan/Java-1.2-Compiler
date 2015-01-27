@@ -1,10 +1,14 @@
-package this.is.a.positive.test
+package is.a.positive.test;
 
 import java.util.HashMap;
 
 public static class PositiveTest {
-  private final int x = 123;
-  private static final String name = "PositiveTest";
+  final int x = 123;
+  static final String name = "PositiveTest";
+
+  public PositiveTest()
+  {
+  }
 
   public void randomMethodOne() {
     short test = 0;

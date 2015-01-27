@@ -34,19 +34,13 @@ BooleanLiteral false
 
 Program CompilationUnit EOF
 
-CompilationUnit PackageDeclaration
-CompilationUnit ImportDeclarations
-CompilationUnit TypeDeclarations
-CompilationUnit PackageDeclaration ImportDeclarations
-CompilationUnit PackageDeclaration TypeDeclarations
-CompilationUnit ImportDeclarations TypeDeclarations
-CompilationUnit PackageDeclaration ImportDeclarations TypeDeclarations
+CompilationUnit TypeDeclaration
+CompilationUnit PackageDeclaration TypeDeclaration
+CompilationUnit ImportDeclarations TypeDeclaration
+CompilationUnit PackageDeclaration ImportDeclarations TypeDeclaration
 
 ImportDeclarations ImportDeclaration
 ImportDeclarations ImportDeclarations ImportDeclaration
-
-TypeDeclarations TypeDeclaration
-TypeDeclarations TypeDeclarations TypeDeclaration
 
 PackageDeclaration package Name ;
 
@@ -57,8 +51,9 @@ SingleTypeImportDeclaration import Name ;
 TypeImportOnDemandDeclaration import Name . * ;
 
 TypeDeclaration ClassDeclaration
+TypeDeclaration ClassDeclaration ;
 TypeDeclaration InterfaceDeclaration
-TypeDeclaration ;
+TypeDeclaration InterfaceDeclaration ;
 
 Modifiers Modifier
 Modifiers Modifiers Modifier
