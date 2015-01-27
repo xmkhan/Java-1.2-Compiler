@@ -8,6 +8,7 @@ import token.TokenType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
@@ -65,6 +66,7 @@ public class Machine {
         rhs.add(tokens.pop());
         states.pop();
       }
+      Collections.reverse(rhs);
       // Use the 0th element as the reduction class.
       Token reducedToken;
       try {
@@ -72,7 +74,7 @@ public class Machine {
         reducedToken = lhsClass.getConstructor(ArrayList.class).newInstance(rhs);
       } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
           NoSuchMethodException | InvocationTargetException e) {
-        throw new MachineException(e.getMessage());
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
       }
       // Finally perform the transition using the reduced token.
       actionPair = states.peek().getTransition(reducedToken);
