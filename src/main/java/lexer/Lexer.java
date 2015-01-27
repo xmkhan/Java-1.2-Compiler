@@ -74,8 +74,17 @@ public class Lexer {
   public ArrayList<Token> parse(InputStreamReader inputStreamReader) throws IOException, LexerException {
     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
     ArrayList<Token> tokens = new ArrayList<>();
-    for (int input = bufferedReader.read(); input != -1; ) {
-      char c = (char) input;
+    char c;
+    boolean stop = false;
+
+    for (int input = bufferedReader.read(); !stop ; ) {
+      if (input == -1) {
+        c = '\n';
+        stop = true;
+      } else {
+        c = (char) input;
+      }
+
       if (!consumeDFAs(c)) {
         Token maxToken = getMaximalToken();
         if (maxToken != null && !isCommentToken(maxToken)) {
