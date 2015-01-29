@@ -48,6 +48,7 @@ public class ShiftReduceAlgorithmTest {
     for(File file : files.listFiles()) {
       try {
         algm.reset();
+        lexer.resetDFAs();
         testASTConstruction(file.getAbsolutePath());
       } catch (IOException e) {
         e.printStackTrace();
@@ -65,6 +66,7 @@ public class ShiftReduceAlgorithmTest {
     for(File file : files.listFiles()) {
       try {
         algm.reset();
+        lexer.resetDFAs();
         testASTConstruction(file.getAbsolutePath());
         assertTrue("Test " + file.getName() + " must fail due to invalid spec.", false);
       } catch (Lexer.LexerException | Machine.MachineException | VisitorException e) {

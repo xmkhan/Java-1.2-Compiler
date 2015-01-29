@@ -34,7 +34,7 @@ public class Lexer {
   /**
    * Resets all DFAs
    */
-  private void resetDFAs() {
+  public void resetDFAs() {
     for (DFA dfa : dfas) {
       dfa.reset();
     }
