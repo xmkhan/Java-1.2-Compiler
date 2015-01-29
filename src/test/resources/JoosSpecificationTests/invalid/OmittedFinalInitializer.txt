@@ -1,0 +1,6 @@
+public class OmittedFinalInitializer {
+    protected final int x /* = 0 */;
+
+    public OmittedFinalInitializer() {
+    }
+}

@@ -2,6 +2,7 @@ package token;
 
 import java.util.ArrayList;
 import visitor.Visitor;
+import visitor.VisitorException;
 
 public class InterfaceTypeList extends Token {
 
@@ -18,7 +19,7 @@ public class InterfaceTypeList extends Token {
     }
   }
 
-  public void accept(Visitor v) {
+  public void accept(Visitor v) throws VisitorException {
     v.visit(this);
   }
 }
