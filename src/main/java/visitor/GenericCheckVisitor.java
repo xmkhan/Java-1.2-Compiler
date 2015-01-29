@@ -17,9 +17,11 @@ public class GenericCheckVisitor extends BaseVisitor {
     super.visit(token);
 
     // Check for duplicate modifiers
-    Set<Modifier> uniqueSet = new HashSet<>(token.getModifiers());
-    if(uniqueSet.size() != token.getModifiers().size()) {
-      throw new VisitorException("Detected duplicate modifiers: " + Arrays.toString(token.getModifiers().toArray()));
+    if(token.getModifiers() != null) {
+      Set<Modifier> uniqueSet = new HashSet<>(token.getModifiers());
+      if(uniqueSet.size() != token.getModifiers().size()) {
+        throw new VisitorException("Detected duplicate modifiers: " + Arrays.toString(token.getModifiers().toArray()));
+      }
     }
   }
 
