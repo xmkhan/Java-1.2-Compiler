@@ -32,7 +32,7 @@ public class InterfaceDeclaration extends Token {
 
   public void accept(Visitor v) throws VisitorException {
     v.visit(interfaceBody);
-    v.visit(modifiers);
+    if (modifiers != null) v.visit(modifiers);
     v.visit(this);
   }
 }

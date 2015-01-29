@@ -13,7 +13,7 @@ public class Interfaces extends Token {
   }
 
   public void accept(Visitor v) throws VisitorException {
-    v.visit(interfaceTypeList);
+    if (interfaceTypeList != null) v.visit(interfaceTypeList);
     v.visit(this);
   }
 }
