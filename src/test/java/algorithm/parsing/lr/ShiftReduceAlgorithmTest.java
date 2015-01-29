@@ -46,7 +46,15 @@ public class ShiftReduceAlgorithmTest {
     File files = new File("src/test/resources/JoosSpecificationTests/valid/");
 
     for(File file : files.listFiles()) {
-      testASTConstruction(file.getAbsolutePath());
+      try {
+        algm.reset();
+        testASTConstruction(file.getAbsolutePath());
+      } catch (IOException e) {
+        e.printStackTrace();
+      } catch (Lexer.LexerException | Machine.MachineException | VisitorException e) {
+        e.printStackTrace();
+        System.err.println("Exception on file: " + file.getAbsolutePath());
+      }
     }
   }
 
@@ -56,6 +64,7 @@ public class ShiftReduceAlgorithmTest {
 
     for(File file : files.listFiles()) {
       try {
+        algm.reset();
         testASTConstruction(file.getAbsolutePath());
         assertTrue("Test " + file.getName() + " must fail due to invalid spec.", false);
       } catch (Lexer.LexerException | Machine.MachineException | VisitorException e) {

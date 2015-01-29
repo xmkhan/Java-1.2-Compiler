@@ -85,6 +85,10 @@ public class Lexer {
         c = (char) input;
       }
 
+      if (c < 0 || c >= 128) {
+        throw new LexerException("Out of ASCII range");
+      }
+
       if (!consumeDFAs(c)) {
         Token maxToken = getMaximalToken();
         if (maxToken != null && !isCommentToken(maxToken)) {

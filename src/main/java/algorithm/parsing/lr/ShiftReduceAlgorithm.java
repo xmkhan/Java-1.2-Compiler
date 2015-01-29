@@ -65,4 +65,8 @@ public class ShiftReduceAlgorithm {
     return machine.getResult();
   }
 
+  public void reset() {
+    machine.reset();
+  }
+
 }
