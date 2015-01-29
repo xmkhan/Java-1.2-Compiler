@@ -2,6 +2,7 @@ package token;
 
 import java.util.ArrayList;
 import visitor.Visitor;
+import visitor.VisitorException;
 
 public class Modifier extends Token {
 
@@ -16,7 +17,21 @@ public class Modifier extends Token {
     modifier = children.get(0);
   }
 
-  public void accept(Visitor v) {
+  public void accept(Visitor v) throws VisitorException {
     v.visit(this);
+  }
+
+  @Override
+  public int hashCode() {
+    return modifier.getTokenType().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if(obj == null || !(obj instanceof  Modifier)) {
+      return false;
+    }
+
+    return modifier.getTokenType().equals(((Modifier) obj).getTokenType());
   }
 }

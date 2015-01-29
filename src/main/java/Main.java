@@ -3,7 +3,9 @@ import algorithm.parsing.lr.machine.Machine;
 import lexer.Lexer;
 import token.CompilationUnit;
 import token.Token;
+import visitor.GenericCheckVisitor;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -24,6 +26,9 @@ public class Main {
 
       ArrayList<Token> tokens = lexer.parse(reader);
       CompilationUnit compilationUnit = shiftReduceAlgorithm.constructAST(tokens);
+
+      compilationUnit.accept(new GenericCheckVisitor(new File(args[1]).getName()));
+
     } catch (Exception e) {
       System.exit(42);
     }

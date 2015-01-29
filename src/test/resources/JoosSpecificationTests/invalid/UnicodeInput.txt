@@ -1,0 +1,6 @@
+public class UnicodeInput {
+      final String x = "ᚪᚾᛁᛣᚩᛞᛖ";
+
+      public UnicodeInput() {
+      }
+}
