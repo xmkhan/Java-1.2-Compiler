@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class CommentDFATest {
   private CommentDFA dfa;
-  private char[] delimiters = {'\n', '\r', '\t'};
+  private char[] delimiters = {'\n', '\r'};
 
   @Before
   public void setUp() {
