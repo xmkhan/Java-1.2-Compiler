@@ -1,0 +1,7 @@
+class MultipleType {
+      protected int x;
+}
+
+class MultipleTypeB {
+      protected int y;
+}

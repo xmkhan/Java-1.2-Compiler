@@ -1,0 +1,6 @@
+public class StaticField {
+    public StaticField() {
+    }
+
+      protected static int x;
+}
