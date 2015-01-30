@@ -1,18 +1,19 @@
 package algorithm.parsing.lr;
 
 import algorithm.parsing.lr.machine.Machine;
-import junit.framework.Assert;
 import lexer.Lexer;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import sun.reflect.generics.visitor.Visitor;
 import token.CompilationUnit;
 import token.Token;
 import visitor.GenericCheckVisitor;
 import visitor.VisitorException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertFalse;
@@ -27,7 +28,7 @@ public class ShiftReduceAlgorithmTest {
 
   @Before
   public void setUp() throws FileNotFoundException, IOException, Machine.MachineException {
-    lexer =  new Lexer();
+    lexer = new Lexer();
     algm = new ShiftReduceAlgorithm(new InputStreamReader(new FileInputStream(ShiftReduceAlgorithm.DEFAULT_LR1_FILE)));
   }
 
@@ -45,14 +46,20 @@ public class ShiftReduceAlgorithmTest {
   public void testValidJoosSpecification() throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
     File files = new File("src/test/resources/JoosSpecificationTests/valid/");
 
-    for(File file : files.listFiles()) {
+    for (File file : files.listFiles()) {
       try {
         algm.reset();
         lexer.resetDFAs();
         testASTConstruction(file.getAbsolutePath());
       } catch (IOException e) {
         e.printStackTrace();
-      } catch (Lexer.LexerException | Machine.MachineException | VisitorException e) {
+      } catch (Lexer.LexerException e) {
+        e.printStackTrace();
+        System.err.println("Exception on file: " + file.getAbsolutePath());
+      } catch (Machine.MachineException e) {
+        e.printStackTrace();
+        System.err.println("Exception on file: " + file.getAbsolutePath());
+      } catch (VisitorException e) {
         e.printStackTrace();
         System.err.println("Exception on file: " + file.getAbsolutePath());
       }
@@ -63,13 +70,15 @@ public class ShiftReduceAlgorithmTest {
   public void testInvalidJoosSpecification() throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
     File files = new File("src/test/resources/JoosSpecificationTests/invalid/");
 
-    for(File file : files.listFiles()) {
+    for (File file : files.listFiles()) {
       try {
         algm.reset();
         lexer.resetDFAs();
         testASTConstruction(file.getAbsolutePath());
         assertTrue("Test " + file.getName() + " must fail due to invalid spec.", false);
-      } catch (Lexer.LexerException | Machine.MachineException | VisitorException e) {
+      } catch (Lexer.LexerException e) {
+      } catch (Machine.MachineException e) {
+      } catch (VisitorException e) {
       }
     }
   }

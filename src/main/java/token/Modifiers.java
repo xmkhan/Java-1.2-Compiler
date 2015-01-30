@@ -17,7 +17,7 @@ public class Modifiers extends Token {
 
   public Modifiers(ArrayList<Token> children) {
     super("", TokenType.Modifiers);
-    modifiers = new ArrayList<>();
+    modifiers = new ArrayList<Modifier>();
     if (children.get(0) instanceof Modifier) {
       lexeme = children.get(0).getLexeme();
       modifiers.add((Modifier) children.get(0));

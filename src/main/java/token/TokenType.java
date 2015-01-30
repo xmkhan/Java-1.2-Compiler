@@ -210,7 +210,7 @@ public enum TokenType {
   public static TokenType getTokenType(String name) {
     if (reverseTokenTypeMap == null) {
       int size = TokenType.NOT_USED.ordinal();
-      reverseTokenTypeMap = new HashMap<>(size);
+      reverseTokenTypeMap = new HashMap<String, TokenType>(size);
       for (int i = 0; i < size; ++i) {
         TokenType token = TokenType.values()[i];
         reverseTokenTypeMap.put(token.toString(), token);

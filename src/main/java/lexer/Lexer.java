@@ -27,7 +27,7 @@ public class Lexer {
   public Lexer() {
     // The ordering is preserved by precedence, so that equal length maximal tokens takes the first occurrence.
     dfas = new DFA[] {new CommentDFA(), new ReservedDFA(), new LiteralDFA(), new NumericDFA(), new IdentifierDFA()};
-    skipSet = new HashSet<>(Arrays.asList(new Character[] {'\n', '\r', ' ', '\t', '\f'}));
+    skipSet = new HashSet<Character>(Arrays.asList(new Character[] {'\n', '\r', ' ', '\t', '\f'}));
     resetDFAs();
   }
 
@@ -73,7 +73,7 @@ public class Lexer {
    */
   public ArrayList<Token> parse(InputStreamReader inputStreamReader) throws IOException, LexerException {
     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-    ArrayList<Token> tokens = new ArrayList<>();
+    ArrayList<Token> tokens = new ArrayList<Token>();
     char c;
     boolean stop = false;
 

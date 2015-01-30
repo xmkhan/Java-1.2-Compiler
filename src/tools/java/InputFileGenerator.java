@@ -7,8 +7,8 @@ public class InputFileGenerator
 {
   public static void main(String[] args) throws IOException {
     BufferedReader reader = new BufferedReader(new FileReader(new File(args[0])));
-    Set<String> terminals = new HashSet<>(), nonTerminals = new HashSet<>();
-    ArrayList<String> productionRules = new ArrayList<>();
+    Set<String> terminals = new HashSet<String>(), nonTerminals = new HashSet<String>();
+    ArrayList<String> productionRules = new ArrayList<String>();
 
     // Go through each line and determine the terminals and non terminals
     String line;

@@ -18,7 +18,7 @@ public class MachineState {
 
   public MachineState(int stateId) {
     this.stateId = stateId;
-    transitions = new HashMap<>();
+    transitions = new HashMap<String, Pair<Action, Integer>>();
   }
 
   public int getStateId() {
@@ -26,7 +26,7 @@ public class MachineState {
   }
 
   public void addTransition(String token, Action action, Integer stateOrRule) {
-    transitions.put(token, new Pair<>(action, stateOrRule));
+    transitions.put(token, new Pair<Action, Integer>(action, stateOrRule));
   }
 
   public Pair<Action, Integer> getTransition(Token token) {
