@@ -9,7 +9,7 @@ public class GenericCheckVisitor extends BaseVisitor {
   private String fileName;
 
   public GenericCheckVisitor(String fileName) {
-    this.fileName = fileName;
+    this.fileName = fileName.replaceFirst("[.][^.]+$", "");
   }
 
   @Override
