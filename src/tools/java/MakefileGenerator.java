@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 /**
@@ -43,7 +42,7 @@ public class MakefileGenerator {
   public static void writeMakefile(ArrayList<String> files) throws IOException {
     PrintWriter writer = new PrintWriter(new FileWriter(new File("Makefile")));
 
-    writer.println("JFLAGS = -cp");
+    writer.println("JFLAGS = -J-Xmx256M -cp");
     writer.println("JC = javac");
     writer.println("CLASSPATH = src/main/java:.");
     writer.println(".SUFFIXES: .java .class");
@@ -57,7 +56,7 @@ public class MakefileGenerator {
       writer.println("  " + files.get(files.size() - 1));
     }
 
-    writer.println("default: classesdir classes");
+    writer.println("default: clean classesdir classes");
     writer.println("classes: $(CLASSES:.java=.class)");
     writer.println("classesdir:");
     writer.println("\tmkdir classes");

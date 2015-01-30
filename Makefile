@@ -1,4 +1,4 @@
-JFLAGS = -cp
+JFLAGS = -J-Xmx256M -cp
 JC = javac
 CLASSPATH = src/main/java:.
 .SUFFIXES: .java .class
@@ -108,14 +108,16 @@ CLASSES = \
   src/main/java/token/WhileStatement.java \
   src/main/java/token/WhileStatementNoShortIf.java \
   src/main/java/visitor/BaseVisitor.java \
+  src/main/java/visitor/GenericCheckVisitor.java \
   src/main/java/visitor/Visitee.java \
   src/main/java/visitor/Visitor.java \
+  src/main/java/visitor/VisitorException.java \
   src/main/java/algorithm/base/Pair.java \
   src/main/java/algorithm/trie/Trie.java \
   src/main/java/algorithm/parsing/lr/ShiftReduceAlgorithm.java \
   src/main/java/algorithm/parsing/lr/machine/Machine.java \
   src/main/java/algorithm/parsing/lr/machine/MachineState.java
-default: classesdir classes
+default: clean classesdir classes
 classes: $(CLASSES:.java=.class)
 classesdir:
 	mkdir classes
