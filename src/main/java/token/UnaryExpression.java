@@ -12,7 +12,7 @@ public class UnaryExpression extends Token {
 
   public UnaryExpression(ArrayList<Token> children) {
     super("", TokenType.UnaryExpression);
-    if (children.size()  == 2) {
+    if (children.size() == 2) {
       minus = children.get(0);
       exp = (UnaryExpression) children.get(1);
     } else {

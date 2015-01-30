@@ -8,15 +8,14 @@ public class BooleanLiteral extends Token {
 
   public ArrayList<Token> children;
 
+  public Boolean value;
+
   public BooleanLiteral(ArrayList<Token> children) {
     super(children.get(0).getLexeme(), TokenType.BooleanLiteral);
-    this.children = children;
+    value = Boolean.valueOf(lexeme);
   }
 
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : children) {
-      token.accept(v);
-    }
     v.visit(this);
   }
 }
