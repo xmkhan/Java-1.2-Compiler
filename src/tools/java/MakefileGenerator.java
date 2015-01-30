@@ -43,7 +43,7 @@ public class MakefileGenerator {
   public static void writeMakefile(ArrayList<String> files) throws IOException {
     PrintWriter writer = new PrintWriter(new FileWriter(new File("Makefile")));
 
-    writer.println("JFLAGS = -g -cp");
+    writer.println("JFLAGS = -g");
     writer.println("JC = javac");
     writer.println("CLASSPATH = .");
     writer.println(".SUFFIXES: .java .class");
