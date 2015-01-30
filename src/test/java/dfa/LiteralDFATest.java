@@ -208,4 +208,18 @@ public class LiteralDFATest {
     dfa.consume('7');
     assertEquals(false, dfa.consume('\''));
   }
+
+  @Test
+  public void testEscapeMulti() {
+    String literal = "\"\\\\b\"";
+
+    for (char c : literal.toCharArray()) {
+      dfa.consume(c);
+    }
+    dfa.consume('\n');
+
+    Token result = dfa.getToken();
+    assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+    assertEquals(result.getLexeme(), "\"\\\\b\"");
+  }
 }

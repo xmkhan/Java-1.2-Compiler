@@ -1,1 +1,1 @@
-java -cp classes Main $@
+java -Xmx256M -cp classes Main $@

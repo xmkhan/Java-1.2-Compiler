@@ -127,4 +127,18 @@ public class NumericDFATest {
     assertEquals(TokenType.INT_LITERAL, result.getTokenType());
     assertEquals("1234", result.getLexeme());
   }
+
+  @Test
+  public void testInvalidNegativeLarge() {
+    String javaString = "2147483648";
+
+    for (char c : javaString.toCharArray()) {
+      dfa.consume(c);
+    }
+    dfa.consume('\n');
+
+    Token result = dfa.getToken();
+    assertEquals(TokenType.INT_LITERAL, result.getTokenType());
+    assertEquals("2147483648", result.getLexeme());
+  }
 }

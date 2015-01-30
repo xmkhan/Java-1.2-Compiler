@@ -10,6 +10,8 @@ public static class PositiveTest {
   {
   }
 
+  public abstract void test();
+
   public void randomMethodOne() {
     short test = 0;
     /** Let's add a random for-loop */
