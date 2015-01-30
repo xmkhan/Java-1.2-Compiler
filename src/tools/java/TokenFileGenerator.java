@@ -85,7 +85,7 @@ public class TokenFileGenerator {
 
   public static void main(String[] args) throws IOException {
     BufferedReader reader = new BufferedReader(new FileReader(new File(args[0])));
-    Set<String> terminals = new HashSet<>(), nonTerminals = new HashSet<>();
+    Set<String> terminals = new HashSet<String>(), nonTerminals = new HashSet<String>();
 
     int numTerminals = Integer.parseInt(reader.readLine());
     for(int a = 0; a < numTerminals; a++) {
@@ -101,7 +101,7 @@ public class TokenFileGenerator {
 
     String directoryPath = "./"; //new File(args[0]).getParent();
 
-    HashSet<String> toGenerate = new HashSet<>();
+    HashSet<String> toGenerate = new HashSet<String>();
     toGenerate.addAll(nonTerminals);
     for(String terminal : terminals) {
       if(terminal.endsWith("Literal")) {

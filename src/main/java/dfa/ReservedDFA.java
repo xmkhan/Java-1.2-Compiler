@@ -23,7 +23,7 @@ public class ReservedDFA implements DFA {
 
   public ReservedDFA() {
     trie = new Trie();
-    reverseTokenTypeMap = new HashMap<>(TokenType.RESERVED_LENGTH.ordinal());
+    reverseTokenTypeMap = new HashMap<String, TokenType>(TokenType.RESERVED_LENGTH.ordinal());
     addReservedKeywords();
     reset();
   }

@@ -22,8 +22,8 @@ public class MakefileGenerator {
   }
 
   private static ArrayList<String> getAllFiles() {
-    ArrayList<String> fileNames = new ArrayList<>();
-    Queue<File> dirs = new LinkedList<>();
+    ArrayList<String> fileNames = new ArrayList<String>();
+    Queue<File> dirs = new LinkedList<File>();
     File baseDirectory = new File("src/main/java/");
     dirs.add(baseDirectory);
     while (!dirs.isEmpty()) {

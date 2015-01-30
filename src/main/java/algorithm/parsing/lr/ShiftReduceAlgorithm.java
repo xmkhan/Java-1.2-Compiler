@@ -36,9 +36,9 @@ public class ShiftReduceAlgorithm {
 
     // 3. Production rules
     Integer numProductionRules = Integer.valueOf(bufferedReader.readLine());
-    List<List<String>> productionRules = new ArrayList<>(numProductionRules);
+    List<List<String>> productionRules = new ArrayList<List<String>>(numProductionRules);
     for (int i = 0; i < numProductionRules; ++i) {
-      List<String> rule = new ArrayList<>();
+      List<String> rule = new ArrayList<String>();
       rule.addAll(Arrays.asList(bufferedReader.readLine().split(" ")));
       productionRules.add(rule);
     }

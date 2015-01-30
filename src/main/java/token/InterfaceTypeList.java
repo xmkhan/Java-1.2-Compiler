@@ -10,7 +10,7 @@ public class InterfaceTypeList extends Token {
 
   public InterfaceTypeList(ArrayList<Token> children) {
     super("", TokenType.InterfaceTypeList);
-    types = new ArrayList<>();
+    types = new ArrayList<InterfaceType>();
     if (children.get(0) instanceof InterfaceTypeList) {
       InterfaceTypeList childList = (InterfaceTypeList) children.get(0);
       types.addAll(childList.types);

@@ -24,7 +24,7 @@ public class Machine {
 
 
   public Machine(int size) {
-    machineStates = new ArrayList<>(size);
+    machineStates = new ArrayList<MachineState>(size);
     for (int i = 0; i < size; ++i) {
       machineStates.add(new MachineState(i));
     }
@@ -57,7 +57,7 @@ public class Machine {
       List<String> productionRule = productionRules.get(actionPair.getSecond());
 
       // Check in reverse because a stack is an reverse insertion order.
-      List<Token> rhs = new ArrayList<>();
+      List<Token> rhs = new ArrayList<Token>();
       for (int i = productionRule.size() - 1; i > 0; --i) {
         if (!tokens.peek().getTokenType().toString().equals(productionRule.get(i))) {
           throw new MachineException("Parse error on token: " + tokens.peek().getTokenType().toString() +
@@ -72,8 +72,15 @@ public class Machine {
       try {
         Class<? extends Token> lhsClass = Class.forName("token." + productionRule.get(0)).asSubclass(Token.class);
         reducedToken = lhsClass.getConstructor(ArrayList.class).newInstance(rhs);
-      } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
-          NoSuchMethodException | InvocationTargetException e) {
+      } catch (InstantiationException e) {
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
+      } catch (IllegalAccessException e) {
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
+      } catch (ClassNotFoundException e) {
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
+      } catch (NoSuchMethodException e) {
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
+      } catch (InvocationTargetException e) {
         throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
       }
       // Finally perform the transition using the reduced token.
@@ -99,8 +106,8 @@ public class Machine {
   }
 
   public void reset() {
-    tokens = new Stack<>();
-    states = new Stack<>();
+    tokens = new Stack<Token>();
+    states = new Stack<MachineState>();
     states.push(machineStates.get(0));
   }
 
