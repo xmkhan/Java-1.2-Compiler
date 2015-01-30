@@ -18,7 +18,7 @@ public class Main {
 
   public static void main(String[] args) {
     try {
-      InputStreamReader reader = new InputStreamReader(new FileInputStream(args[1]), "US-ASCII");
+      InputStreamReader reader = new InputStreamReader(new FileInputStream(args[0]), "US-ASCII");
       InputStreamReader lr1Reader = new InputStreamReader(new FileInputStream(ShiftReduceAlgorithm.DEFAULT_LR1_FILE));
 
       Lexer lexer = new Lexer();
@@ -27,7 +27,7 @@ public class Main {
       ArrayList<Token> tokens = lexer.parse(reader);
       CompilationUnit compilationUnit = shiftReduceAlgorithm.constructAST(tokens);
 
-      compilationUnit.accept(new GenericCheckVisitor(new File(args[1]).getName()));
+      compilationUnit.accept(new GenericCheckVisitor(new File(args[0]).getName()));
 
     } catch (Exception e) {
       System.exit(42);
