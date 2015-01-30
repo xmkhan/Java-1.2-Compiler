@@ -2,6 +2,7 @@ package token;
 
 import java.util.ArrayList;
 import visitor.Visitor;
+import visitor.VisitorException;
 
 public class MethodHeader extends Token {
 
@@ -33,7 +34,7 @@ public class MethodHeader extends Token {
     return voidType != null;
   }
 
-  public void accept(Visitor v) {
+  public void accept(Visitor v) throws VisitorException {
     v.visit(methodDeclarator);
     v.visit(modifiers);
     v.visit(this);

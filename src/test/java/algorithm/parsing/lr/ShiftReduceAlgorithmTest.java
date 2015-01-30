@@ -6,16 +6,18 @@ import lexer.Lexer;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import sun.reflect.generics.visitor.Visitor;
 import token.CompilationUnit;
 import token.Token;
+import visitor.GenericCheckVisitor;
+import visitor.VisitorException;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests the basic functionality of the Shift-Reduce algorithm implementation
  */
@@ -30,19 +32,46 @@ public class ShiftReduceAlgorithmTest {
   }
 
   @Test
-  public void testASTInput1() throws IOException, Lexer.LexerException, Machine.MachineException {
-    testASTConstruction("src/test/resources/ast_input1");
+  public void testASTInput1() throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
+    testASTConstruction("src/test/resources/ast_input1", "PositiveTest");
   }
 
   @Test
-  public void testASTInput2() throws IOException, Lexer.LexerException, Machine.MachineException {
-    testASTConstruction("src/test/resources/ast_input2");
+  public void testASTInput2() throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
+    testASTConstruction("src/test/resources/ast_input2", "A");
   }
 
-  private void testASTConstruction(String inputFile) throws IOException, Lexer.LexerException, Machine.MachineException {
-    ArrayList<Token> tokens = lexer.parse(new InputStreamReader(new FileInputStream(inputFile)));
+  @Test
+  public void testValidJoosSpecification() throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
+    File files = new File("src/test/resources/JoosSpecificationTests/valid/");
+
+    for(File file : files.listFiles()) {
+      testASTConstruction(file.getAbsolutePath());
+    }
+  }
+
+  @Test
+  public void testInvalidJoosSpecification() throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
+    File files = new File("src/test/resources/JoosSpecificationTests/invalid/");
+
+    for(File file : files.listFiles()) {
+      try {
+        testASTConstruction(file.getAbsolutePath());
+        assertTrue("Test " + file.getName() + " must fail due to invalid spec.", false);
+      } catch (Lexer.LexerException | Machine.MachineException | VisitorException e) {
+      }
+    }
+  }
+
+  private void testASTConstruction(String inputFile) throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
+    testASTConstruction(inputFile, new File(inputFile).getName().replaceFirst("[.][^.]+$", ""));
+
+  }
+
+  private void testASTConstruction(String inputFile, String className) throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
+    ArrayList<Token> tokens = lexer.parse(new InputStreamReader(new FileInputStream(inputFile), "US-ASCII"));
     CompilationUnit unit = algm.constructAST(tokens);
     assertFalse(unit == null);
-
+    unit.accept(new GenericCheckVisitor(className));
   }
 }

@@ -1,0 +1,6 @@
+public class Static {
+      public Static() {}
+        public static int m() {
+                return 42;
+                  }
+}
