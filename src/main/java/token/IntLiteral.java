@@ -9,7 +9,7 @@ public class IntLiteral extends Token {
   public ArrayList<Token> children;
 
   public IntLiteral(ArrayList<Token> children) {
-    super("", TokenType.INT_LITERAL);
+    super(children.get(0).getLexeme(), TokenType.INT_LITERAL);
     this.children = children;
   }
 

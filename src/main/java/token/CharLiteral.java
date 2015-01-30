@@ -9,7 +9,7 @@ public class CharLiteral extends Token {
   public ArrayList<Token> children;
 
   public CharLiteral(ArrayList<Token> children) {
-    super("", TokenType.CHAR_LITERAL);
+    super(children.get(0).getLexeme(), TokenType.CHAR_LITERAL);
     this.children = children;
   }
 

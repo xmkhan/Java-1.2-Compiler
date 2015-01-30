@@ -9,7 +9,7 @@ public class BooleanLiteral extends Token {
   public ArrayList<Token> children;
 
   public BooleanLiteral(ArrayList<Token> children) {
-    super("", TokenType.BooleanLiteral);
+    super(children.get(0).getLexeme(), TokenType.BooleanLiteral);
     this.children = children;
   }
 
