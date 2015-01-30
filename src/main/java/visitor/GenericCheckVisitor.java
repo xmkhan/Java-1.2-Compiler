@@ -110,8 +110,8 @@ public class GenericCheckVisitor extends BaseVisitor {
     HashSet<TokenType> modifierTypes = getModifierTypesAsSet(token.methodHeader.modifiers);
 
     // Check for method has a body if and only if it is neither abstract nor native.
-    if((token.methodBody == null && !modifierTypes.contains(TokenType.ABSTRACT) && !modifierTypes.contains(TokenType.NATIVE))
-            || (token.methodBody != null && (modifierTypes.contains(TokenType.ABSTRACT) || modifierTypes.contains(TokenType.NATIVE)))) {
+    if((token.methodBody.isEmpty() && !modifierTypes.contains(TokenType.ABSTRACT) && !modifierTypes.contains(TokenType.NATIVE))
+            || (!token.methodBody.isEmpty() && (modifierTypes.contains(TokenType.ABSTRACT) || modifierTypes.contains(TokenType.NATIVE)))) {
       throw new VisitorException("Method " + token.methodHeader.methodDeclarator.getLexeme() +
               " has a body and is abstract or native or doesn't have a body and is not abstract nor native.");
     }

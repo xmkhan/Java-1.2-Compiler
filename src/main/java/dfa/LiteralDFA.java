@@ -30,7 +30,7 @@ public class LiteralDFA implements DFA {
   Set<Character> escapeCharacters;
 
   public LiteralDFA() {
-    escapeCharacters = new HashSet<Character>(Arrays.asList('b', 't', 'n', 'f', 'r', '\'', '"'));
+    escapeCharacters = new HashSet<Character>(Arrays.asList('b', 't', 'n', 'f', 'r', '\'', '"', '\\'));
     reset();
   }
 
@@ -70,7 +70,8 @@ public class LiteralDFA implements DFA {
         if (c == '\\') {
           builder.append(c);
           state = states.ESCAPE;
-        } else if (c <= MAX_ASCII && c != '\'' && c != '"') {
+        } else if (c <= MAX_ASCII && ((literalType == LiteralType.SINGLE_QUOTE && c != '\'') ||
+                (literalType == LiteralType.DOUBLE_QUOTE && c != '"'))) {
           // keep the same state
           builder.append(c);
           length++;

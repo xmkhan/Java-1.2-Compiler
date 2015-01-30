@@ -74,6 +74,14 @@ public class CommentDFATest {
     assertEqualsToken(dfa.getToken(), TokenType.COMMENT_STAR, "/* this is a comment */");
   }
 
+  @Test
+  public void testSlashStarMultilineEndingWithStarComment() {
+    String comment = "/** \n this is a comment.\n **/";
+    consumeString(comment);
+    assertEqualsToken(dfa.getToken(), TokenType.COMMENT_STAR, comment);
+  }
+
+
   private void consumeString(String comment) {
     for (char c : comment.toCharArray()) {
       dfa.consume(c);

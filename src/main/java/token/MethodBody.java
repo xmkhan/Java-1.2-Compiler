@@ -13,6 +13,10 @@ public class MethodBody extends Token {
     this.children = children;
   }
 
+  public boolean isEmpty() {
+    return children.get(0).getTokenType() == TokenType.SEMI_COLON;
+  }
+
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {
       token.accept(v);

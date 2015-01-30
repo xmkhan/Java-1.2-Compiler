@@ -71,7 +71,9 @@ public class CommentDFA implements DFA {
         if (c == '/') {
           comment_type = TokenType.COMMENT_STAR;
           state = state.ACCEPT;
-        } else state = state.SLASH_STAR;
+        } else if(c != '*') {
+          state = state.SLASH_STAR;
+        }
         builder.append(c);
         break;
       case ACCEPT:
