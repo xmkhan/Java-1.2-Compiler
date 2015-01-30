@@ -2,6 +2,7 @@ package token;
 
 import java.util.ArrayList;
 import visitor.Visitor;
+import visitor.VisitorException;
 
 public class InterfaceDeclaration extends Token {
 
@@ -29,8 +30,8 @@ public class InterfaceDeclaration extends Token {
     }
   }
 
-  public void accept(Visitor v) {
-    v.visit(interfaceBody);
+  public void accept(Visitor v) throws VisitorException {
+    interfaceBody.accept(v);
     v.visit(modifiers);
     v.visit(this);
   }

@@ -2,6 +2,7 @@ package token;
 
 import java.util.ArrayList;
 import visitor.Visitor;
+import visitor.VisitorException;
 
 public class Modifiers extends Token {
 
@@ -22,11 +23,12 @@ public class Modifiers extends Token {
       modifiers.add((Modifier) children.get(0));
     } else {
       Modifiers childModifiers = (Modifiers) children.get(0);
-     modifiers.addAll(childModifiers.modifiers);
+      modifiers.addAll(childModifiers.modifiers);
+      modifiers.add((Modifier) children.get(1));
     }
   }
 
-  public void accept(Visitor v) {
+  public void accept(Visitor v) throws VisitorException {
     v.visit(this);
   }
 }

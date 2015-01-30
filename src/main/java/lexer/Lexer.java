@@ -34,7 +34,7 @@ public class Lexer {
   /**
    * Resets all DFAs
    */
-  private void resetDFAs() {
+  public void resetDFAs() {
     for (DFA dfa : dfas) {
       dfa.reset();
     }
@@ -83,6 +83,10 @@ public class Lexer {
         stop = true;
       } else {
         c = (char) input;
+      }
+
+      if (c < 0 || c >= 128) {
+        throw new LexerException("Out of ASCII range");
       }
 
       if (!consumeDFAs(c)) {

@@ -2,6 +2,7 @@ package token;
 
 import java.util.ArrayList;
 import visitor.Visitor;
+import visitor.VisitorException;
 
 public class FieldDeclaration extends Token {
 
@@ -26,8 +27,8 @@ public class FieldDeclaration extends Token {
     }
   }
 
-  public void accept(Visitor v) {
-    v.visit(variableDeclarator);
+  public void accept(Visitor v) throws VisitorException {
+    variableDeclarator.accept(v);
     v.visit(modifiers);
     v.visit(this);
   }

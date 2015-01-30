@@ -2,6 +2,7 @@ package token;
 
 import java.util.ArrayList;
 import visitor.Visitor;
+import visitor.VisitorException;
 
 public class MethodDeclaration extends Token {
 
@@ -14,9 +15,9 @@ public class MethodDeclaration extends Token {
     methodBody = (MethodBody) children.get(1);
   }
 
-  public void accept(Visitor v) {
-    v.visit(methodHeader);
-    v.visit(methodBody);
+  public void accept(Visitor v) throws VisitorException {
+    methodHeader.accept(v);
+    methodBody.accept(v);
     v.visit(this);
   }
 }

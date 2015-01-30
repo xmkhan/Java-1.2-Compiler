@@ -3,8 +3,8 @@ package is.a.positive.test;
 import java.util.HashMap;
 
 public static class PositiveTest {
-  final int x = 123;
-  static final String name = "PositiveTest";
+  public int x = 123;
+  public static String name = "PositiveTest";
 
   public PositiveTest()
   {

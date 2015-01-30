@@ -2,20 +2,19 @@ package token;
 
 import java.util.ArrayList;
 import visitor.Visitor;
+import visitor.VisitorException;
 
 public class AbstractMethodDeclaration extends Token {
 
-  public ArrayList<Token> children;
+  public MethodHeader methodHeader;
 
   public AbstractMethodDeclaration(ArrayList<Token> children) {
     super("", TokenType.AbstractMethodDeclaration);
-    this.children = children;
+    methodHeader = (MethodHeader) children.get(0);
   }
 
-  public void accept(Visitor v) {
-    for (Token token : children) {
-      token.accept(v);
-    }
+  public void accept(Visitor v) throws VisitorException {
+    methodHeader.accept(v);
     v.visit(this);
   }
 }

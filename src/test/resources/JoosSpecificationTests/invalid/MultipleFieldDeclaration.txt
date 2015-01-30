@@ -1,0 +1,4 @@
+public class MultipleFieldDeclaration {
+        public MultipleFieldDeclaration() {}
+        public MultipleFieldDeclaration a, b;
+}
