@@ -43,12 +43,12 @@ public class MakefileGenerator {
   public static void writeMakefile(ArrayList<String> files) throws IOException {
     PrintWriter writer = new PrintWriter(new FileWriter(new File("Makefile")));
 
-    writer.println("JFLAGS = -g");
+    writer.println("JFLAGS = -cp");
     writer.println("JC = javac");
-    writer.println("CLASSPATH = .");
+    writer.println("CLASSPATH = src/main/java:.");
     writer.println(".SUFFIXES: .java .class");
     writer.println(".java.class:");
-    writer.println("\t$(JC) $(JFLAGS) $*.java");
+    writer.println("\t$(JC) $(JFLAGS) src/main/java:. -d classes/ $*.java");
     writer.println("CLASSES = \\");
     for (int i = 0; i < files.size() - 1; ++i) {
       writer.println("  " + files.get(i) + " \\");
@@ -57,10 +57,12 @@ public class MakefileGenerator {
       writer.println("  " + files.get(files.size() - 1));
     }
 
-    writer.println("default: classes");
+    writer.println("default: classesdir classes");
     writer.println("classes: $(CLASSES:.java=.class)");
+    writer.println("classesdir:");
+    writer.println("\tmkdir classes");
     writer.println("clean:");
-    writer.println("\t$(RM) *.class");
+    writer.println("\trm -rf *.class classes");
     writer.close();
   }
 

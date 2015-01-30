@@ -1,9 +1,9 @@
-JFLAGS = -g
+JFLAGS = -cp
 JC = javac
-CLASSPATH = .
+CLASSPATH = src/main/java:.
 .SUFFIXES: .java .class
 .java.class:
-	$(JC) $(JFLAGS) $*.java
+	$(JC) $(JFLAGS) src/main/java:. -d classes/ $*.java
 CLASSES = \
   src/main/java/Main.java \
   src/main/java/dfa/CommentDFA.java \
@@ -115,7 +115,9 @@ CLASSES = \
   src/main/java/algorithm/parsing/lr/ShiftReduceAlgorithm.java \
   src/main/java/algorithm/parsing/lr/machine/Machine.java \
   src/main/java/algorithm/parsing/lr/machine/MachineState.java
-default: classes
+default: classesdir classes
 classes: $(CLASSES:.java=.class)
+classesdir:
+	mkdir classes
 clean:
-	$(RM) *.class
+	rm -rf *.class classes
