@@ -34,8 +34,8 @@ public class ClassDeclaration extends Token {
   }
 
   public void accept(Visitor v) throws VisitorException {
-    v.visit(classBody);
-    if (modifiers != null) v.visit(modifiers);
+    classBody.accept(v);
+    v.visit(modifiers);
     v.visit(this);
   }
 }

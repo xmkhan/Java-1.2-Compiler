@@ -16,16 +16,26 @@ public class GenericCheckVisitor extends BaseVisitor {
   public void visit(Modifiers token) throws VisitorException{
     super.visit(token);
 
+    // Check for atleast one modifier as we do not support package private
+    // TODO: Convert to rule check
+    if(token == null) {
+      throw new VisitorException("Detected package private declaration");
+    }
+
     // Check for duplicate modifiers
-    if(token.getModifiers() != null) {
-      Set<Modifier> uniqueSet = new HashSet<>(token.getModifiers());
-      if(uniqueSet.size() != token.getModifiers().size()) {
-        throw new VisitorException("Detected duplicate modifiers: " + Arrays.toString(token.getModifiers().toArray()));
-      }
+    Set<Modifier> uniqueSet = new HashSet<>(token.getModifiers());
+    if(uniqueSet.size() != token.getModifiers().size()) {
+      throw new VisitorException("Detected duplicate modifiers: " + Arrays.toString(token.getModifiers().toArray()));
+    }
+
+    // Check for if all fields, function, classes are at least public or protected
+    HashSet<TokenType> modifierTypes = getModifierTypesAsSet(token);
+    if(!modifierTypes.contains(TokenType.PUBLIC) && !modifierTypes.contains(TokenType.PROTECTED)) {
+      throw new VisitorException("Detected package private declaration");
     }
   }
 
-  @Override
+   @Override
   public void visit(ClassBody token) throws VisitorException {
     super.visit(token);
 
@@ -39,7 +49,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     }
 
     if(!hasConstructor) {
-      throw new VisitorException("Class requires atleast 1 constructor");
+      throw new VisitorException("Class requires at least 1 constructor");
     }
   }
 
@@ -58,6 +68,11 @@ public class GenericCheckVisitor extends BaseVisitor {
     if(modifierTypes.contains(TokenType.ABSTRACT) && modifierTypes.contains(TokenType.FINAL)) {
       throw new VisitorException("Class " + token.identifier.getLexeme() + " can not be both Abstract and Final");
     }
+
+    // Check for if class is declared as public as private classes and protected classes are not allowed
+    if(!modifierTypes.contains(TokenType.PUBLIC)) {
+      throw new VisitorException("Class " + token.identifier.getLexeme() + " needs to be declared public.");
+    }
   }
 
   @Override
@@ -67,6 +82,12 @@ public class GenericCheckVisitor extends BaseVisitor {
     // Check class has same identifier as file name
     if(!token.identifier.getLexeme().equals(fileName)) {
       throw new VisitorException("Expected Interface " + fileName + " but found Interface " + token.identifier.getLexeme());
+    }
+
+    // Check for if class is declared as public as private classes and protected classes are not allowed
+    HashSet<TokenType> modifierTypes = getModifierTypesAsSet(token.modifiers);
+    if(!modifierTypes.contains(TokenType.PUBLIC)) {
+      throw new VisitorException("Interface " + token.identifier.getLexeme() + " needs to be declared public.");
     }
   }
 
@@ -134,7 +155,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     }
 
     for(Modifier modifier : modifiers.getModifiers()) {
-      modifierSet.add(modifier.getTokenType());
+      modifierSet.add(modifier.getModifier().getTokenType());
     }
     return modifierSet;
   }

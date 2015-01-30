@@ -28,8 +28,8 @@ public class FieldDeclaration extends Token {
   }
 
   public void accept(Visitor v) throws VisitorException {
-    v.visit(variableDeclarator);
-    if (modifiers != null) v.visit(modifiers);
+    variableDeclarator.accept(v);
+    v.visit(modifiers);
     v.visit(this);
   }
 }

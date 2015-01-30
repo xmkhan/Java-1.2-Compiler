@@ -16,8 +16,8 @@ public class MethodDeclaration extends Token {
   }
 
   public void accept(Visitor v) throws VisitorException {
-    v.visit(methodHeader);
-    v.visit(methodBody);
+    methodHeader.accept(v);
+    methodBody.accept(v);
     v.visit(this);
   }
 }

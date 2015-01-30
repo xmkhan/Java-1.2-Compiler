@@ -5,7 +5,7 @@ import java.util.*;
 
 public class ClassStructure extends java.lang.Thread implements java.io.Serializable {
       public ClassStructure() {}
-      int x;
+      public int x;
       protected Vector c;
       protected static int t;
 

@@ -14,7 +14,7 @@ public class AbstractMethodDeclaration extends Token {
   }
 
   public void accept(Visitor v) throws VisitorException {
-    v.visit(methodHeader);
+    methodHeader.accept(v);
     v.visit(this);
   }
 }
