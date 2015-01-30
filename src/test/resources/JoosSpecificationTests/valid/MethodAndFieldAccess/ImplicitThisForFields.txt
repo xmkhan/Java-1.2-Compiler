@@ -1,0 +1,7 @@
+public class ImplicitThisForFields {
+  public ImplicitThisForFields() {}
+  private int val;
+  public int m() {
+    return val;
+  }
+}
