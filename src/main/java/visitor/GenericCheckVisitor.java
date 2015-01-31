@@ -147,6 +147,15 @@ public class GenericCheckVisitor extends BaseVisitor {
     }
   }
 
+  @Override
+  public void visit(CastExpression token) throws VisitorException {
+    super.visit(token);
+
+    if (token.isExpression() && token.isName()) {
+      throw new VisitorException("Invalid expression cast: " + token.getLexeme());
+    }
+  }
+
   private HashSet<TokenType> getModifierTypesAsSet(Modifiers modifiers) {
     HashSet<TokenType> modifierSet = new HashSet<TokenType>();
 
