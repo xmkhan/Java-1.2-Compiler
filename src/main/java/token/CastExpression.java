@@ -1,7 +1,6 @@
 package token;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import visitor.Visitor;
 import visitor.VisitorException;
