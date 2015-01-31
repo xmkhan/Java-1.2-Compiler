@@ -151,8 +151,45 @@ public class GenericCheckVisitor extends BaseVisitor {
   public void visit(CastExpression token) throws VisitorException {
     super.visit(token);
 
-    if (token.isExpression() && token.isName()) {
+    if (token.isExpression() && !token.isName()) {
       throw new VisitorException("Invalid expression cast: " + token.getLexeme());
+    }
+
+    // Integer validation check
+    // 1. Get the underlying UnaryExpressionNotMinus expression.
+    Token unaryExpr = token.children.get(token.children.size() - 1);
+    UnaryExpressionNotMinus expr = null;
+    if (unaryExpr instanceof UnaryExpressionNotMinus) {
+      expr = (UnaryExpressionNotMinus) unaryExpr;
+    } else if (unaryExpr instanceof UnaryExpression && !((UnaryExpression)unaryExpr).isNegative()) {
+      expr = ((UnaryExpression)unaryExpr).posExp;
+    }
+    // 2. If the Literal is of IntLiteral, check the underlying integer.
+    if (!isValidInteger(expr)) {
+      throw new VisitorException("Not a valid integer at token: " + expr.literal.getLexeme());
+    }
+  }
+
+  @Override
+  public void visit(MultiplicativeExpression token) throws VisitorException {
+    super.visit(token);
+
+    // Integer validation check
+    if (!token.expr.isNegative() && !isValidInteger(token.expr.posExp)) {
+      throw new VisitorException("Not a valid integer at token: " + token.expr.posExp.literal.getLexeme());
+    }
+  }
+
+  private boolean isValidInteger(UnaryExpressionNotMinus expr) {
+    if (expr == null || !expr.isLiteral() || !expr.literal.isIntLiteral()) {
+      return true;
+    }
+    String integer = expr.literal.getLexeme();
+    try {
+      Integer.parseInt(integer);
+      return true;
+    } catch (NumberFormatException e) {
+      return false;
     }
   }
 

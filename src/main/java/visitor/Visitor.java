@@ -64,6 +64,8 @@ public interface Visitor {
 
   public void visit(SimpleName token) throws VisitorException;
 
+  public void visit(ArrayCreationExpression token) throws VisitorException;
+
   public void visit(CharLiteral token) throws VisitorException;
 
   public void visit(IfThenElseStatement token) throws VisitorException;

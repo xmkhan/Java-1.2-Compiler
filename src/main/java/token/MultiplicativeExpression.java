@@ -6,17 +6,25 @@ import visitor.VisitorException;
 
 public class MultiplicativeExpression extends Token {
 
-  public ArrayList<Token> children;
+  public MultiplicativeExpression expr1;
+  public Token operator;
+  public UnaryExpression expr;
+
 
   public MultiplicativeExpression(ArrayList<Token> children) {
     super("", TokenType.MultiplicativeExpression);
-    this.children = children;
+    if (children.size() == 3) {
+      expr1 = (MultiplicativeExpression) children.get(0);
+      operator = children.get(1);
+      expr = (UnaryExpression) children.get(2);
+    } else {
+      expr = (UnaryExpression) children.get(0);
+    }
   }
 
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : children) {
-      token.accept(v);
-    }
+    if (expr1 != null) expr1.accept(v);
+    expr.accept(v);
     v.visit(this);
   }
 }

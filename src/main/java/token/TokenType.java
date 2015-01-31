@@ -142,6 +142,7 @@ public enum TokenType {
   Literal("Literal"),
   AndExpression("AndExpression"),
   SimpleName("SimpleName"),
+  ArrayCreationExpression("ArrayCreationExpression"),
   IfThenElseStatement("IfThenElseStatement"),
   TypeDeclaration("TypeDeclaration"),
   ConditionalOrExpression("ConditionalOrExpression"),
