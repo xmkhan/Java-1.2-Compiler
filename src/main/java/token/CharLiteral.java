@@ -6,7 +6,6 @@ import visitor.VisitorException;
 
 public class CharLiteral extends Token {
 
-  public ArrayList<Token> children;
   public Character value;
 
   public CharLiteral(ArrayList<Token> children) {

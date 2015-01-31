@@ -8,48 +8,35 @@ public class Literal extends Token {
 
   public ArrayList<Token> children;
 
-  public IntLiteral intLiteral;
-  public CharLiteral charLiteral;
-  public StringLiteral stringLiteral;
-  public BooleanLiteral booleanLiteral;
-  public Token nullLiteral;
+  public TokenType valueType;
 
   public Literal(ArrayList<Token> children) {
-    super("", TokenType.Literal);
+    super(children.get(0).getLexeme(), TokenType.Literal);
     assignType(children.get(0));
   }
 
   private void assignType(Token token) {
-    if (token instanceof IntLiteral) {
-      intLiteral = (IntLiteral) token;
-    } else if (token instanceof CharLiteral) {
-      charLiteral = (CharLiteral) token;
-    } else if (token instanceof StringLiteral) {
-      stringLiteral = (StringLiteral) token;
-    } else if (token instanceof BooleanLiteral) {
-      booleanLiteral = (BooleanLiteral) token;
-    } else if (token.getTokenType() == TokenType.NULL) {
-      nullLiteral = token;
-    }
+    valueType = token.getTokenType();
   }
 
   public boolean isIntLiteral() {
-    return intLiteral != null;
+    return valueType == TokenType.INT_LITERAL;
   }
 
   public boolean isCharLiteral() {
-    return charLiteral != null;
+    return valueType == TokenType.CHAR_LITERAL;
   }
 
   public boolean isStringLiteral() {
-    return stringLiteral != null;
+    return valueType == TokenType.STR_LITERAL;
   }
 
   public boolean isBooleanLiteral() {
-    return booleanLiteral != null;
+    return valueType == TokenType.BOOLEAN_LITERAL;
   }
+
   public boolean isNullLiteral() {
-    return nullLiteral != null;
+    return valueType == TokenType.NULL;
   }
 
   public void accept(Visitor v) throws VisitorException {

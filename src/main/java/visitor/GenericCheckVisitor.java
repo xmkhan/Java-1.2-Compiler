@@ -153,7 +153,7 @@ public class GenericCheckVisitor extends BaseVisitor {
 
     // Integer validation check
     // 1. Get the underlying UnaryExpressionNotMinus expression.
-    Token unaryExpr = token.children.get(token.children.size());
+    Token unaryExpr = token.children.get(token.children.size() - 1);
     UnaryExpressionNotMinus expr = null;
     if (unaryExpr instanceof UnaryExpressionNotMinus) {
       expr = (UnaryExpressionNotMinus) unaryExpr;
@@ -162,7 +162,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     }
     // 2. If the Literal is of IntLiteral, check the underlying integer.
     if (!isValidInteger(expr)) {
-      throw new VisitorException("Not a valid integer at token: " + expr.literal.intLiteral.getLexeme());
+      throw new VisitorException("Not a valid integer at token: " + expr.literal.getLexeme());
     }
 
 
@@ -174,7 +174,7 @@ public class GenericCheckVisitor extends BaseVisitor {
 
     // Integer validation check
     if (!token.expr.isNegative() && !isValidInteger(token.expr.posExp)) {
-      throw new VisitorException("Not a valid integer at token: " + token.expr.posExp.literal.intLiteral.getLexeme());
+      throw new VisitorException("Not a valid integer at token: " + token.expr.posExp.literal.getLexeme());
     }
   }
 
@@ -182,7 +182,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     if (expr == null || !expr.isLiteral() || !expr.literal.isIntLiteral()) {
       return true;
     }
-    String integer = expr.literal.intLiteral.getLexeme();
+    String integer = expr.literal.getLexeme();
     try {
       Integer.parseInt(integer);
       return true;
