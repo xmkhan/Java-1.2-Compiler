@@ -6,17 +6,11 @@ import visitor.VisitorException;
 
 public class StringLiteral extends Token {
 
-  public ArrayList<Token> children;
-
   public StringLiteral(ArrayList<Token> children) {
-    super("", TokenType.STR_LITERAL);
-    this.children = children;
+    super(children.get(0).getLexeme(), TokenType.STR_LITERAL);
   }
 
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : children) {
-      token.accept(v);
-    }
     v.visit(this);
   }
 }

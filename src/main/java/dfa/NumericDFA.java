@@ -58,7 +58,7 @@ public class NumericDFA implements DFA {
 
   private boolean isValidNumber() {
     try {
-      Integer.parseInt(builder.toString());
+      Integer.parseInt('-' + builder.toString());
       return true;
     } catch (NumberFormatException e) {
       return false;
