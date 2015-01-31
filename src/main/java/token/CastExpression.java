@@ -30,9 +30,10 @@ public class CastExpression extends Token {
     isExpression = true;
 
     while (true) {
-      if (token.children == null && !(token instanceof Name)) {
+      if (token.children == null && !(token instanceof Name) ||
+        token.children != null && token.children.size() > 1) {
         break;
-      } else if (token.children == null && token instanceof Name) {
+      } else if (token instanceof Name) {
         name = (Name) token;
         break;
       }

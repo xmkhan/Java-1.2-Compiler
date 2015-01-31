@@ -46,7 +46,7 @@ public class LiteralDFA implements DFA {
   public boolean consume(char c) {
     // check if a single quote literal is longer than 1 character
     if (literalType == LiteralType.SINGLE_QUOTE && (length > 1 || (length == 1 && c != '\''))) {
-      token = new Token(builder.toString(), TokenType.STR_LITERAL, null);
+      token = new Token(builder.toString(), TokenType.STR_LITERAL);
       state = states.ERROR;
     }
 

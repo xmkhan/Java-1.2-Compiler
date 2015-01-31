@@ -20,6 +20,12 @@ public class Token {
     this.children = children;
   }
 
+  public Token(String lexeme, TokenType tokenType) {
+    this.lexeme = lexeme;
+    this.tokenType = tokenType;
+    this.children = null;
+  }
+
   /**
    * Gets the underlying lexeme.
    */

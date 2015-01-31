@@ -48,7 +48,7 @@ public class NumericDFA implements DFA {
         } else {
           state = states.ERROR;
           if (isValidNumber()) {
-            token = new Token(builder.toString(), TokenType.INT_LITERAL, null);
+            token = new Token(builder.toString(), TokenType.INT_LITERAL);
           }
         }
         break;

@@ -52,7 +52,7 @@ public class IdentifierDFA implements DFA {
         }
         else {
           state = states.ERROR;
-          token = new Token(builder.toString(), TokenType.IDENTIFIER, null);
+          token = new Token(builder.toString(), TokenType.IDENTIFIER);
         }
         break;
     }
