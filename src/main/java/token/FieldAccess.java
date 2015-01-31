@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class FieldAccess extends Token {
 
-  public ArrayList<Token> children;
-
   public FieldAccess(ArrayList<Token> children) {
-    super("", TokenType.FieldAccess);
-    this.children = children;
+    super("", TokenType.FieldAccess, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class MethodBody extends Token {
 
-  public ArrayList<Token> children;
-
   public MethodBody(ArrayList<Token> children) {
-    super("", TokenType.MethodBody);
-    this.children = children;
+    super("", TokenType.MethodBody, children);
   }
 
   public boolean isEmpty() {

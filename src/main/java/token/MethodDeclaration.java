@@ -10,7 +10,7 @@ public class MethodDeclaration extends Token {
   public MethodBody methodBody;
 
   public MethodDeclaration(ArrayList<Token> children) {
-    super("", TokenType.MethodDeclaration);
+    super("", TokenType.MethodDeclaration, children);
     methodHeader = (MethodHeader) children.get(0);
     methodBody = (MethodBody) children.get(1);
   }

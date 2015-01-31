@@ -81,7 +81,7 @@ public class CommentDFA implements DFA {
           isCRLF = false;
           builder.append(c);
         } else {
-          token = new Token(builder.toString(), comment_type);
+          token = new Token(builder.toString(), comment_type, null);
           state = states.ERROR;
         }
         break;

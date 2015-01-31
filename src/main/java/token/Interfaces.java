@@ -8,7 +8,7 @@ public class Interfaces extends Token {
   public InterfaceTypeList interfaceTypeList;
 
   public Interfaces(ArrayList<Token> children) {
-    super("", TokenType.Interfaces);
+    super("", TokenType.Interfaces, children);
     interfaceTypeList = (InterfaceTypeList) children.get(1);
   }
 

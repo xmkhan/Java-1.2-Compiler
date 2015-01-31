@@ -12,7 +12,7 @@ public class MethodHeader extends Token {
   public MethodDeclarator methodDeclarator;
 
   public MethodHeader(ArrayList<Token> children) {
-    super("", TokenType.MethodHeader);
+    super("", TokenType.MethodHeader, children);
     for (Token token : children) {
       assignType(token);
     }

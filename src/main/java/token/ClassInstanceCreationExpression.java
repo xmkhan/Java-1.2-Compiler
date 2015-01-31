@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class ClassInstanceCreationExpression extends Token {
 
-  public ArrayList<Token> children;
-
   public ClassInstanceCreationExpression(ArrayList<Token> children) {
-    super("", TokenType.ClassInstanceCreationExpression);
-    this.children = children;
+    super("", TokenType.ClassInstanceCreationExpression, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

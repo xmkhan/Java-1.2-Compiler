@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class WhileStatementNoShortIf extends Token {
 
-  public ArrayList<Token> children;
-
   public WhileStatementNoShortIf(ArrayList<Token> children) {
-    super("", TokenType.WhileStatementNoShortIf);
-    this.children = children;
+    super("", TokenType.WhileStatementNoShortIf, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

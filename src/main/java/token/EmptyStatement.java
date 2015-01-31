@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class EmptyStatement extends Token {
 
-  public ArrayList<Token> children;
-
   public EmptyStatement(ArrayList<Token> children) {
-    super("", TokenType.EmptyStatement);
-    this.children = children;
+    super("", TokenType.EmptyStatement, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

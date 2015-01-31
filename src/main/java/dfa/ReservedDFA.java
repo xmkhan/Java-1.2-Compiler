@@ -51,7 +51,7 @@ public class ReservedDFA implements DFA {
     trie.traverse(path, c);
     if (path.getState() == Trie.Path.states.WORD) {
       String word = path.toString();
-      token = new Token(word, reverseTokenTypeMap.get(word));
+      token = new Token(word, reverseTokenTypeMap.get(word), null);
     }
     return path.getState() != Trie.Path.states.ERROR;
   }

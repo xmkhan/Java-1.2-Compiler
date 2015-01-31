@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class InterfaceMemberDeclaration extends Token {
 
-  public ArrayList<Token> children;
-
   public InterfaceMemberDeclaration(ArrayList<Token> children) {
-    super("", TokenType.InterfaceMemberDeclaration);
-    this.children = children;
+    super("", TokenType.InterfaceMemberDeclaration, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

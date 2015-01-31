@@ -9,11 +9,10 @@ public class UnaryExpression extends Token {
   public Token minus;
   public UnaryExpression exp;
   public UnaryExpressionNotMinus posExp;
-  public ArrayList<Token> children;
+
 
   public UnaryExpression(ArrayList<Token> children) {
-    super("", TokenType.UnaryExpression);
-    this.children = children;
+    super("", TokenType.UnaryExpression, children);
     if (children.size() == 2) {
       minus = children.get(0);
       exp = (UnaryExpression) children.get(1);

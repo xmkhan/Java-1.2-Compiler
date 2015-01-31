@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class IfThenElseStatement extends Token {
 
-  public ArrayList<Token> children;
-
   public IfThenElseStatement(ArrayList<Token> children) {
-    super("", TokenType.IfThenElseStatement);
-    this.children = children;
+    super("", TokenType.IfThenElseStatement, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

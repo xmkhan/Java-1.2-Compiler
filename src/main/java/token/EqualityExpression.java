@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class EqualityExpression extends Token {
 
-  public ArrayList<Token> children;
-
   public EqualityExpression(ArrayList<Token> children) {
-    super("", TokenType.EqualityExpression);
-    this.children = children;
+    super("", TokenType.EqualityExpression, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

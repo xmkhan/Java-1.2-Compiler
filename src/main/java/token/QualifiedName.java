@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class QualifiedName extends Token {
 
-  public ArrayList<Token> children;
-
   public QualifiedName(ArrayList<Token> children) {
-    super("", TokenType.QualifiedName);
-    this.children = children;
+    super("", TokenType.QualifiedName, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

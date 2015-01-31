@@ -9,7 +9,7 @@ public class Literal extends Token {
   public TokenType valueType;
 
   public Literal(ArrayList<Token> children) {
-    super(children.get(0).getLexeme(), TokenType.Literal);
+    super(children.get(0).getLexeme(), TokenType.Literal, children);
     assignType(children.get(0));
   }
 

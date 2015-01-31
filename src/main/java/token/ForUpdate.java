@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class ForUpdate extends Token {
 
-  public ArrayList<Token> children;
-
   public ForUpdate(ArrayList<Token> children) {
-    super("", TokenType.ForUpdate);
-    this.children = children;
+    super("", TokenType.ForUpdate, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

@@ -13,7 +13,7 @@ public class ClassDeclaration extends Token {
   public ClassBody classBody;
 
   public ClassDeclaration(ArrayList<Token> children) {
-    super("", TokenType.ClassDeclaration);
+    super("", TokenType.ClassDeclaration, children);
     for (Token token : children) {
       assignType(token);
     }

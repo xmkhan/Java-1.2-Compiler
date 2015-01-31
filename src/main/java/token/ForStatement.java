@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class ForStatement extends Token {
 
-  public ArrayList<Token> children;
-
   public ForStatement(ArrayList<Token> children) {
-    super("", TokenType.ForStatement);
-    this.children = children;
+    super("", TokenType.ForStatement, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

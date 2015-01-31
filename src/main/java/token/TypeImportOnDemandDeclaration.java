@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class TypeImportOnDemandDeclaration extends Token {
 
-  public ArrayList<Token> children;
-
   public TypeImportOnDemandDeclaration(ArrayList<Token> children) {
-    super("", TokenType.TypeImportOnDemandDeclaration);
-    this.children = children;
+    super("", TokenType.TypeImportOnDemandDeclaration, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

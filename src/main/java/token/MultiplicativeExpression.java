@@ -10,12 +10,9 @@ public class MultiplicativeExpression extends Token {
   public Token operator;
   public UnaryExpression expr;
 
-  public ArrayList<Token> children;
-
 
   public MultiplicativeExpression(ArrayList<Token> children) {
-    super("", TokenType.MultiplicativeExpression);
-    this.children = children;
+    super("", TokenType.MultiplicativeExpression, children);
     if (children.size() == 3) {
       expr1 = (MultiplicativeExpression) children.get(0);
       operator = children.get(1);

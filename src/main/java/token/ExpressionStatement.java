@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class ExpressionStatement extends Token {
 
-  public ArrayList<Token> children;
-
   public ExpressionStatement(ArrayList<Token> children) {
-    super("", TokenType.ExpressionStatement);
-    this.children = children;
+    super("", TokenType.ExpressionStatement, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

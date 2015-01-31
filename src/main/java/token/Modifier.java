@@ -13,7 +13,7 @@ public class Modifier extends Token {
   }
 
   public Modifier(ArrayList<Token> children) {
-    super(children.get(0).getLexeme(), TokenType.Modifier);
+    super(children.get(0).getLexeme(), TokenType.Modifier, children);
     modifier = children.get(0);
   }
 

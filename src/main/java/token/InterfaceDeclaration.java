@@ -12,7 +12,7 @@ public class InterfaceDeclaration extends Token {
   public InterfaceBody interfaceBody;
 
   public InterfaceDeclaration(ArrayList<Token> children) {
-    super("", TokenType.InterfaceDeclaration);
+    super("", TokenType.InterfaceDeclaration, children);
     for (Token token : children) {
       assignType(token);
     }

@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class ConditionalAndExpression extends Token {
 
-  public ArrayList<Token> children;
-
   public ConditionalAndExpression(ArrayList<Token> children) {
-    super("", TokenType.ConditionalAndExpression);
-    this.children = children;
+    super("", TokenType.ConditionalAndExpression, children);
   }
 
   public void accept(Visitor v) throws VisitorException {
