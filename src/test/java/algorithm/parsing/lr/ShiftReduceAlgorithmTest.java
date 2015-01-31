@@ -15,6 +15,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -44,25 +46,35 @@ public class ShiftReduceAlgorithmTest {
 
   @Test
   public void testValidJoosSpecification() throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
-    File files = new File("src/test/resources/JoosSpecificationTests/valid/");
+    File root = new File("src/test/resources/JoosSpecificationTests/valid");
+    Queue folders = new LinkedList();
+    folders.add(root);
 
-    for (File file : files.listFiles()) {
-      try {
-        algm.reset();
-        lexer.resetDFAs();
-        testASTConstruction(file.getAbsolutePath());
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (Lexer.LexerException e) {
-        e.printStackTrace();
-        System.err.println("Exception on file: " + file.getAbsolutePath());
-      } catch (Machine.MachineException e) {
-        e.printStackTrace();
-        System.err.println("Exception on file: " + file.getAbsolutePath());
-      } catch (VisitorException e) {
-        e.printStackTrace();
-        System.err.println("Exception on file: " + file.getAbsolutePath());
+    while(!folders.isEmpty()) {
+      for (File file : ((File) folders.poll()).listFiles()) {
+        if (file.isFile()) {
+          try {
+            algm.reset();
+            lexer.resetDFAs();
+            testASTConstruction(file.getAbsolutePath());
+          } catch (IOException e) {
+            e.printStackTrace();
+          } catch (Lexer.LexerException e) {
+            e.printStackTrace();
+            System.err.println("Exception on file: " + file.getAbsolutePath());
+          } catch (Machine.MachineException e) {
+            e.printStackTrace();
+            System.err.println("Exception on file: " + file.getAbsolutePath());
+          } catch (VisitorException e) {
+            e.printStackTrace();
+            System.err.println("Exception on file: " + file.getAbsolutePath());
+          }
+        } else if (file.isDirectory()) {
+          folders.add(file);
+        }
       }
+
+
     }
   }
 
