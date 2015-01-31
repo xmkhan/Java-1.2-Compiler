@@ -6,8 +6,6 @@ import visitor.VisitorException;
 
 public class Literal extends Token {
 
-  public ArrayList<Token> children;
-
   public TokenType valueType;
 
   public Literal(ArrayList<Token> children) {
