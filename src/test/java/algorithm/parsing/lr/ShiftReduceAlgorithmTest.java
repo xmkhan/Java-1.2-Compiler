@@ -47,11 +47,11 @@ public class ShiftReduceAlgorithmTest {
   @Test
   public void testValidJoosSpecification() throws IOException, Lexer.LexerException, Machine.MachineException, VisitorException {
     File root = new File("src/test/resources/JoosSpecificationTests/valid");
-    Queue<File> folders = new LinkedList<>();
+    Queue folders = new LinkedList();
     folders.add(root);
 
     while(!folders.isEmpty()) {
-      for (File file : folders.poll().listFiles()) {
+      for (File file : ((File) folders.poll()).listFiles()) {
         if (file.isFile()) {
           try {
             algm.reset();
