@@ -10,6 +10,9 @@ public class ClassStructure extends java.lang.Thread implements java.io.Serializ
       protected static int t;
 
       public static int m() {
+          int a = new int[4];
+          Vector [] t = new Vector [3 + 5];
+          int b = new int[3].length;
           return 43;
       }
 }
