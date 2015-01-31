@@ -123,7 +123,7 @@ public class LiteralDFA implements DFA {
         break;
       case ACCEPT:
         state = states.ERROR;
-        token = new Token(builder.toString(), TokenType.STR_LITERAL);
+        token = new Token(builder.toString(), TokenType.STR_LITERAL, null);
         break;
     }
 

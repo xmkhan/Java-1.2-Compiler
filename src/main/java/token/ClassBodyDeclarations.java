@@ -13,7 +13,7 @@ public class ClassBodyDeclarations extends Token {
   }
 
   public ClassBodyDeclarations(ArrayList<Token> children) {
-    super("", TokenType.ClassBodyDeclarations);
+    super("", TokenType.ClassBodyDeclarations, children);
     bodyDeclarations = new ArrayList<ClassBodyDeclaration>();
     if (children.get(0) instanceof ClassBodyDeclaration) {
       lexeme = children.get(0).getLexeme();

@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class WhileStatement extends Token {
 
-  public ArrayList<Token> children;
-
   public WhileStatement(ArrayList<Token> children) {
-    super("", TokenType.WhileStatement);
-    this.children = children;
+    super("", TokenType.WhileStatement, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

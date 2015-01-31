@@ -1,16 +1,18 @@
 package token;
 
 import java.util.ArrayList;
+
 import visitor.Visitor;
 import visitor.VisitorException;
 
 public class CastExpression extends Token {
-
-  public ArrayList<Token> children;
+  private Name name = null;
+  private boolean isExpression;
 
   public CastExpression(ArrayList<Token> children) {
-    super("", TokenType.CastExpression);
-    this.children = children;
+    super("", TokenType.CastExpression, children);
+    isExpression = false;
+    checkExpression();
   }
 
   public void accept(Visitor v) throws VisitorException {
@@ -18,5 +20,32 @@ public class CastExpression extends Token {
       token.accept(v);
     }
     v.visit(this);
+  }
+
+  private void checkExpression() {
+    Token token = children.get(1);
+
+    if (!(token instanceof Expression)) return;
+
+    isExpression = true;
+
+    while (true) {
+      if (token.children == null && !(token instanceof Name) ||
+        token.children != null && token.children.size() > 1) {
+        break;
+      } else if (token instanceof Name) {
+        name = (Name) token;
+        break;
+      }
+      token = token.children.get(0);
+    }
+  }
+
+  public boolean isExpression() {
+    return isExpression;
+  }
+
+  public boolean isName() {
+    return name != null;
   }
 }

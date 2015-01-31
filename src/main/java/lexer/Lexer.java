@@ -108,7 +108,7 @@ public class Lexer {
         input = bufferedReader.read();
       }
     }
-    tokens.add(new Token("EOF", TokenType.EOF));
+    tokens.add(new Token("EOF", TokenType.EOF, null));
     return tokens;
   }
 

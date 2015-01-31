@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class InclusiveOrExpression extends Token {
 
-  public ArrayList<Token> children;
-
   public InclusiveOrExpression(ArrayList<Token> children) {
-    super("", TokenType.InclusiveOrExpression);
-    this.children = children;
+    super("", TokenType.InclusiveOrExpression, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

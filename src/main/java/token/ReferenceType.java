@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class ReferenceType extends Token {
 
-  public ArrayList<Token> children;
-
   public ReferenceType(ArrayList<Token> children) {
-    super("", TokenType.ReferenceType);
-    this.children = children;
+    super("", TokenType.ReferenceType, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

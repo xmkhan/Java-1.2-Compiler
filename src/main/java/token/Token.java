@@ -3,6 +3,8 @@ package token;
 import visitor.Visitor;
 import visitor.VisitorException;
 
+import java.util.ArrayList;
+
 /**
  * Interface for implementing a tokenType for the Java ASTda.
  */
@@ -10,9 +12,18 @@ public class Token {
   protected String lexeme;
   protected TokenType tokenType;
 
+  public ArrayList<Token> children;
+
+  public Token(String lexeme, TokenType tokenType, ArrayList<Token> children) {
+    this.lexeme = lexeme;
+    this.tokenType = tokenType;
+    this.children = children;
+  }
+
   public Token(String lexeme, TokenType tokenType) {
     this.lexeme = lexeme;
     this.tokenType = tokenType;
+    this.children = null;
   }
 
   /**

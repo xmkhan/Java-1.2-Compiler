@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class Super extends Token {
 
-  public ArrayList<Token> children;
-
   public Super(ArrayList<Token> children) {
-    super("", TokenType.Super);
-    this.children = children;
+    super("", TokenType.Super, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

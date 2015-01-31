@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class PackageDeclaration extends Token {
 
-  public ArrayList<Token> children;
-
   public PackageDeclaration(ArrayList<Token> children) {
-    super("", TokenType.PackageDeclaration);
-    this.children = children;
+    super("", TokenType.PackageDeclaration, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

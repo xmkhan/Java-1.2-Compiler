@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class FormalParameter extends Token {
 
-  public ArrayList<Token> children;
-
   public FormalParameter(ArrayList<Token> children) {
-    super("", TokenType.FormalParameter);
-    this.children = children;
+    super("", TokenType.FormalParameter, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

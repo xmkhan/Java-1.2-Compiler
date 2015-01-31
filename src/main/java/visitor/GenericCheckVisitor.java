@@ -151,6 +151,10 @@ public class GenericCheckVisitor extends BaseVisitor {
   public void visit(CastExpression token) throws VisitorException {
     super.visit(token);
 
+    if (token.isExpression() && !token.isName()) {
+      throw new VisitorException("Invalid expression cast: " + token.getLexeme());
+    }
+
     // Integer validation check
     // 1. Get the underlying UnaryExpressionNotMinus expression.
     Token unaryExpr = token.children.get(token.children.size() - 1);
@@ -164,8 +168,6 @@ public class GenericCheckVisitor extends BaseVisitor {
     if (!isValidInteger(expr)) {
       throw new VisitorException("Not a valid integer at token: " + expr.literal.getLexeme());
     }
-
-
   }
 
   @Override

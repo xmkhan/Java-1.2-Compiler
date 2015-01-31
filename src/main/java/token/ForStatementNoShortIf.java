@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class ForStatementNoShortIf extends Token {
 
-  public ArrayList<Token> children;
-
   public ForStatementNoShortIf(ArrayList<Token> children) {
-    super("", TokenType.ForStatementNoShortIf);
-    this.children = children;
+    super("", TokenType.ForStatementNoShortIf, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

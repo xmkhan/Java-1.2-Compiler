@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class LeftHandSide extends Token {
 
-  public ArrayList<Token> children;
-
   public LeftHandSide(ArrayList<Token> children) {
-    super("", TokenType.LeftHandSide);
-    this.children = children;
+    super("", TokenType.LeftHandSide, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

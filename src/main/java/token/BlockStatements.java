@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class BlockStatements extends Token {
 
-  public ArrayList<Token> children;
-
   public BlockStatements(ArrayList<Token> children) {
-    super("", TokenType.BlockStatements);
-    this.children = children;
+    super("", TokenType.BlockStatements, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

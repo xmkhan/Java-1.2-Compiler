@@ -9,7 +9,7 @@ public class ClassBody extends Token {
   public ClassBodyDeclarations bodyDeclarations;
 
   public ClassBody(ArrayList<Token> children) {
-    super("", TokenType.ClassBody);
+    super("", TokenType.ClassBody, children);
     this.bodyDeclarations = (ClassBodyDeclarations) children.get(1);
   }
 

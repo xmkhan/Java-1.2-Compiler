@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class VariableDeclarator extends Token {
 
-  public ArrayList<Token> children;
-
   public VariableDeclarator(ArrayList<Token> children) {
-    super("", TokenType.VariableDeclarator);
-    this.children = children;
+    super("", TokenType.VariableDeclarator, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

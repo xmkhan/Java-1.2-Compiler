@@ -5,11 +5,10 @@ import visitor.Visitor;
 import visitor.VisitorException;
 
 public class AbstractMethodDeclaration extends Token {
-
   public MethodHeader methodHeader;
 
   public AbstractMethodDeclaration(ArrayList<Token> children) {
-    super("", TokenType.AbstractMethodDeclaration);
+    super("", TokenType.AbstractMethodDeclaration, children);
     methodHeader = (MethodHeader) children.get(0);
   }
 

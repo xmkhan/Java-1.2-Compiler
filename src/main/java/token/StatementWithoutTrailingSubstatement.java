@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class StatementWithoutTrailingSubstatement extends Token {
 
-  public ArrayList<Token> children;
-
   public StatementWithoutTrailingSubstatement(ArrayList<Token> children) {
-    super("", TokenType.StatementWithoutTrailingSubstatement);
-    this.children = children;
+    super("", TokenType.StatementWithoutTrailingSubstatement, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

@@ -6,11 +6,8 @@ import visitor.VisitorException;
 
 public class RelationalExpression extends Token {
 
-  public ArrayList<Token> children;
-
   public RelationalExpression(ArrayList<Token> children) {
-    super("", TokenType.RelationalExpression);
-    this.children = children;
+    super("", TokenType.RelationalExpression, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

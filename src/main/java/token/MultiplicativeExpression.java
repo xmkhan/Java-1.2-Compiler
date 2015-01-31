@@ -12,7 +12,7 @@ public class MultiplicativeExpression extends Token {
 
 
   public MultiplicativeExpression(ArrayList<Token> children) {
-    super("", TokenType.MultiplicativeExpression);
+    super("", TokenType.MultiplicativeExpression, children);
     if (children.size() == 3) {
       expr1 = (MultiplicativeExpression) children.get(0);
       operator = children.get(1);

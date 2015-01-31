@@ -11,7 +11,7 @@ public class FieldDeclaration extends Token {
   public VariableDeclarator variableDeclarator;
 
   public FieldDeclaration(ArrayList<Token> children) {
-    super("", TokenType.FieldDeclaration);
+    super("", TokenType.FieldDeclaration, children);
     for (Token token : children) {
       assignType(token);
     }
