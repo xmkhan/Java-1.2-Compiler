@@ -36,12 +36,15 @@ public class CommentDFATest {
   @Test
   public void testNewLineDoubleSlashComment() {
     String[] comments = new String[] {
-        "// this is a comment1\r", "// this is a comment2\n", "// this is a comment3\r\n",
+        "// this is a comment1\r", "// this is a comment2\n", "// this is a comment3\r\n"
     };
 
     for (String comment : comments) {
       dfa.reset();
-      consumeString(comment);
+      for (char c : comment.toCharArray()) {
+        dfa.consume(c);
+      }
+      dfa.consume(' ');
       assertEqualsToken(dfa.getToken(), TokenType.COMMENT_SLASH, comment);
     }
   }
