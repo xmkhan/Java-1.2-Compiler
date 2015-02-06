@@ -2,7 +2,7 @@ package token;
 
 import java.util.ArrayList;
 import visitor.Visitor;
-import visitor.VisitorException;
+import exception.VisitorException;
 
 public class Assignment extends Token {
 

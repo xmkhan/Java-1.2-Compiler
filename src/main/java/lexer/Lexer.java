@@ -6,6 +6,7 @@ import dfa.IdentifierDFA;
 import dfa.LiteralDFA;
 import dfa.NumericDFA;
 import dfa.ReservedDFA;
+import exception.LexerException;
 import token.Token;
 import token.TokenType;
 
@@ -20,7 +21,6 @@ import java.util.HashSet;
  * Defines the Lexer algorithm for parsing the Joos 1W language.
  */
 public class Lexer {
-
   private final DFA[] dfas;
   private HashSet<Character> skipSet;
 
@@ -72,6 +72,8 @@ public class Lexer {
    * Reads from InputStreamReader, throws an exception on unsupported encoding.
    */
   public ArrayList<Token> parse(InputStreamReader inputStreamReader) throws IOException, LexerException {
+    int curCharPosition = 1;
+    int lineNumber = 1;
     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
     ArrayList<Token> tokens = new ArrayList<Token>();
     char c;
@@ -86,40 +88,48 @@ public class Lexer {
       }
 
       if (c < 0 || c >= 128) {
-        throw new LexerException("Out of ASCII range");
+        throw new LexerException("Error: Out of ASCII range. Occurred at Line#: " + lineNumber +
+          "character: " + curCharPosition);
       }
 
       if (!consumeDFAs(c)) {
         Token maxToken = getMaximalToken();
         if (maxToken != null && !isCommentToken(maxToken)) {
+          maxToken.setLocation(lineNumber, curCharPosition - maxToken.getLexeme().length());
           tokens.add(maxToken);
         }
 
         if (maxToken == null) {
           if (skipSet.contains(c)) {
+            if (c == '\n') {
+              lineNumber++;
+              curCharPosition = 1;
+            } else {
+              curCharPosition++;
+            }
             input = bufferedReader.read();
           } else {
-            throw new LexerException("All DFAs encountered an error, without a valid token.");
+            throw new LexerException("Error: All DFAs failed to create a valid token. Occurred at line#: " +
+              lineNumber + " character: " + curCharPosition);
           }
         }
         // Because the last character led all the DFAs to their error state, reset the DFAs.
         resetDFAs();
       } else {
+        if (c == '\n') {
+          lineNumber++;
+          curCharPosition = 1;
+        } else {
+          curCharPosition++;
+        }
         input = bufferedReader.read();
       }
     }
-    tokens.add(new Token("EOF", TokenType.EOF, null));
+    tokens.add(new Token("EOF", TokenType.EOF));
     return tokens;
   }
 
   private boolean isCommentToken(Token token) {
     return token == dfas[0].getToken();
-  }
-
-  public static class LexerException extends Exception {
-
-    public LexerException(String message) {
-      super(message);
-    }
   }
 }

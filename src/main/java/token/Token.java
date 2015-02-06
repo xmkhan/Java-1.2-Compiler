@@ -1,7 +1,7 @@
 package token;
 
 import visitor.Visitor;
-import visitor.VisitorException;
+import exception.VisitorException;
 
 import java.util.ArrayList;
 
@@ -9,6 +9,10 @@ import java.util.ArrayList;
  * Interface for implementing a tokenType for the Java ASTda.
  */
 public class Token {
+  // position of the token
+  protected int tokenStartPosition;
+  protected int lineNumber;
+
   protected String lexeme;
   protected TokenType tokenType;
 
@@ -18,6 +22,9 @@ public class Token {
     this.lexeme = lexeme;
     this.tokenType = tokenType;
     this.children = children;
+    if (children != null && children.size() > 0) {
+      setLocation(children.get(0).getLineNumber(), children.get(0).getTokenStartPosition());
+    }
   }
 
   public Token(String lexeme, TokenType tokenType) {
@@ -46,5 +53,26 @@ public class Token {
    */
   public void accept(Visitor v) throws VisitorException {
     v.visit(this);
+  }
+
+  /**
+   * construct an error msg from the location of the token
+   */
+  public String getErrMsgLocation() {
+    return "\nError happened at:\n\tline: " + lineNumber + "\n" +
+      "\tstarting character: " + tokenStartPosition + "\n";
+  }
+
+  public void setLocation(int lineNumber, int tokenStartPosition) {
+    this.lineNumber = lineNumber;
+    this.tokenStartPosition = tokenStartPosition;
+  }
+
+  public int getLineNumber() {
+    return lineNumber;
+  }
+
+  public int getTokenStartPosition() {
+    return tokenStartPosition;
   }
 }
