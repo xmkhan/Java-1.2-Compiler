@@ -1,6 +1,8 @@
 package algorithm.parsing.lr.machine;
 
 import algorithm.base.Pair;
+import exception.CompilerException;
+import exception.MachineException;
 import token.CompilationUnit;
 import token.Token;
 import token.TokenType;
@@ -61,7 +63,7 @@ public class Machine {
       for (int i = productionRule.size() - 1; i > 0; --i) {
         if (!tokens.peek().getTokenType().toString().equals(productionRule.get(i))) {
           throw new MachineException("Parse error on token: " + tokens.peek().getTokenType().toString() +
-              " vs. " + productionRule.get(i));
+              " vs. " + productionRule.get(i), tokens.peek());
         }
         rhs.add(tokens.pop());
         states.pop();
@@ -73,15 +75,15 @@ public class Machine {
         Class<? extends Token> lhsClass = Class.forName("token." + productionRule.get(0)).asSubclass(Token.class);
         reducedToken = lhsClass.getConstructor(ArrayList.class).newInstance(rhs);
       } catch (InstantiationException e) {
-        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0), tokens.peek());
       } catch (IllegalAccessException e) {
-        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0), tokens.peek());
       } catch (ClassNotFoundException e) {
-        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0), tokens.peek());
       } catch (NoSuchMethodException e) {
-        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0), tokens.peek());
       } catch (InvocationTargetException e) {
-        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0));
+        throw new MachineException(e.getMessage() + " token: " + productionRule.get(0), tokens.peek());
       }
       // Finally perform the transition using the reduced token.
       actionPair = states.peek().getTransition(reducedToken);
@@ -92,7 +94,7 @@ public class Machine {
 
   private void performShift(Token token, Pair<MachineState.Action, Integer> actionPair) throws MachineException {
     if (actionPair == null || actionPair.getFirst() != MachineState.Action.SHIFT) {
-      throw new MachineException("Expected a shift on token: " + token.getTokenType().toString());
+      throw new MachineException("Expected a shift on token: " + token.getTokenType().toString(), tokens.peek());
     }
     tokens.push(token);
     states.push(machineStates.get(actionPair.getSecond()));
@@ -100,7 +102,7 @@ public class Machine {
 
   public CompilationUnit getResult() throws MachineException {
     if (tokens.size() != 1 || !(tokens.peek() instanceof CompilationUnit)) {
-      throw new MachineException("List of tokens did not correctly parse into a CompilationUnit");
+      throw new MachineException("List of tokens did not correctly parse into a CompilationUnit", tokens.peek());
     }
     return (CompilationUnit) tokens.pop();
   }
@@ -110,11 +112,4 @@ public class Machine {
     states = new Stack<MachineState>();
     states.push(machineStates.get(0));
   }
-
-  public static class MachineException extends Exception {
-    public MachineException(String message) {
-      super(message);
-    }
-  }
-
 }

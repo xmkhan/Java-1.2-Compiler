@@ -2,6 +2,7 @@ package algorithm.parsing.lr;
 
 import algorithm.parsing.lr.machine.Machine;
 import algorithm.parsing.lr.machine.MachineState;
+import exception.MachineException;
 import token.CompilationUnit;
 import token.Token;
 
@@ -20,7 +21,7 @@ public class ShiftReduceAlgorithm {
   private Machine machine;
 
 
-  public ShiftReduceAlgorithm(InputStreamReader reader) throws IOException, Machine.MachineException {
+  public ShiftReduceAlgorithm(InputStreamReader reader) throws IOException, MachineException {
     BufferedReader bufferedReader = new BufferedReader(reader);
 
     // 1. Number of terminals.
@@ -58,7 +59,7 @@ public class ShiftReduceAlgorithm {
     }
   }
 
-  public CompilationUnit constructAST(ArrayList<Token> tokens) throws Machine.MachineException {
+  public CompilationUnit constructAST(ArrayList<Token> tokens) throws MachineException {
     for (Token token : tokens) {
       machine.applyAction(token);
     }

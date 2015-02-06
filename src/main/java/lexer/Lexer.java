@@ -6,6 +6,7 @@ import dfa.IdentifierDFA;
 import dfa.LiteralDFA;
 import dfa.NumericDFA;
 import dfa.ReservedDFA;
+import exception.LexerException;
 import token.Token;
 import token.TokenType;
 
@@ -137,12 +138,5 @@ public class Lexer {
 
   private boolean isCommentToken(Token token) {
     return token == dfas[0].getToken();
-  }
-
-  public static class LexerException extends Exception {
-
-    public LexerException(String message) {
-      super(message);
-    }
   }
 }

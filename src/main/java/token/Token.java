@@ -1,7 +1,7 @@
 package token;
 
 import visitor.Visitor;
-import visitor.VisitorException;
+import exception.VisitorException;
 
 import java.util.ArrayList;
 
@@ -9,9 +9,11 @@ import java.util.ArrayList;
  * Interface for implementing a tokenType for the Java ASTda.
  */
 public class Token {
+  // position of the token
   protected int firstCharPosition;
   protected int lastCharPosition;
   protected int lineCount;
+
   protected String lexeme;
   protected TokenType tokenType;
 
@@ -54,6 +56,14 @@ public class Token {
     v.visit(this);
   }
 
+  /**
+   * construct an error msg from the location of the token
+   */
+  public String getErrMsgLocation() {
+    return "\nError happened at:\n\tline: " + lineCount + "\n" +
+      "\tstarting character: " + firstCharPosition + "\n";
+  }
+
   public void setLocationInFile(int lineCount, int firstCharPosition) {
     this.lineCount = lineCount;
     this.firstCharPosition = firstCharPosition;
@@ -69,11 +79,5 @@ public class Token {
 
   public int getLastCharPosition() {
     return lastCharPosition;
-  }
-
-  public String getLocationErrMsg() {
-    return "\nError happened at:\nline: " + lineCount + "\n" +
-      "starting character: " + firstCharPosition + "\n" +
-      "ending character: " + lastCharPosition + "\n";
   }
 }

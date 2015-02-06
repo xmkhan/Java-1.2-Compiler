@@ -1,5 +1,6 @@
 package visitor;
 
+import exception.VisitorException;
 import token.*;
 
 import java.util.*;
@@ -13,25 +14,25 @@ public class GenericCheckVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(Modifiers token) throws VisitorException{
+  public void visit(Modifiers token) throws VisitorException {
     super.visit(token);
 
     // Check for atleast one modifier as we do not support package private
     // TODO: Convert to rule check
     if(token == null) {
-      throw new VisitorException("Detected package private declaration");
+      throw new VisitorException("Detected package private declaration", token);
     }
 
     // Check for duplicate modifiers
     Set<Modifier> uniqueSet = new HashSet<Modifier>(token.getModifiers());
     if(uniqueSet.size() != token.getModifiers().size()) {
-      throw new VisitorException("Detected duplicate modifiers: " + Arrays.toString(token.getModifiers().toArray()));
+      throw new VisitorException("Detected duplicate modifiers: " + Arrays.toString(token.getModifiers().toArray()), token);
     }
 
     // Check for if all fields, function, classes are at least public or protected
     HashSet<TokenType> modifierTypes = getModifierTypesAsSet(token);
     if(!modifierTypes.contains(TokenType.PUBLIC) && !modifierTypes.contains(TokenType.PROTECTED)) {
-      throw new VisitorException("Detected package private declaration");
+      throw new VisitorException("Detected package private declaration", token);
     }
   }
 
@@ -49,7 +50,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     }
 
     if(!hasConstructor) {
-      throw new VisitorException("Class requires at least 1 constructor");
+      throw new VisitorException("Class requires at least 1 constructor", token);
     }
   }
 
@@ -61,17 +62,17 @@ public class GenericCheckVisitor extends BaseVisitor {
 
     // Check class has same identifier as file name
     if(!token.identifier.getLexeme().equals(fileName)) {
-      throw new VisitorException("Expected Class " + fileName + " but found Class " + token.identifier.getLexeme());
+      throw new VisitorException("Expected Class " + fileName + " but found Class " + token.identifier.getLexeme(), token);
     }
 
     // Check for that a class can not be both abstract and final
     if(modifierTypes.contains(TokenType.ABSTRACT) && modifierTypes.contains(TokenType.FINAL)) {
-      throw new VisitorException("Class " + token.identifier.getLexeme() + " can not be both Abstract and Final");
+      throw new VisitorException("Class " + token.identifier.getLexeme() + " can not be both Abstract and Final", token);
     }
 
     // Check for if class is declared as public as private classes and protected classes are not allowed
     if(!modifierTypes.contains(TokenType.PUBLIC)) {
-      throw new VisitorException("Class " + token.identifier.getLexeme() + " needs to be declared public.");
+      throw new VisitorException("Class " + token.identifier.getLexeme() + " needs to be declared public.", token);
     }
   }
 
@@ -81,13 +82,13 @@ public class GenericCheckVisitor extends BaseVisitor {
 
     // Check class has same identifier as file name
     if(!token.identifier.getLexeme().equals(fileName)) {
-      throw new VisitorException("Expected Interface " + fileName + " but found Interface " + token.identifier.getLexeme());
+      throw new VisitorException("Expected Interface " + fileName + " but found Interface " + token.identifier.getLexeme(), token);
     }
 
     // Check for if class is declared as public as private classes and protected classes are not allowed
     HashSet<TokenType> modifierTypes = getModifierTypesAsSet(token.modifiers);
     if(!modifierTypes.contains(TokenType.PUBLIC)) {
-      throw new VisitorException("Interface " + token.identifier.getLexeme() + " needs to be declared public.");
+      throw new VisitorException("Interface " + token.identifier.getLexeme() + " needs to be declared public.", token);
     }
   }
 
@@ -100,7 +101,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     if(modifierTypes.contains(TokenType.NATIVE) || modifierTypes.contains(TokenType.STATIC) ||
             modifierTypes.contains(TokenType.FINAL)) {
       throw new VisitorException("Interface method " + token.methodHeader.methodDeclarator.getLexeme() +
-              " can not be static, final, or native.");
+              " can not be static, final, or native.", token);
     }
   }
 
@@ -113,25 +114,25 @@ public class GenericCheckVisitor extends BaseVisitor {
     if((token.methodBody.isEmpty() && !modifierTypes.contains(TokenType.ABSTRACT) && !modifierTypes.contains(TokenType.NATIVE))
             || (!token.methodBody.isEmpty() && (modifierTypes.contains(TokenType.ABSTRACT) || modifierTypes.contains(TokenType.NATIVE)))) {
       throw new VisitorException("Method " + token.methodHeader.methodDeclarator.getLexeme() +
-              " has a body and is abstract or native or doesn't have a body and is not abstract nor native.");
+              " has a body and is abstract or native or doesn't have a body and is not abstract nor native.", token);
     }
 
     // Check for an abstract method cannot be static or final.
     if(modifierTypes.contains(TokenType.ABSTRACT) && (modifierTypes.contains(TokenType.STATIC) || modifierTypes.contains(TokenType.FINAL))) {
       throw new VisitorException("Method " + token.methodHeader.methodDeclarator.getLexeme() +
-              " can not be abstract and be static or final.");
+              " can not be abstract and be static or final.", token);
     }
 
     // Check for a static method can not be final
     if(modifierTypes.contains(TokenType.STATIC) && modifierTypes.contains(TokenType.FINAL)) {
       throw new VisitorException("Method " + token.methodHeader.methodDeclarator.getLexeme() +
-              " can not be static and final.");
+              " can not be static and final.", token);
     }
 
     // Check for a native method must be static
     if(modifierTypes.contains(TokenType.NATIVE) && !modifierTypes.contains(TokenType.STATIC)) {
       throw new VisitorException("Method " + token.methodHeader.methodDeclarator.getLexeme() +
-              " has to be static due to it is native.");
+              " has to be static due to it is native.", token);
     }
   }
 
@@ -143,7 +144,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     // Check for no field declarations can be final.
     if(modifierTypes.contains(TokenType.FINAL)) {
       throw new VisitorException("Identifier " + token.variableDeclarator.getLexeme() +
-              " can not be declared final.");
+              " can not be declared final.", token);
     }
   }
 
@@ -152,7 +153,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     super.visit(token);
 
     if (token.isExpression() && !token.isName()) {
-      throw new VisitorException("Invalid expression cast: " + token.getLexeme());
+      throw new VisitorException("Invalid expression cast: " + token.getLexeme(), token);
     }
 
     // Integer validation check
@@ -166,7 +167,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     }
     // 2. If the Literal is of IntLiteral, check the underlying integer.
     if (!isValidInteger(expr)) {
-      throw new VisitorException("Not a valid integer at token: " + expr.literal.getLexeme());
+      throw new VisitorException("Not a valid integer at token: " + expr.literal.getLexeme(), token);
     }
   }
 
@@ -176,7 +177,7 @@ public class GenericCheckVisitor extends BaseVisitor {
 
     // Integer validation check
     if (!token.expr.isNegative() && !isValidInteger(token.expr.posExp)) {
-      throw new VisitorException("Not a valid integer at token: " + token.expr.posExp.literal.getLexeme());
+      throw new VisitorException("Not a valid integer at token: " + token.expr.posExp.literal.getLexeme(), token);
     }
   }
 

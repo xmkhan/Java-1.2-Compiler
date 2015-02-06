@@ -1,5 +1,6 @@
 package visitor;
 
+import exception.VisitorException;
 import token.*;
 
 public interface Visitor {
