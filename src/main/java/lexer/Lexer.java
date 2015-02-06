@@ -21,10 +21,6 @@ import java.util.HashSet;
  * Defines the Lexer algorithm for parsing the Joos 1W language.
  */
 public class Lexer {
-  private int tokensStartingPosition;
-  private int curCharPosition;
-  private int lineCount;
-
   private final DFA[] dfas;
   private HashSet<Character> skipSet;
 
@@ -33,9 +29,6 @@ public class Lexer {
     dfas = new DFA[] {new CommentDFA(), new ReservedDFA(), new LiteralDFA(), new NumericDFA(), new IdentifierDFA()};
     skipSet = new HashSet<Character>(Arrays.asList(new Character[] {'\n', '\r', ' ', '\t', '\f'}));
     resetDFAs();
-    tokensStartingPosition = 1;
-    curCharPosition = 1;
-    lineCount = 1;
   }
 
   /**
@@ -79,6 +72,8 @@ public class Lexer {
    * Reads from InputStreamReader, throws an exception on unsupported encoding.
    */
   public ArrayList<Token> parse(InputStreamReader inputStreamReader) throws IOException, LexerException {
+    int curCharPosition = 1;
+    int lineNumber = 1;
     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
     ArrayList<Token> tokens = new ArrayList<Token>();
     char c;
@@ -93,38 +88,38 @@ public class Lexer {
       }
 
       if (c < 0 || c >= 128) {
-        throw new LexerException("Out of ASCII range.\n" +
-          "Invalid character: " + c + "\n" +
-          "line: " + lineCount + "\n" +
-          "starting character: " + tokensStartingPosition);
+        throw new LexerException("Error: Out of ASCII range. Occurred at Line#: " + lineNumber +
+          "character: " + curCharPosition);
       }
 
       if (!consumeDFAs(c)) {
         Token maxToken = getMaximalToken();
         if (maxToken != null && !isCommentToken(maxToken)) {
-          maxToken.setLocationInFile(lineCount, tokensStartingPosition);
-          tokensStartingPosition = curCharPosition;
+          maxToken.setLocation(lineNumber, curCharPosition - maxToken.getLexeme().length());
           tokens.add(maxToken);
         }
 
         if (maxToken == null) {
           if (skipSet.contains(c)) {
-            if (!incrementLineCount(c)) {
+            if (c == '\n') {
+              lineNumber++;
+              curCharPosition = 1;
+            } else {
               curCharPosition++;
-              tokensStartingPosition = curCharPosition;
             }
             input = bufferedReader.read();
           } else {
-            throw new LexerException("All DFAs encountered an error, without a valid token.\n" +
-              "line: " + lineCount + "\n" +
-              "starting character: " + tokensStartingPosition + "\n" +
-              "ending character: " + curCharPosition + "\n");
+            throw new LexerException("Error: All DFAs failed to create a valid token. Occurred at line#: " +
+              lineNumber + " character: " + curCharPosition);
           }
         }
         // Because the last character led all the DFAs to their error state, reset the DFAs.
         resetDFAs();
       } else {
-        if (!incrementLineCount(c)) {
+        if (c == '\n') {
+          lineNumber++;
+          curCharPosition = 1;
+        } else {
           curCharPosition++;
         }
         input = bufferedReader.read();
@@ -132,16 +127,6 @@ public class Lexer {
     }
     tokens.add(new Token("EOF", TokenType.EOF));
     return tokens;
-  }
-
-  private boolean incrementLineCount(char c) {
-    if (c == '\n') {
-      lineCount++;
-      tokensStartingPosition = 1;
-      curCharPosition = 1;
-      return true;
-    }
-    return false;
   }
 
   private boolean isCommentToken(Token token) {

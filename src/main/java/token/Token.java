@@ -10,8 +10,8 @@ import java.util.ArrayList;
  */
 public class Token {
   // position of the token
-  protected int firstCharPosition;
-  protected int lineCount;
+  protected int tokenStartPosition;
+  protected int lineNumber;
 
   protected String lexeme;
   protected TokenType tokenType;
@@ -23,7 +23,7 @@ public class Token {
     this.tokenType = tokenType;
     this.children = children;
     if (children != null && children.size() > 0) {
-      setLocationInFile(children.get(0).getLineCount(), children.get(0).getFirstCharPosition());
+      setLocation(children.get(0).getLineNumber(), children.get(0).getTokenStartPosition());
     }
   }
 
@@ -59,20 +59,20 @@ public class Token {
    * construct an error msg from the location of the token
    */
   public String getErrMsgLocation() {
-    return "\nError happened at:\n\tline: " + lineCount + "\n" +
-      "\tstarting character: " + firstCharPosition + "\n";
+    return "\nError happened at:\n\tline: " + lineNumber + "\n" +
+      "\tstarting character: " + tokenStartPosition + "\n";
   }
 
-  public void setLocationInFile(int lineCount, int firstCharPosition) {
-    this.lineCount = lineCount;
-    this.firstCharPosition = firstCharPosition;
+  public void setLocation(int lineNumber, int tokenStartPosition) {
+    this.lineNumber = lineNumber;
+    this.tokenStartPosition = tokenStartPosition;
   }
 
-  public int getLineCount() {
-    return lineCount;
+  public int getLineNumber() {
+    return lineNumber;
   }
 
-  public int getFirstCharPosition() {
-    return firstCharPosition;
+  public int getTokenStartPosition() {
+    return tokenStartPosition;
   }
 }
