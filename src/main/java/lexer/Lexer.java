@@ -93,7 +93,10 @@ public class Lexer {
       }
 
       if (c < 0 || c >= 128) {
-        throw new LexerException("Out of ASCII range: " + c);
+        throw new LexerException("Out of ASCII range.\n" +
+          "Invalid character: " + c +
+          "line: " + lineCount + "\n" +
+          "starting character: " + tokensStartingPosition);
       }
 
       if (!consumeDFAs(c)) {
