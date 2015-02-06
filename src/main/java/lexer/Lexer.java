@@ -124,9 +124,10 @@ public class Lexer {
         // Because the last character led all the DFAs to their error state, reset the DFAs.
         resetDFAs();
       } else {
-        incrementLineCount(c);
+        if (!incrementLineCount(c)) {
+          curCharPosition++;
+        }
         input = bufferedReader.read();
-        curCharPosition++;
       }
     }
     tokens.add(new Token("EOF", TokenType.EOF));
