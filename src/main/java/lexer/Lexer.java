@@ -93,7 +93,7 @@ public class Lexer {
       }
 
       if (c < 0 || c >= 128) {
-        throw new LexerException("Out of ASCII range");
+        throw new LexerException("Out of ASCII range: " + c);
       }
 
       if (!consumeDFAs(c)) {
