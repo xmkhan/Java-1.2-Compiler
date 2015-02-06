@@ -95,7 +95,7 @@ public class Lexer {
       if (!consumeDFAs(c)) {
         Token maxToken = getMaximalToken();
         if (maxToken != null && !isCommentToken(maxToken)) {
-          maxToken.setLocation(lineNumber, curCharPosition - maxToken.getLexeme().length());
+          maxToken.setLocation(lineNumber, curCharPosition - maxToken.getLexeme().length() + 1);
           tokens.add(maxToken);
         }
 
