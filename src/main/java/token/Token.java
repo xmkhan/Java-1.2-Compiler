@@ -11,7 +11,6 @@ import java.util.ArrayList;
 public class Token {
   // position of the token
   protected int firstCharPosition;
-  protected int lastCharPosition;
   protected int lineCount;
 
   protected String lexeme;
@@ -75,9 +74,5 @@ public class Token {
 
   public int getFirstCharPosition() {
     return firstCharPosition;
-  }
-
-  public int getLastCharPosition() {
-    return lastCharPosition;
   }
 }

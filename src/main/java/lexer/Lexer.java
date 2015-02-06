@@ -21,9 +21,9 @@ import java.util.HashSet;
  * Defines the Lexer algorithm for parsing the Joos 1W language.
  */
 public class Lexer {
-  private int tokensStartingPosition = 1;
-  private int curCharPosition = 1;
-  private int lineCount = 1;
+  private int tokensStartingPosition;
+  private int curCharPosition;
+  private int lineCount;
 
   private final DFA[] dfas;
   private HashSet<Character> skipSet;
@@ -33,6 +33,9 @@ public class Lexer {
     dfas = new DFA[] {new CommentDFA(), new ReservedDFA(), new LiteralDFA(), new NumericDFA(), new IdentifierDFA()};
     skipSet = new HashSet<Character>(Arrays.asList(new Character[] {'\n', '\r', ' ', '\t', '\f'}));
     resetDFAs();
+    tokensStartingPosition = 1;
+    curCharPosition = 1;
+    lineCount = 1;
   }
 
   /**
@@ -103,8 +106,7 @@ public class Lexer {
 
         if (maxToken == null) {
           if (skipSet.contains(c)) {
-            incrementLineCount(c);
-            if (c != '\n') {
+            if (!incrementLineCount(c)) {
               curCharPosition++;
               tokensStartingPosition = curCharPosition;
             }
@@ -128,12 +130,14 @@ public class Lexer {
     return tokens;
   }
 
-  private void incrementLineCount(char c) {
+  private boolean incrementLineCount(char c) {
     if (c == '\n') {
       lineCount++;
       tokensStartingPosition = 1;
       curCharPosition = 1;
+      return true;
     }
+    return false;
   }
 
   private boolean isCommentToken(Token token) {
