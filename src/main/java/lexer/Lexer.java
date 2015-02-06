@@ -20,6 +20,9 @@ import java.util.HashSet;
  * Defines the Lexer algorithm for parsing the Joos 1W language.
  */
 public class Lexer {
+  private int tokensStartingPosition = 1;
+  private int curCharPosition = 1;
+  private int lineCount = 1;
 
   private final DFA[] dfas;
   private HashSet<Character> skipSet;
@@ -92,24 +95,44 @@ public class Lexer {
       if (!consumeDFAs(c)) {
         Token maxToken = getMaximalToken();
         if (maxToken != null && !isCommentToken(maxToken)) {
+          maxToken.setLocationInFile(lineCount, tokensStartingPosition);
+          tokensStartingPosition = curCharPosition;
           tokens.add(maxToken);
         }
 
         if (maxToken == null) {
           if (skipSet.contains(c)) {
+            incrementLineCount(c);
+            if (c != '\n') {
+              curCharPosition++;
+              tokensStartingPosition = curCharPosition;
+            }
             input = bufferedReader.read();
           } else {
-            throw new LexerException("All DFAs encountered an error, without a valid token.");
+            throw new LexerException("All DFAs encountered an error, without a valid token.\n" +
+              "line: " + lineCount + "\n" +
+              "starting character: " + tokensStartingPosition + "\n" +
+              "ending character: " + curCharPosition + "\n");
           }
         }
         // Because the last character led all the DFAs to their error state, reset the DFAs.
         resetDFAs();
       } else {
+        incrementLineCount(c);
         input = bufferedReader.read();
+        curCharPosition++;
       }
     }
-    tokens.add(new Token("EOF", TokenType.EOF, null));
+    tokens.add(new Token("EOF", TokenType.EOF));
     return tokens;
+  }
+
+  private void incrementLineCount(char c) {
+    if (c == '\n') {
+      lineCount++;
+      tokensStartingPosition = 1;
+      curCharPosition = 1;
+    }
   }
 
   private boolean isCommentToken(Token token) {
