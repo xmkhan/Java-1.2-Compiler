@@ -1,9 +1,8 @@
 package token;
 
-import exception.VisitorException;
-import visitor.Visitor;
-
 import java.util.ArrayList;
+import visitor.Visitor;
+import exception.VisitorException;
 
 public class AbstractMethodDeclaration extends Token {
   public MethodHeader methodHeader;

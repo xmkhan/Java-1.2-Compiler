@@ -1,9 +1,8 @@
 package token;
 
-import exception.VisitorException;
-import visitor.Visitor;
-
 import java.util.ArrayList;
+import visitor.Visitor;
+import exception.VisitorException;
 
 public class UnaryExpressionNotMinus extends Token {
 
@@ -13,7 +12,7 @@ public class UnaryExpressionNotMinus extends Token {
   public UnaryExpressionNotMinus(ArrayList<Token> children) {
     super("", TokenType.UnaryExpressionNotMinus, children);
     if (isLiteral()) {
-      literal = (Literal) ((Primary) children.get(0)).children.get(0);
+      literal =  (Literal)((Primary) children.get(0)).children.get(0);
     }
   }
 

@@ -1,9 +1,8 @@
 package token;
 
-import exception.VisitorException;
-import visitor.Visitor;
-
 import java.util.ArrayList;
+import visitor.Visitor;
+import exception.VisitorException;
 
 public class Modifier extends Token {
 
@@ -29,7 +28,7 @@ public class Modifier extends Token {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj == null || !(obj instanceof Modifier)) {
+    if(obj == null || !(obj instanceof  Modifier)) {
       return false;
     }
 
