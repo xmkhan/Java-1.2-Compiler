@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class InterfaceDeclaration extends Token {
+public class InterfaceDeclaration extends Declaration {
 
   public Modifiers modifiers;
   public Token identifier;

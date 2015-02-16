@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class FieldDeclaration extends Token {
+public class FieldDeclaration extends Declaration {
 
   public Modifiers modifiers;
   public Type type;
