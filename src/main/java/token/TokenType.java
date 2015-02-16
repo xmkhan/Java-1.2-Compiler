@@ -219,12 +219,13 @@ public enum TokenType {
     }
     return reverseTokenTypeMap.get(name);
   }
+
   private TokenType(String name) {
     this.name = name;
   }
 
   @Override
-  public String toString(){
+  public String toString() {
     return name;
   }
 }
