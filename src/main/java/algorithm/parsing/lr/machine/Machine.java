@@ -1,17 +1,14 @@
 package algorithm.parsing.lr.machine;
 
 import algorithm.base.Pair;
-import exception.CompilerException;
 import exception.MachineException;
 import token.CompilationUnit;
 import token.Token;
 import token.TokenType;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 

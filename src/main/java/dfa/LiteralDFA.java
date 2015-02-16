@@ -71,7 +71,7 @@ public class LiteralDFA implements DFA {
           builder.append(c);
           state = states.ESCAPE;
         } else if (c <= MAX_ASCII && ((literalType == LiteralType.SINGLE_QUOTE && c != '\'') ||
-                (literalType == LiteralType.DOUBLE_QUOTE && c != '"'))) {
+            (literalType == LiteralType.DOUBLE_QUOTE && c != '"'))) {
           // keep the same state
           builder.append(c);
           length++;
@@ -132,7 +132,7 @@ public class LiteralDFA implements DFA {
 
   private void endLiteral(char c) {
     if ((c == '"' && literalType == LiteralType.DOUBLE_QUOTE) ||
-      (c == '\'' && literalType == LiteralType.SINGLE_QUOTE)) {
+        (c == '\'' && literalType == LiteralType.SINGLE_QUOTE)) {
       builder.append(c);
       state = states.ACCEPT;
     } else {

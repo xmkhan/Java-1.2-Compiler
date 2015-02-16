@@ -1,7 +1,7 @@
 package token;
 
-import visitor.Visitor;
 import exception.VisitorException;
+import visitor.Visitor;
 
 import java.util.ArrayList;
 
@@ -60,7 +60,7 @@ public class Token {
    */
   public String getErrMsgLocation() {
     return "\nError happened at:\n\tline: " + lineNumber + "\n" +
-      "\tstarting character: " + tokenStartPosition + "\n";
+        "\tstarting character: " + tokenStartPosition + "\n";
   }
 
   public void setLocation(int lineNumber, int tokenStartPosition) {

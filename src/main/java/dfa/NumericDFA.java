@@ -11,6 +11,7 @@ public class NumericDFA implements DFA {
   private Token token;
 
   private enum states {ERROR, START, ACCEPT}
+
   private states state;
   private boolean startsWithZero;
 
@@ -43,7 +44,7 @@ public class NumericDFA implements DFA {
         } else state = states.ERROR;
         break;
       case ACCEPT:
-          if (isDigit(c) && !startsWithZero) {
+        if (isDigit(c) && !startsWithZero) {
           builder.append(c);
         } else {
           state = states.ERROR;

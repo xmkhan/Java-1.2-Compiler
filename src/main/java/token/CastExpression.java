@@ -1,9 +1,9 @@
 package token;
 
-import java.util.ArrayList;
-
-import visitor.Visitor;
 import exception.VisitorException;
+import visitor.Visitor;
+
+import java.util.ArrayList;
 
 public class CastExpression extends Token {
   private Name name = null;
@@ -31,7 +31,7 @@ public class CastExpression extends Token {
 
     while (true) {
       if (token.children == null && !(token instanceof Name) ||
-        token.children != null && token.children.size() > 1) {
+          token.children != null && token.children.size() > 1) {
         break;
       } else if (token instanceof Name) {
         name = (Name) token;

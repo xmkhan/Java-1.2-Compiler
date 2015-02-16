@@ -1,7 +1,7 @@
 package exception;
 
 /**
- * Created by ali on 06/02/15.
+ * An exception thrown for failures during lexing.
  */
 public class LexerException extends CompilerException {
 
