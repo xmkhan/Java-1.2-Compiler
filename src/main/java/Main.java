@@ -27,7 +27,7 @@ public class Main {
         InputStreamReader reader = new InputStreamReader(new FileInputStream(arg), "US-ASCII");
         ArrayList<Token> tokens = lexer.parse(reader);
         CompilationUnit compilationUnit = shiftReduceAlgorithm.constructAST(tokens);
-        compilationUnit.accept(new GenericCheckVisitor(new File(args[0]).getName()));
+        compilationUnit.accept(new GenericCheckVisitor(new File(arg).getName()));
         compilationUnits.add(compilationUnit);
       }
       // 2. Phase 2: Construct SymbolTable, handle name resolution, and do type hierarchy checks.
