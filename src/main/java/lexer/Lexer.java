@@ -26,8 +26,8 @@ public class Lexer {
 
   public Lexer() {
     // The ordering is preserved by precedence, so that equal length maximal tokens takes the first occurrence.
-    dfas = new DFA[] {new CommentDFA(), new ReservedDFA(), new LiteralDFA(), new NumericDFA(), new IdentifierDFA()};
-    skipSet = new HashSet<Character>(Arrays.asList(new Character[] {'\n', '\r', ' ', '\t', '\f'}));
+    dfas = new DFA[]{new CommentDFA(), new ReservedDFA(), new LiteralDFA(), new NumericDFA(), new IdentifierDFA()};
+    skipSet = new HashSet<Character>(Arrays.asList(new Character[]{'\n', '\r', ' ', '\t', '\f'}));
     resetDFAs();
   }
 
@@ -42,6 +42,7 @@ public class Lexer {
 
   /**
    * Consumes the input on all DFAs
+   *
    * @return false if ALL DFAs failed to consume (all are in error state), true otherwise.
    */
   private boolean consumeDFAs(char c) {
@@ -79,7 +80,7 @@ public class Lexer {
     char c;
     boolean stop = false;
 
-    for (int input = bufferedReader.read(); !stop ; ) {
+    for (int input = bufferedReader.read(); !stop; ) {
       if (input == -1) {
         c = '\n';
         stop = true;
@@ -89,7 +90,7 @@ public class Lexer {
 
       if (c < 0 || c >= 128) {
         throw new LexerException("Error: Out of ASCII range. Occurred at Line#: " + lineNumber +
-          "character: " + curCharPosition);
+            "character: " + curCharPosition);
       }
 
       if (!consumeDFAs(c)) {
@@ -110,7 +111,7 @@ public class Lexer {
             input = bufferedReader.read();
           } else {
             throw new LexerException("Error: All DFAs failed to create a valid token. Occurred at line#: " +
-              lineNumber + " character: " + curCharPosition);
+                lineNumber + " character: " + curCharPosition);
           }
         }
         // Because the last character led all the DFAs to their error state, reset the DFAs.

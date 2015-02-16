@@ -14,6 +14,7 @@ public interface DFA {
 
   /**
    * Consumes the input character.
+   *
    * @param c character to consume.
    * @return true if c is successfully consumed, false if error state
    */

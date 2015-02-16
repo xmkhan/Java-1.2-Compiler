@@ -1,15 +1,14 @@
 package algorithm.parsing.lr;
 
-import algorithm.parsing.lr.machine.Machine;
 import exception.LexerException;
 import exception.MachineException;
+import exception.VisitorException;
 import lexer.Lexer;
 import org.junit.Before;
 import org.junit.Test;
 import token.CompilationUnit;
 import token.Token;
 import visitor.GenericCheckVisitor;
-import exception.VisitorException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,7 +51,7 @@ public class ShiftReduceAlgorithmTest {
     Queue folders = new LinkedList();
     folders.add(root);
 
-    while(!folders.isEmpty()) {
+    while (!folders.isEmpty()) {
       for (File file : ((File) folders.poll()).listFiles()) {
         if (file.isFile()) {
           try {

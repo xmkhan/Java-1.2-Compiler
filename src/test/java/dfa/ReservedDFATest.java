@@ -63,7 +63,7 @@ public class ReservedDFATest {
     for (char c : word.toCharArray()) {
       dfa.consume(c);
     }
-    dfa.consume(delimiters[(int)(Math.random() * delimiters.length)]);
+    dfa.consume(delimiters[(int) (Math.random() * delimiters.length)]);
   }
 
   private void assertEqualsTokenType(TokenType type, Token token) {

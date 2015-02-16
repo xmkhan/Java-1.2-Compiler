@@ -1,8 +1,9 @@
 package token;
 
-import java.util.ArrayList;
-import visitor.Visitor;
 import exception.VisitorException;
+import visitor.Visitor;
+
+import java.util.ArrayList;
 
 public class MethodInvocation extends Token {
 

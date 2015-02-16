@@ -2,7 +2,6 @@ package algorithm.parsing.lr.machine;
 
 import algorithm.base.Pair;
 import token.Token;
-import token.TokenType;
 
 import java.util.HashMap;
 
@@ -11,7 +10,7 @@ import java.util.HashMap;
  */
 public class MachineState {
 
-  public enum Action { SHIFT, REDUCE }
+  public enum Action {SHIFT, REDUCE}
 
   private int stateId = -1;
   private HashMap<String, Pair<Action, Integer>> transitions;

@@ -35,7 +35,7 @@ public class CommentDFATest {
 
   @Test
   public void testNewLineDoubleSlashComment() {
-    String[] comments = new String[] {
+    String[] comments = new String[]{
         "// this is a comment1\r", "// this is a comment2\n", "// this is a comment3\r\n"
     };
 
@@ -60,14 +60,14 @@ public class CommentDFATest {
   public void testSlashStarMultilineComment() {
     String comment = "/* this is a comment \n\n\n\r\n and its still going */";
     consumeString(comment);
-    assertEqualsToken(dfa.getToken(),TokenType.COMMENT_STAR, comment);
+    assertEqualsToken(dfa.getToken(), TokenType.COMMENT_STAR, comment);
   }
 
   @Test
   public void testNestedSlashStarComment() {
     String comment = "/** this is a comment public void star // /* /* nested /***/";
     consumeString(comment);
-    assertEqualsToken(dfa.getToken(),TokenType.COMMENT_STAR, comment);
+    assertEqualsToken(dfa.getToken(), TokenType.COMMENT_STAR, comment);
   }
 
   @Test
@@ -89,7 +89,7 @@ public class CommentDFATest {
     for (char c : comment.toCharArray()) {
       dfa.consume(c);
     }
-    dfa.consume(delimiters[(int)(Math.random() * delimiters.length)]);
+    dfa.consume(delimiters[(int) (Math.random() * delimiters.length)]);
   }
 
   private void assertEqualsToken(Token result, TokenType type, String comment) {

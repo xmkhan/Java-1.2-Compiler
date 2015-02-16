@@ -43,8 +43,7 @@ public class IdentifierDFATest {
   public void testJavaString() {
     String javaString = "abcdefghijklmnoqprstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
 
-    for(char c: javaString.toCharArray())
-    {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume('\r');
@@ -58,8 +57,7 @@ public class IdentifierDFATest {
   public void testJavaDigitsAndLetters() {
     String javaString = "test0123456789";
 
-    for(char c: javaString.toCharArray())
-    {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume('\n');
@@ -73,7 +71,7 @@ public class IdentifierDFATest {
   public void testJavaDigitsAndLettersProper() {
     String javaString = "_test43 = 52;\n";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
 
@@ -86,7 +84,7 @@ public class IdentifierDFATest {
   public void testJavaDigits() {
     String javaString = "01234test";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume(' ');
@@ -111,7 +109,7 @@ public class IdentifierDFATest {
   public void testInvalid() {
     String javaString = "ab3243^&abcd";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume(' ');
@@ -125,7 +123,7 @@ public class IdentifierDFATest {
   public void testInvalidEscapes() {
     String javaString = "\"abcdef33\'";
 
-    for(char c: javaString.toCharArray()) {
+    for (char c : javaString.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume(' ');

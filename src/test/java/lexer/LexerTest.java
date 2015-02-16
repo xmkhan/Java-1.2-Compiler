@@ -28,6 +28,7 @@ public class LexerTest {
   public void testInput1() throws IOException, LexerException {
     testInputOutput("src/test/resources/input1", "src/test/resources/output1");
   }
+
   @Test
   public void testInput2() throws IOException, LexerException {
     testInputOutput("src/test/resources/input2", "src/test/resources/output2");

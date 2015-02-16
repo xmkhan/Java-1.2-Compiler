@@ -1,6 +1,5 @@
 package exception;
 
-import exception.CompilerException;
 import token.Token;
 
 public class VisitorException extends CompilerException {
