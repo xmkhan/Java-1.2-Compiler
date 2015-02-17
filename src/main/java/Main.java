@@ -25,6 +25,8 @@ public class Main {
       // 1. Phase 1: Construct the AST per CompilationUnit (per class), and do basic static checks.
       for (String arg : args) {
         InputStreamReader reader = new InputStreamReader(new FileInputStream(arg), "US-ASCII");
+        lexer.resetDFAs();
+        shiftReduceAlgorithm.reset();
         ArrayList<Token> tokens = lexer.parse(reader);
         CompilationUnit compilationUnit = shiftReduceAlgorithm.constructAST(tokens);
         compilationUnit.accept(new GenericCheckVisitor(new File(arg).getName()));
