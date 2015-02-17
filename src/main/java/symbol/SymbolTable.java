@@ -1,6 +1,6 @@
 package symbol;
 
-import token.Token;
+import token.Declaration;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -16,18 +16,18 @@ public class SymbolTable {
     table = new LinkedList<Scope<String, Symbol>>();
   }
 
-  public SymbolTable newStack() {
+  public SymbolTable newScope() {
     table.push(new Scope<String, Symbol>());
     return this;
   }
 
-  public SymbolTable deleteStack() {
+  public SymbolTable deleteScope() {
     table.pop();
     return this;
   }
 
-  public SymbolTable addDecl(String identifier, Token token) {
-    table.peek().add(identifier, new Symbol(token));
+  public SymbolTable addDecl(String identifier, Declaration decl) {
+    table.peek().add(identifier, new Symbol(decl));
     return this;
   }
 

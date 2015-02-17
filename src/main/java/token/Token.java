@@ -6,7 +6,7 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 /**
- * Interface for implementing a tokenType for the Java ASTda.
+ * Interface for implementing a tokenType for the Java AST.
  */
 public class Token {
   // position of the token

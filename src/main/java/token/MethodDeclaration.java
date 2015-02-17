@@ -14,6 +14,7 @@ public class MethodDeclaration extends Declaration {
     super("", TokenType.MethodDeclaration, children);
     methodHeader = (MethodHeader) children.get(0);
     methodBody = (MethodBody) children.get(1);
+    identifier = methodHeader.identifier;
   }
 
   public void accept(Visitor v) throws VisitorException {

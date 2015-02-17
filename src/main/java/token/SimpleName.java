@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class SimpleName extends Token {
 
   public SimpleName(ArrayList<Token> children) {
-    super("", TokenType.SimpleName, children);
+    super(children.get(0).getLexeme(), TokenType.SimpleName, children);
   }
 
   public void accept(Visitor v) throws VisitorException {

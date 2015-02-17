@@ -10,7 +10,8 @@ public class MethodHeader extends Token {
   public Modifiers modifiers;
   public Type type;
   public Token voidType;
-  public MethodDeclarator methodDeclarator;
+  public Token identifier;
+  public FormalParameterList paramList;
 
   public MethodHeader(ArrayList<Token> children) {
     super("", TokenType.MethodHeader, children);
@@ -27,7 +28,8 @@ public class MethodHeader extends Token {
     } else if (token.getTokenType() == TokenType.VOID) {
       voidType = token;
     } else if (token instanceof MethodDeclarator) {
-      methodDeclarator = (MethodDeclarator) token;
+      identifier = token.children.get(0);
+      paramList = (token.children.size() == 4)? (FormalParameterList) token.children.get(2) : null;
     }
   }
 
@@ -36,7 +38,6 @@ public class MethodHeader extends Token {
   }
 
   public void accept(Visitor v) throws VisitorException {
-    methodDeclarator.accept(v);
     v.visit(modifiers);
     v.visit(this);
   }

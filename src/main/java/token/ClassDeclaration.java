@@ -8,7 +8,6 @@ import java.util.ArrayList;
 public class ClassDeclaration extends Declaration {
 
   public Modifiers modifiers;
-  public Token identifier;
   public Super extendsClass;
   public Interfaces implementsClasses;
   public ClassBody classBody;

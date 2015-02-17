@@ -8,7 +8,6 @@ import java.util.ArrayList;
 public class InterfaceDeclaration extends Declaration {
 
   public Modifiers modifiers;
-  public Token identifier;
   public ExtendsInterfaces extendsInterfaces;
   public InterfaceBody interfaceBody;
 
