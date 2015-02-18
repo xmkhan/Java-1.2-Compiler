@@ -89,4 +89,13 @@ public class EnvironmentBuildingVisitorTest {
     });
     visitor.buildGlobalScope(units);
   }
+
+  @Test(expected = EnvironmentBuildingException.class)
+  public void testParameterForloopOverlap() throws IOException, CompilerException {
+    List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
+        "src/test/resources/environment_check/Je_2_Parameter_OverlappingWithLocalInLoop",
+    });
+    visitor.buildGlobalScope(units);
+  }
+
 }

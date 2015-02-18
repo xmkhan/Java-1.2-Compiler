@@ -9,6 +9,8 @@ import token.ClassDeclaration;
 import token.CompilationUnit;
 import token.Declaration;
 import token.FieldDeclaration;
+import token.FormalParameter;
+import token.FormalParameterList;
 import token.InterfaceDeclaration;
 import token.LocalVariableDeclaration;
 import token.MethodDeclaration;
@@ -81,14 +83,26 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(FormalParameter token) throws VisitorException {
+    super.visit(token);
+    tryAddLocalDeclaration(token);
+  }
+
+  @Override
   public void visit(LocalVariableDeclaration token) throws VisitorException {
     super.visit(token);
+    tryAddLocalDeclaration(token);
+  }
+
+  private void tryAddLocalDeclaration(Declaration token) throws VisitorException {
     String identifier = token.getIdentifier();
-    if (table.containsAnyOfType(identifier, LocalVariableDeclaration.class)) {
+    if (table.containsAnyOfType(identifier, LocalVariableDeclaration.class) ||
+        table.containsAnyOfType(identifier, FormalParameter.class)) {
       throw new EnvironmentBuildingException(
           "No two local variables with overlapping scope have the same name.", token);
     }
     table.addDecl(identifier, token);
+
   }
 
   @Override
