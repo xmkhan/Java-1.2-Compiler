@@ -2,7 +2,7 @@ import algorithm.parsing.lr.ShiftReduceAlgorithm;
 import lexer.Lexer;
 import token.CompilationUnit;
 import token.Token;
-import type.hierarchy.ClassHierarchy;
+import type.hierarchy.HierarchyChecker;
 import visitor.GenericCheckVisitor;
 
 import java.io.File;
@@ -34,8 +34,8 @@ public class Main {
       // 2. Phase 2: Construct SymbolTable, handle name resolution, and do type hierarchy checks.
 
       // Hierarchy Checks
-      ClassHierarchy classHierarchy = new ClassHierarchy();
-      classHierarchy.verifyClassHierarchy(compilationUnits);
+      HierarchyChecker hierarchyChecker = new HierarchyChecker();
+      hierarchyChecker.verifyClassAndInterfaceHierarchy(compilationUnits);
 
 
     } catch (Exception e) {

@@ -1,10 +1,7 @@
 package HierarchyChecking;
 
 import algorithm.parsing.lr.ShiftReduceAlgorithm;
-import exception.LexerException;
-import exception.MachineException;
-import exception.TypeHierarchyException;
-import exception.VisitorException;
+import exception.*;
 import lexer.Lexer;
 import org.junit.Before;
 import org.junit.Rule;
@@ -12,7 +9,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import token.CompilationUnit;
 import token.Token;
-import type.hierarchy.ClassHierarchy;
+import type.hierarchy.HierarchyChecker;
 import visitor.GenericCheckVisitor;
 
 import java.io.*;
@@ -26,7 +23,6 @@ public class HierarchyChecking {
   private ShiftReduceAlgorithm algm;
   private File classesAndInterfacesFolder = new File("src/test/resources/HierarchyChecking/ClassesAndInterfaces");
 
-
   @Rule
   public ExpectedException exception = ExpectedException.none();
 
@@ -37,21 +33,16 @@ public class HierarchyChecking {
   }
 
   @Test
-  public void testNew() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException {
-    executeTests("src/test/resources/HierarchyChecking/NewTests", false);
-  }
-
-  @Test
-  public void testValidHierarchy() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException {
+  public void testValidHierarchy() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException, DeadCodeException {
     executeTests("src/test/resources/HierarchyChecking/ValidTests", false);
   }
 
   @Test
-  public void testInvalidHierarchy() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException {
+  public void testInvalidHierarchy() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException, DeadCodeException {
     executeTests("src/test/resources/HierarchyChecking/InvalidTests", true);
   }
 
-  private void executeTests(String testsFolder, boolean invalidTests) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
+  private void executeTests(String testsFolder, boolean invalidTests) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException, DeadCodeException {
     Queue folders = new LinkedList();
     folders.add(new File(testsFolder));
 
@@ -59,9 +50,6 @@ public class HierarchyChecking {
       for (File file : ((File) folders.poll()).listFiles()) {
         if (file.isFile()) {
           try {
-            algm.reset();
-            lexer.resetDFAs();
-
             if(invalidTests) {
               // Expects invalid tests to throw a TypeHierarchyException
               exception.expect(TypeHierarchyException.class);
@@ -72,13 +60,7 @@ public class HierarchyChecking {
             }
           } catch (IOException e) {
             e.printStackTrace();
-          } catch (LexerException e) {
-            e.printStackTrace();
-            System.err.println("Exception on file: " + file.getAbsolutePath());
-          } catch (MachineException e) {
-            e.printStackTrace();
-            System.err.println("Exception on file: " + file.getAbsolutePath());
-          } catch (VisitorException e) {
+          } catch (LexerException | MachineException | VisitorException e) {
             e.printStackTrace();
             System.err.println("Exception on file: " + file.getAbsolutePath());
           }
@@ -89,7 +71,7 @@ public class HierarchyChecking {
     }
   }
 
-  private void testHierarchyChecking(String inputFile) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
+  private void testHierarchyChecking(String inputFile) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException, DeadCodeException {
     BufferedReader br = new BufferedReader(new FileReader(inputFile));
     String line;
     List<String> classNames = new ArrayList<>();
@@ -100,21 +82,21 @@ public class HierarchyChecking {
     testHierarchyChecking(classNames);
   }
 
-  private void testHierarchyChecking(List<String> classNames) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
+  private void testHierarchyChecking(List<String> classNames) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException, DeadCodeException {
     List<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>(classNames.size());
     // 1. Phase 1: Construct the AST per CompilationUnit (per class), and do basic static checks.
     for (String className : classNames) {
+      algm.reset();
+      lexer.resetDFAs();
       String path = classesAndInterfacesFolder + "/" + className;
       InputStreamReader reader = new InputStreamReader(new FileInputStream(path), "US-ASCII");
       ArrayList<Token> tokens = lexer.parse(reader);
       CompilationUnit compilationUnit = algm.constructAST(tokens);
       compilationUnit.accept(new GenericCheckVisitor(new File(path).getName()));
       compilationUnits.add(compilationUnit);
-      algm.reset();
-      lexer.resetDFAs();
     }
 
-    ClassHierarchy classHierarchy = new ClassHierarchy();
-    classHierarchy.verifyClassHierarchy(compilationUnits);
+    HierarchyChecker hierarchyChecker = new HierarchyChecker();
+    hierarchyChecker.verifyClassAndInterfaceHierarchy(compilationUnits);
   }
 }

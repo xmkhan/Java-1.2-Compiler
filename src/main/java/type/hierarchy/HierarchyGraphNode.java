@@ -9,21 +9,21 @@ import java.util.List;
 /**
  * A wrapper that represents a Class/Interface with additional attributes used by ObjectHierarchyGraph.
  */
-public class ClassNode {
+public class HierarchyGraphNode {
   // Internal pointer to the ASTNode.
   public Token classOrInterface;
   // List of all children.
-  public List<ClassNode> children;
-  // List of classes/interfaces in the extends clause.  They point to the corresponding ClassNodes in ClassHierarchyGraph
-  public List<ClassNode> extendsList;
-  // List of interfaces in the implements clause.  They point to the corresponding ClassNodes in ClassHierarchyGraph
-  public List<ClassNode> implementsList;
+  public List<HierarchyGraphNode> children;
+  // List of classes/interfaces in the extends clause.  They point to the corresponding ClassNodes in HierarchyGraph
+  public List<HierarchyGraphNode> extendsList;
+  // List of interfaces in the implements clause.  They point to the corresponding ClassNodes in HierarchyGraph
+  public List<HierarchyGraphNode> implementsList;
   // Modifiers for the class or interface
   public HashSet<TokenType> modifiers;
   // Class/interface identifier
   public String identifier;
 
-  public ClassNode() {
+  public HierarchyGraphNode() {
     children = new ArrayList<>();
     extendsList = new ArrayList<>();
     implementsList = new ArrayList<>();
@@ -38,9 +38,9 @@ public class ClassNode {
     return hasParent(name, extendsList) || hasParent(name, implementsList);
   }
 
-  private boolean hasParent(String name, List<ClassNode> parents) {
-    for (ClassNode classNode : parents) {
-      if (classNode.identifier.equals(name)) {
+  private boolean hasParent(String name, List<HierarchyGraphNode> parents) {
+    for (HierarchyGraphNode node : parents) {
+      if (node.identifier.equals(name)) {
         return true;
       }
     }

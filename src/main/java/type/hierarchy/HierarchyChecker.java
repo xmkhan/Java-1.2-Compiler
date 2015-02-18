@@ -1,5 +1,6 @@
 package type.hierarchy;
 
+import exception.DeadCodeException;
 import exception.TypeHierarchyException;
 import token.CompilationUnit;
 import token.Token;
@@ -25,30 +26,30 @@ import java.util.Map;
  * - A protected method must not replace a public method. (JLS 8.4.6.3, dOvs well-formedness constraint 7)
  * - A method must not replace a final method. (JLS 8.4.3.3, dOvs well-formedness constraint 9)
  */
-public class ClassHierarchy {
-  private ClassHierarchyGraph graph;
+public class HierarchyChecker {
+  private HierarchyGraph graph;
 
-  public ClassHierarchy() {
-    this.graph = new ClassHierarchyGraph();
+  public HierarchyChecker() {
+    this.graph = new HierarchyGraph();
   }
 
   public void reset() {
     this.graph.nodes.clear();
   }
 
-  public void verifyClassHierarchy(List<CompilationUnit> compilationUnits) throws TypeHierarchyException {
-    createClassHierarchyGraph(compilationUnits);
-    verifyClassHierarchyGraph();
+  public void verifyClassAndInterfaceHierarchy(List<CompilationUnit> compilationUnits) throws TypeHierarchyException, DeadCodeException {
+    createHierarchyGraph(compilationUnits);
+    verifyHierarchyGraph();
   }
 
   /**
    * Creates a hierarchy graph of all the interfaces and classes being compiled
-   * @param compilationUnits list of all the compilation units (one/input file to the compiler)
+   * @param compilationUnits list of all the CompilationUnits (one per input file)
    * @throws TypeHierarchyException
    */
-  private void createClassHierarchyGraph(List<CompilationUnit> compilationUnits) throws TypeHierarchyException {
+  private void createHierarchyGraph(List<CompilationUnit> compilationUnits) throws TypeHierarchyException, DeadCodeException {
     for (CompilationUnit compilationUnit : compilationUnits) {
-      createClassHierarchyGraph(compilationUnit);
+      addNode(compilationUnit);
     }
   }
 
@@ -57,13 +58,13 @@ public class ClassHierarchy {
    * @param compilationUnit Search this compilation unit for class/interface info
    * @throws TypeHierarchyException
    */
-  private void createClassHierarchyGraph(CompilationUnit compilationUnit) throws TypeHierarchyException {
+  private void addNode(CompilationUnit compilationUnit) throws TypeHierarchyException, DeadCodeException {
     Token classOrInterface = compilationUnit.children.get(compilationUnit.children.size()-1).children.get(0);
     if (classOrInterface.getTokenType().equals(TokenType.ClassDeclaration) ||
       classOrInterface.getTokenType().equals(TokenType.InterfaceDeclaration)) {
       graph.addNode(classOrInterface);
     } else {
-      throw new TypeHierarchyException("Invalid class or interface declaration:" + classOrInterface.getTokenType());
+      throw new DeadCodeException("Expecting a ClassDeclaration or InterfaceDeclaration token buy received " + classOrInterface.getTokenType());
     }
   }
 
@@ -72,18 +73,17 @@ public class ClassHierarchy {
    * Please see class comments for full detail
    * @throws TypeHierarchyException
    */
-  private void verifyClassHierarchyGraph() throws TypeHierarchyException {
-    ClassNode parentNode;
-    ClassNode currentNode;
+  private void verifyHierarchyGraph() throws TypeHierarchyException {
+    HierarchyGraphNode parentNode;
+    HierarchyGraphNode currentNode;
     String name;
 
-    for (Map.Entry<String, ClassNode> entry : graph.nodes.entrySet()) {
+    for (Map.Entry<String, HierarchyGraphNode> entry : graph.nodes.entrySet()) {
       name = entry.getKey();
-      currentNode = graph.nodes.get(name);
-      parentNode = entry.getValue();
+      currentNode = entry.getValue();
 
-      extendsVerification(parentNode.extendsList, currentNode);
-      implementsVerification(parentNode.implementsList, name);
+      extendsVerification(currentNode.extendsList, currentNode);
+      implementsVerification(currentNode.implementsList, name);
     }
   }
 
@@ -91,12 +91,12 @@ public class ClassHierarchy {
 
   /**
    * Perform verification on the implements clause of a class
-   * @param parents parents of the class being processed
+   * @param implementedParents interfaces implemented by this class
    * @param className name of the class being processed
    * @throws TypeHierarchyException
    */
-  private void implementsVerification(List<ClassNode> parents, String className) throws TypeHierarchyException {
-    for (ClassNode parent : parents) {
+  private void implementsVerification(List<HierarchyGraphNode> implementedParents, String className) throws TypeHierarchyException {
+    for (HierarchyGraphNode parent : implementedParents) {
       if (parent.classOrInterface.getTokenType().equals(TokenType.ClassDeclaration)) {
         throw new TypeHierarchyException("A Class cannot implement a class, and an Interface cannot extend a Class[class: " + className +
           ", implemented class: " + parent.identifier + "]");
@@ -110,11 +110,12 @@ public class ClassHierarchy {
    * @param currentNode HierarchyGraph node associated to the class/interface being processed
    * @throws TypeHierarchyException
    */
-  public void extendsVerification(List<ClassNode> parents, ClassNode currentNode) throws TypeHierarchyException {
-    for (ClassNode parent : parents) {
+  public void extendsVerification(List<HierarchyGraphNode> parents, HierarchyGraphNode currentNode) throws TypeHierarchyException {
+    for (HierarchyGraphNode parent : parents) {
+      currentNode.classOrInterface.getTokenType().equals(TokenType.ClassDeclaration);
+      parent.classOrInterface.getTokenType().equals(TokenType.InterfaceDeclaration);
       if (currentNode.classOrInterface.getTokenType().equals(TokenType.ClassDeclaration)) {
         if (parent.classOrInterface.getTokenType().equals(TokenType.InterfaceDeclaration)) {
-          // A class must not extend an interface.
           throw new TypeHierarchyException("A class cannot extend an interface[class: " + currentNode.identifier +
             ", interface: " + parent.identifier + "]");
         }
