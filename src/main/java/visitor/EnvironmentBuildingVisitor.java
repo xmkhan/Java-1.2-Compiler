@@ -1,9 +1,15 @@
 package visitor;
 
 import exception.EnvironmentBuildingException;
+import exception.VisitorException;
 import symbol.SymbolTable;
-import token.ClassBodyDeclarations;
+import token.AbstractMethodDeclaration;
 import token.CompilationUnit;
+import token.Declaration;
+import token.FieldDeclaration;
+import token.LocalVariableDeclaration;
+import token.MethodDeclaration;
+import token.Token;
 
 import java.util.List;
 
@@ -12,25 +18,82 @@ import java.util.List;
  */
 public class EnvironmentBuildingVisitor extends BaseVisitor {
   private SymbolTable table;
+  private StringBuilder prefix;
 
   public EnvironmentBuildingVisitor(SymbolTable table) {
     this.table = table;
+    this.prefix = new StringBuilder();
   }
 
-  public void buildGlobalScope(List<CompilationUnit> units) throws EnvironmentBuildingException {
+  public void buildGlobalScope(List<CompilationUnit> units) throws VisitorException {
     table.newScope();
     for (CompilationUnit unit : units) {
-      StringBuilder sb = new StringBuilder();
-      if (unit.packageDeclaration != null) sb.append(unit.packageDeclaration.name.getLexeme() + ".");
-      sb.append(unit.typeDeclaration.getDeclaration().getIdentifier());
-      // 1. Add the class declaration.
-      table.addDecl(sb.toString(), unit.typeDeclaration.getDeclaration());
-      if (unit.typeDeclaration.classDeclaration != null) {
-        ClassBodyDeclarations classBodyDeclarations = unit.typeDeclaration.classDeclaration
-      } else {
-
-      }
+      unit.accept(this);
     }
+  }
 
+  @Override
+  public void visit(CompilationUnit token) throws VisitorException {
+    super.visit(token);
+    prefix.setLength(0);
+    // Add the package as the prefix.
+    if (token.packageDeclaration != null) {
+      prefix.append(token.packageDeclaration.getLexeme() + ".");
+    }
+    // Add the Class or Interface declaration to the symbol table, and set as prefix.
+    Declaration decl = token.typeDeclaration.getDeclaration();
+    prefix.append(decl.getIdentifier());
+    String identifier = prefix.toString();
+    if (table.contains(identifier)) {
+      throw new EnvironmentBuildingException(
+          "Error: No two classes or interfaces have the same canonical name.", token);
+    }
+    table.addDecl(identifier, decl);
+  }
+
+  @Override
+  public void visit(FieldDeclaration token) throws VisitorException {
+    super.visit(token);
+    String identifier = prefix.toString() + token.getIdentifier();
+    if (table.contains(identifier)) {
+      throw new EnvironmentBuildingException(
+          "Error: No two fields declared in the same class may have the same name.", token);
+    }
+    table.addDecl(identifier, token);
+  }
+
+  @Override
+  public void visit(MethodDeclaration token) throws VisitorException {
+    super.visit(token);
+    String identifier = prefix.toString() + token.getIdentifier();
+    table.addDecl(identifier, token);
+  }
+
+  @Override
+  public void visit(AbstractMethodDeclaration token) throws VisitorException {
+    super.visit(token);
+    String identifier = prefix.toString() + token.getIdentifier();
+    table.addDecl(identifier, token);
+  }
+
+  @Override
+  public void visit(LocalVariableDeclaration token) throws VisitorException {
+    super.visit(token);
+    String identifier = token.getIdentifier();
+    if (table.contains(identifier)) {
+      throw new EnvironmentBuildingException(
+          "No two local variables with overlapping scope have the same name.", token);
+    }
+    table.addDecl(identifier, token);
+  }
+
+  @Override
+  public void visit(Token token) throws VisitorException {
+    super.visit(token);
+    if (token.getLexeme().equals("{")) {
+      table.newScope();
+    } else if (token.getLexeme().equals("}")) {
+      table.deleteScope();
+    }
   }
 }

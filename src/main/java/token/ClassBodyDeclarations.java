@@ -17,7 +17,6 @@ public class ClassBodyDeclarations extends Token {
     super("", TokenType.ClassBodyDeclarations, children);
     bodyDeclarations = new ArrayList<ClassBodyDeclaration>();
     if (children.get(0) instanceof ClassBodyDeclaration) {
-      lexeme = children.get(0).getLexeme();
       bodyDeclarations.add((ClassBodyDeclaration) children.get(0));
     } else {
       ClassBodyDeclarations childBodyDeclarations = (ClassBodyDeclarations) children.get(0);
