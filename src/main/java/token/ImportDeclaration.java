@@ -6,12 +6,10 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class ImportDeclaration extends Token {
-  public Name importName;
   public boolean onDemand = false;
 
   public ImportDeclaration(ArrayList<Token> children) {
-    super("", TokenType.ImportDeclaration, children);
-    importName = (Name) children.get(1);
+    super(children.get(0).getLexeme(), TokenType.ImportDeclaration, children);
     onDemand = children.get(0) instanceof TypeImportOnDemandDeclaration;
   }
 

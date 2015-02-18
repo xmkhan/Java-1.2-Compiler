@@ -24,8 +24,8 @@ public class TypeDeclaration extends Token {
   }
 
   public void accept(Visitor v) throws VisitorException {
-    if (classDeclaration != null) v.visit(classDeclaration);
-    else v.visit(interfaceDeclaration);
+    if (classDeclaration != null) classDeclaration.accept(v);
+    else interfaceDeclaration.accept(v);
     v.visit(this);
   }
 }

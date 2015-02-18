@@ -32,8 +32,8 @@ public class FieldDeclaration extends Declaration {
   }
 
   public void accept(Visitor v) throws VisitorException {
-    v.visit(modifiers);
-    if (expr != null) v.visit(expr);
+    modifiers.accept(v);
+    if (expr != null) expr.accept(v);
     v.visit(this);
   }
 }

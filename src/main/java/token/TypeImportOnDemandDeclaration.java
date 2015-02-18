@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class TypeImportOnDemandDeclaration extends Token {
 
   public TypeImportOnDemandDeclaration(ArrayList<Token> children) {
-    super("", TokenType.TypeImportOnDemandDeclaration, children);
+    super(children.get(1).getLexeme(), TokenType.TypeImportOnDemandDeclaration, children);
   }
 
   public void accept(Visitor v) throws VisitorException {
