@@ -4,6 +4,7 @@ import algorithm.parsing.lr.ShiftReduceAlgorithm;
 import exception.CompilerException;
 import lexer.Lexer;
 import token.CompilationUnit;
+import token.Token;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,15 +22,22 @@ public class CompilationUnitGenerator {
     return make(Arrays.asList(filePaths));
   }
 
+  /**
+   * Every time this function is called, we do the same work as Main.java to construct the
+   * CompilationUnits, even though the LR(1) machine could be cached (so every test is fully independent).
+   */
   public static List<CompilationUnit> make(List<String> filePaths) throws IOException, CompilerException {
-    InputStreamReader lr1Reader = new InputStreamReader(new FileInputStream(ShiftReduceAlgorithm.DEFAULT_LR1_FILE));
-
     Lexer lexer = new Lexer();
+    InputStreamReader lr1Reader = new InputStreamReader(new FileInputStream(ShiftReduceAlgorithm.DEFAULT_LR1_FILE));
     ShiftReduceAlgorithm shiftReduceAlgorithm = new ShiftReduceAlgorithm(lr1Reader);
-
     List<CompilationUnit> units = new ArrayList<CompilationUnit>(filePaths.size());
-
-
+    for (String file : filePaths) {
+      lexer.resetDFAs();
+      shiftReduceAlgorithm.reset();
+      InputStreamReader reader = new InputStreamReader(new FileInputStream(file), "US-ASCII");
+      ArrayList<Token> tokens = lexer.parse(reader);
+      units.add(shiftReduceAlgorithm.constructAST(tokens));
+    }
     return units;
   }
 }
