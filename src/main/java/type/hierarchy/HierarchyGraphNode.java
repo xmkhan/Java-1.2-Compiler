@@ -34,6 +34,9 @@ public class HierarchyGraphNode {
     return modifiers.contains(TokenType.FINAL);
   }
 
+  /**
+   * Checks to see if a parent with the specified name already exists.
+   */
   public boolean hasParent(String name) {
     return hasParent(name, extendsList) || hasParent(name, implementsList);
   }
