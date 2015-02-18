@@ -35,7 +35,7 @@ public class Main {
 
       // Hierarchy Checks
       ClassHierarchy classHierarchy = new ClassHierarchy();
-      classHierarchy.processCompilationUnits(compilationUnits);
+      classHierarchy.verifyClassHierarchy(compilationUnits);
 
 
     } catch (Exception e) {

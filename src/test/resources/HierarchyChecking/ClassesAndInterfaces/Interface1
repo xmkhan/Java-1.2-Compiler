@@ -1,5 +1,2 @@
-package whatever;
-
 public interface Interface1 {
-
 }

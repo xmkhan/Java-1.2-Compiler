@@ -1,6 +1,5 @@
 package HierarchyChecking;
 
-
 import algorithm.parsing.lr.ShiftReduceAlgorithm;
 import exception.LexerException;
 import exception.MachineException;
@@ -8,7 +7,9 @@ import exception.TypeHierarchyException;
 import exception.VisitorException;
 import lexer.Lexer;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import token.CompilationUnit;
 import token.Token;
 import type.hierarchy.ClassHierarchy;
@@ -20,14 +21,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 public class HierarchyChecking {
   private Lexer lexer;
   private ShiftReduceAlgorithm algm;
-  private File testsRoot = new File("src/test/resources/HierarchyChecking/Tests");
-  private File classesAndInterfacesRoot = new File("src/test/resources/HierarchyChecking/ClassesAndInterfaces");
+  private File classesAndInterfacesFolder = new File("src/test/resources/HierarchyChecking/ClassesAndInterfaces");
+
+
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
 
   @Before
   public void setUp() throws FileNotFoundException, IOException, MachineException {
@@ -36,18 +37,23 @@ public class HierarchyChecking {
   }
 
   @Test
-  public void test() throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
-    testASTConstruction("src/test/resources/ast_input1", "PositiveTest");
+  public void testNew() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException {
+    executeTests("src/test/resources/HierarchyChecking/NewTests", false);
   }
 
   @Test
-  public void testASTInput2() throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
-    testASTConstruction("src/test/resources/ast_input2", "A");
+  public void testValidHierarchy() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException {
+    executeTests("src/test/resources/HierarchyChecking/ValidTests", false);
   }
 
-  public void testClassClauseHierarchyChecking(ArrayList<String> fileNames) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
+  @Test
+  public void testInvalidHierarchy() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException {
+    executeTests("src/test/resources/HierarchyChecking/InvalidTests", true);
+  }
+
+  private void executeTests(String testsFolder, boolean invalidTests) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
     Queue folders = new LinkedList();
-    folders.add(testsRoot);
+    folders.add(new File(testsFolder));
 
     while (!folders.isEmpty()) {
       for (File file : ((File) folders.poll()).listFiles()) {
@@ -55,7 +61,15 @@ public class HierarchyChecking {
           try {
             algm.reset();
             lexer.resetDFAs();
-            testASTConstruction(file.getAbsolutePath());
+
+            if(invalidTests) {
+              // Expects invalid tests to throw a TypeHierarchyException
+              exception.expect(TypeHierarchyException.class);
+              testHierarchyChecking(file.getAbsolutePath());
+            } else {
+              // Exceptions will cause the test to fail
+              testHierarchyChecking(file.getAbsolutePath());
+            }
           } catch (IOException e) {
             e.printStackTrace();
           } catch (LexerException e) {
@@ -75,37 +89,32 @@ public class HierarchyChecking {
     }
   }
 
-  @Test
-  public void testInvalidJoosSpecification() throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
-    File files = new File("src/test/resources/JoosSpecificationTests/invalid/");
-
-    for (File file : files.listFiles()) {
-      try {
-        algm.reset();
-        lexer.resetDFAs();
-        testASTConstruction(file.getAbsolutePath());
-        assertTrue("Test " + file.getName() + " must fail due to invalid spec.", false);
-      } catch (LexerException e) {
-      } catch (MachineException e) {
-      } catch (VisitorException e) {
-      }
+  private void testHierarchyChecking(String inputFile) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
+    BufferedReader br = new BufferedReader(new FileReader(inputFile));
+    String line;
+    List<String> classNames = new ArrayList<>();
+    while ((line = br.readLine()) != null) {
+      classNames.add(line);
     }
+    br.close();
+    testHierarchyChecking(classNames);
   }
 
-  private void testASTConstruction(String inputFile) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
-    testASTConstruction(inputFile, new File(inputFile).getName().replaceFirst("[.][^.]+$", ""));
+  private void testHierarchyChecking(List<String> classNames) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
+    List<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>(classNames.size());
+    // 1. Phase 1: Construct the AST per CompilationUnit (per class), and do basic static checks.
+    for (String className : classNames) {
+      String path = classesAndInterfacesFolder + "/" + className;
+      InputStreamReader reader = new InputStreamReader(new FileInputStream(path), "US-ASCII");
+      ArrayList<Token> tokens = lexer.parse(reader);
+      CompilationUnit compilationUnit = algm.constructAST(tokens);
+      compilationUnit.accept(new GenericCheckVisitor(new File(path).getName()));
+      compilationUnits.add(compilationUnit);
+      algm.reset();
+      lexer.resetDFAs();
+    }
 
-  }
-
-  private void testASTConstruction(String inputFile, String className) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException {
-    ArrayList<Token> tokens = lexer.parse(new InputStreamReader(new FileInputStream(inputFile), "US-ASCII"));
-    CompilationUnit unit = algm.constructAST(tokens);
-    assertFalse(unit == null);
-    unit.accept(new GenericCheckVisitor(className));
-
-    List<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>();
-    compilationUnits.add(unit);
     ClassHierarchy classHierarchy = new ClassHierarchy();
-    classHierarchy.processCompilationUnits(compilationUnits);
+    classHierarchy.verifyClassHierarchy(compilationUnits);
   }
 }

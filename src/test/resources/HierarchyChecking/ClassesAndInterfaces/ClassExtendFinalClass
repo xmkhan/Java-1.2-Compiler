@@ -1,7 +1,7 @@
 //JOOS1:PARSER_WEEDER,PARSER_EXCEPTION,SYNTAX_ERROR
 //JOOS2:PARSER_WEEDER,PARSER_EXCEPTION,SYNTAX_ERROR
 //JAVAC:UNKNOWN
-public class Je_1_Cast_DoubleParenthese extends test implements t1 {
+public class ClassExtendFinalClass extends FinalClass {
         public Je_1_Cast_DoubleParenthese() {}
 
         public static int test() {
