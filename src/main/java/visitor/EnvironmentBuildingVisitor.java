@@ -2,11 +2,14 @@ package visitor;
 
 import exception.EnvironmentBuildingException;
 import exception.VisitorException;
+import symbol.Symbol;
 import symbol.SymbolTable;
 import token.AbstractMethodDeclaration;
+import token.ClassDeclaration;
 import token.CompilationUnit;
 import token.Declaration;
 import token.FieldDeclaration;
+import token.InterfaceDeclaration;
 import token.LocalVariableDeclaration;
 import token.MethodDeclaration;
 import token.Token;
@@ -44,7 +47,8 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     Declaration decl = token.typeDeclaration.getDeclaration();
     prefix.append(decl.getIdentifier());
     String identifier = prefix.toString();
-    if (table.contains(identifier)) {
+    if (table.containsAnyOfType(identifier, ClassDeclaration.class) ||
+        table.containsAnyOfType(identifier, InterfaceDeclaration.class)) {
       throw new EnvironmentBuildingException(
           "Error: No two classes or interfaces have the same canonical name.", token);
     }
@@ -55,7 +59,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   public void visit(FieldDeclaration token) throws VisitorException {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
-    if (table.contains(identifier)) {
+    if (table.containsAnyOfType(identifier, FieldDeclaration.class)) {
       throw new EnvironmentBuildingException(
           "Error: No two fields declared in the same class may have the same name.", token);
     }
@@ -80,7 +84,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   public void visit(LocalVariableDeclaration token) throws VisitorException {
     super.visit(token);
     String identifier = token.getIdentifier();
-    if (table.contains(identifier)) {
+    if (table.containsAnyOfType(identifier, LocalVariableDeclaration.class)) {
       throw new EnvironmentBuildingException(
           "No two local variables with overlapping scope have the same name.", token);
     }

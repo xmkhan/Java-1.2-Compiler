@@ -1,5 +1,8 @@
 package symbol;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.TreeMap;
 
 /**
@@ -8,14 +11,18 @@ import java.util.TreeMap;
  * Thus, a TreeMap provides better space and runtime complexity trade-offs than a HashMap.
  */
 public class Scope<K, V> {
-  private TreeMap<K, V> symbols;
+  private TreeMap<K, List<V>> symbols;
 
   public Scope() {
-    this.symbols = new TreeMap<K, V>();
+    this.symbols = new TreeMap<K, List<V>>();
   }
 
   public Scope add(K key, V value) {
-    symbols.put(key, value);
+    if (symbols.containsKey(key)) {
+      symbols.get(key).add(value);
+    } else {
+      symbols.put(key, new ArrayList<V>(Arrays.asList(value)));
+    }
     return this;
   }
 
@@ -24,7 +31,7 @@ public class Scope<K, V> {
     return this;
   }
 
-  public V find(K key) {
+  public List<V> find(K key) {
     return symbols.get(key);
   }
 

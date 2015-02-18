@@ -4,8 +4,7 @@ public class A {
   public A() {}
 
   public int x = 3;
-  public double y = 4;
-
+  public short y = 4;
 
   public int y() {}
 }

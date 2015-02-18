@@ -2,6 +2,6 @@ package test2;
 
 public class A {
   public A() {}
-  public double asdf = 3;
+  public short asdf = 3;
   public String asdf = 4;
 }

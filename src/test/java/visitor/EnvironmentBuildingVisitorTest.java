@@ -27,7 +27,7 @@ public class EnvironmentBuildingVisitorTest {
   @Test
   public void testSimple() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
-        "src/test/resources/test1",
+        "src/test/resources/environment_check/test1",
     });
     visitor.buildGlobalScope(units);
   }
@@ -35,7 +35,7 @@ public class EnvironmentBuildingVisitorTest {
   @Test(expected = EnvironmentBuildingException.class)
   public void testSameFieldName() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
-        "src/test/resources/test2",
+        "src/test/resources/environment_check/test2",
     });
     visitor.buildGlobalScope(units);
   }
@@ -43,7 +43,7 @@ public class EnvironmentBuildingVisitorTest {
   @Test(expected = EnvironmentBuildingException.class)
   public void testOverlappingLocalVar() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
-        "src/test/resources/test3",
+        "src/test/resources/environment_check/test3",
     });
     visitor.buildGlobalScope(units);
   }
@@ -51,8 +51,41 @@ public class EnvironmentBuildingVisitorTest {
   @Test(expected = EnvironmentBuildingException.class)
   public void testSameClassName() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
-        "src/test/resources/test41",
-        "src/test/resources/test42",
+        "src/test/resources/environment_check/test41",
+        "src/test/resources/environment_check/test42",
+    });
+    visitor.buildGlobalScope(units);
+  }
+
+  @Test
+  public void testSameMethodNameAsConstructor() throws IOException, CompilerException {
+    List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
+        "src/test/resources/environment_check/test5",
+    });
+    visitor.buildGlobalScope(units);
+  }
+
+  @Test
+  public void testDifferentPackageSameName() throws IOException, CompilerException {
+    List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
+        "src/test/resources/environment_check/test61",
+        "src/test/resources/environment_check/test62",
+    });
+    visitor.buildGlobalScope(units);
+  }
+
+  @Test
+  public void testValidLocalVarScoping() throws IOException, CompilerException {
+    List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
+        "src/test/resources/environment_check/J1_localvariablescope",
+    });
+    visitor.buildGlobalScope(units);
+  }
+
+  @Test
+  public void testValidLocalVarConflict() throws IOException, CompilerException {
+    List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
+        "src/test/resources/environment_check/J1_local_duplicate",
     });
     visitor.buildGlobalScope(units);
   }

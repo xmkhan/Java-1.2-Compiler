@@ -31,7 +31,7 @@ public class SymbolTable {
     return this;
   }
 
-  public Symbol find(String identifier) {
+  public List<Symbol> find(String identifier) {
     for (Scope<String, Symbol> scope : table) {
       if (scope.contains(identifier)) {
         return scope.find(identifier);
@@ -44,7 +44,7 @@ public class SymbolTable {
     List<Symbol> results = new ArrayList<Symbol>();
     for (Scope<String, Symbol> scope : table) {
       if (scope.contains(identifier)) {
-        results.add(scope.find(identifier));
+        results.addAll(scope.find(identifier));
       }
     }
     return results;
@@ -56,6 +56,20 @@ public class SymbolTable {
         return true;
       }
     }
+    return false;
+  }
+
+  public boolean containsAnyOfType(String identifier, Class clazz) {
+    for (Scope<String, Symbol> scope: table) {
+      if (scope.contains(identifier)) {
+        for (Symbol symbol : scope.find(identifier)) {
+          if (clazz.isInstance(symbol.getToken())) {
+            return true;
+          }
+        }
+      }
+    }
+
     return false;
   }
 }

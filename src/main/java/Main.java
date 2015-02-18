@@ -1,7 +1,9 @@
 import algorithm.parsing.lr.ShiftReduceAlgorithm;
 import lexer.Lexer;
+import symbol.SymbolTable;
 import token.CompilationUnit;
 import token.Token;
+import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
 
 import java.io.File;
@@ -33,6 +35,9 @@ public class Main {
         compilationUnits.add(compilationUnit);
       }
       // 2. Phase 2: Construct SymbolTable, handle name resolution, and do type hierarchy checks.
+      SymbolTable table = new SymbolTable();
+      EnvironmentBuildingVisitor environmentVisitor = new EnvironmentBuildingVisitor(table);
+      environmentVisitor.buildGlobalScope(compilationUnits);
 
     } catch (Exception e) {
       System.exit(42);
