@@ -34,8 +34,8 @@ public class ClassDeclaration extends Declaration {
   }
 
   public void accept(Visitor v) throws VisitorException {
-    classBody.accept(v);
-    modifiers.accept(v);
+    if (classBody != null) classBody.accept(v);
+    if (modifiers != null) modifiers.accept(v);
     v.visit(this);
   }
 }

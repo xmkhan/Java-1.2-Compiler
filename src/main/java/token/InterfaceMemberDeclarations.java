@@ -4,12 +4,13 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class InterfaceMemberDeclarations extends Token {
 
-  public ArrayList<InterfaceMemberDeclaration> memberDeclarations;
+  public List<InterfaceMemberDeclaration> memberDeclarations;
 
-  public ArrayList<InterfaceMemberDeclaration> getMemberDeclarations() {
+  public List<InterfaceMemberDeclaration> getMemberDeclarations() {
     return memberDeclarations;
   }
 

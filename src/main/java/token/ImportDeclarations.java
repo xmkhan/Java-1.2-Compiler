@@ -4,10 +4,11 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ImportDeclarations extends Token {
 
-  public ArrayList<ImportDeclaration> importDeclarations;
+  public List<ImportDeclaration> importDeclarations;
 
   public ImportDeclarations(ArrayList<Token> children) {
     super("", TokenType.ImportDeclarations, children);

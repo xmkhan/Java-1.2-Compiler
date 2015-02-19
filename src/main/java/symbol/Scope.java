@@ -34,6 +34,9 @@ public class Scope<K, V> {
   public Scope remove(K key, V value) {
     if (symbols.containsKey(key)) {
       symbols.get(key).remove(value);
+      if (symbols.get(key).isEmpty()) {
+        symbols.remove(key);
+      }
     }
     return this;
   }

@@ -12,10 +12,10 @@ public class ConstructorDeclaration extends Declaration {
 
   public ConstructorDeclaration(ArrayList<Token> children) {
     super("", TokenType.ConstructorDeclaration, children);
-    identifier = children.get(0).children.get(0);
     for (Token child : children) {
       assignType(child);
     }
+    identifier = declarator.children.get(0);
   }
 
   public void assignType(Token token) {
