@@ -6,6 +6,7 @@ import symbol.SymbolTable;
 import token.AbstractMethodDeclaration;
 import token.ClassDeclaration;
 import token.CompilationUnit;
+import token.ConstructorDeclaration;
 import token.Declaration;
 import token.FieldDeclaration;
 import token.FormalParameter;
@@ -80,6 +81,22 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
       }
     }
   }
+
+  @Override
+  public void visit(ConstructorDeclaration token) throws VisitorException {
+    super.visit(token);
+    String identifier = prefix.toString() + token.getIdentifier();
+    table.addDecl(identifier, token);
+    // Manually remove arguments because they are before the "{" so "}" will not remove them from the Scope.
+    // The reason for this is that Visitors are performing an in-order traversal.
+    if (token.declarator.paramList != null) {
+      List<FormalParameter> params = token.declarator.paramList.params;
+      for (FormalParameter param : params) {
+        table.removeDecl(param.getIdentifier(), param);
+      }
+    }
+  }
+
 
   @Override
   public void visit(AbstractMethodDeclaration token) throws VisitorException {
