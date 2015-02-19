@@ -61,15 +61,15 @@ public class HierarchyGraph {
         case ExtendsInterfaces:
           extendsInterfaces((ExtendsInterfaces) token, node);
           break;
-        case CLASS:
-          break;
-        case INTERFACE:
-          break;
         case ClassBody:
           addMethodsToNode(extractMethodHeaders((ClassBody) token), node);
           break;
         case InterfaceBody:
           addMethodsToNode(extractMethodHeaders((InterfaceBody) token), node);
+          break;
+        case CLASS:
+          break;
+        case INTERFACE:
           break;
         default:
           throw new DeadCodeException("bad class or interface declaration. TokenType received: " + token.getTokenType());
@@ -113,7 +113,6 @@ public class HierarchyGraph {
     if (parameterList == null) return null;
 
     for (FormalParameter formalParameter : parameterList.getFormalParameters()) {
-      System.out.println(formalParameter.getType().getLexeme() + " | " + formalParameter.isArray());
       parameterTypes.add(new Parameter(formalParameter.getType().getLexeme(), formalParameter.isArray()));
     }
 
