@@ -10,6 +10,7 @@ import token.ConstructorDeclaration;
 import token.Declaration;
 import token.FieldDeclaration;
 import token.ForInit;
+import token.ForStatement;
 import token.FormalParameter;
 import token.FormalParameterList;
 import token.InterfaceDeclaration;
@@ -17,7 +18,6 @@ import token.LocalVariableDeclaration;
 import token.MethodDeclaration;
 import token.Token;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,7 +47,10 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     prefix.setLength(0);
     // Add the package as the prefix.
     if (token.packageDeclaration != null) {
-      prefix.append(token.packageDeclaration.getLexeme() + ".");
+      if (!table.contains(token.packageDeclaration.getIdentifier())) {
+        table.addDecl(token.packageDeclaration.getIdentifier(), token.packageDeclaration);
+      }
+      prefix.append(token.packageDeclaration.getIdentifier() + ".");
     }
     // Add the Class or Interface declaration to the symbol table, and set as prefix.
     Declaration decl = token.typeDeclaration.getDeclaration();
@@ -85,7 +88,6 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     String identifier = prefix.toString() + token.getIdentifier();
     table.addDecl(identifier, token);
   }
-
 
   @Override
   public void visit(AbstractMethodDeclaration token) throws VisitorException {

@@ -1,4 +1,5 @@
 import algorithm.parsing.lr.ShiftReduceAlgorithm;
+import exception.CompilerException;
 import lexer.Lexer;
 import symbol.SymbolTable;
 import token.CompilationUnit;
@@ -8,6 +9,7 @@ import visitor.GenericCheckVisitor;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +19,7 @@ import java.util.List;
  */
 public class Main {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     try {
       InputStreamReader lr1Reader = new InputStreamReader(new FileInputStream(ShiftReduceAlgorithm.DEFAULT_LR1_FILE));
 
@@ -39,7 +41,7 @@ public class Main {
       EnvironmentBuildingVisitor environmentVisitor = new EnvironmentBuildingVisitor(table);
       environmentVisitor.buildGlobalScope(compilationUnits);
 
-    } catch (Exception e) {
+    } catch (CompilerException e) {
       System.exit(42);
     }
     System.exit(0);

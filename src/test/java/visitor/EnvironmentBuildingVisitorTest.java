@@ -116,6 +116,7 @@ public class EnvironmentBuildingVisitorTest {
         "src/test/resources/environment_check/symbol1",
     });
     visitor.buildGlobalScope(units);
+    assertTrue(table.contains("symbols"));
     assertTrue(table.contains("symbols.symbol1"));
     assertTrue(table.contains("symbols.symbol1.a"));
     assertTrue(table.contains("symbols.symbol1.b"));
