@@ -69,6 +69,7 @@ public class HierarchyGraph {
           addMethodsToNode(extractMethodHeaders((ClassBody) token), node);
           break;
         case InterfaceBody:
+          addMethodsToNode(extractMethodHeaders((InterfaceBody) token), node);
           break;
         default:
           throw new DeadCodeException("bad class or interface declaration. TokenType received: " + token.getTokenType());
@@ -112,6 +113,7 @@ public class HierarchyGraph {
     if (parameterList == null) return null;
 
     for (FormalParameter formalParameter : parameterList.getFormalParameters()) {
+      System.out.println(formalParameter.getType().getLexeme() + " | " + formalParameter.isArray());
       parameterTypes.add(new Parameter(formalParameter.getType().getLexeme(), formalParameter.isArray()));
     }
 
@@ -128,6 +130,15 @@ public class HierarchyGraph {
       if (classBodyDeclaration.isMethod()) {
         methodHeaders.add(((MethodDeclaration) (classBodyDeclaration.children.get(0).children.get(0))).methodHeader);
       }
+    }
+    return methodHeaders;
+  }
+
+  private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody) {
+    if (interfaceBody.getInterfaceMemberDeclaration() == null) return null;
+    List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
+    for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getInterfaceMemberDeclarations()) {
+      methodHeaders.add(interfaceMemberDeclaration.getMethodHeader());
     }
     return methodHeaders;
   }
