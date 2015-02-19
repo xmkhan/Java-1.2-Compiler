@@ -69,9 +69,16 @@ public class HierarchyChecker {
       extendsVerification(currentNode.extendsList, currentNode);
       implementsVerification(currentNode.implementsList, name);
     }
+    verifyHierarchyGraphIsAcyclic();
   }
 
   /*******************************************  Verification Functions *******************************************/
+
+  private void verifyHierarchyGraphIsAcyclic() throws TypeHierarchyException {
+    HierarchyGraphNode cyclicNode;
+    if ((cyclicNode = graph.isCyclic()) != null) throw new TypeHierarchyException("Graph is not acyclic.  " +
+      cyclicNode.identifier + " is causing cycles in hierarchy checking");
+  }
 
   /**
    * Perform verification on the implements clause of a class
@@ -110,5 +117,9 @@ public class HierarchyChecker {
           ", class:" + parent.identifier + "]");
       }
     }
+  }
+
+  private void verifyGraphIsAcyclic(HierarchyGraphNode currentNode) {
+
   }
 }

@@ -4,9 +4,7 @@ import exception.DeadCodeException;
 import exception.TypeHierarchyException;
 import token.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Creates an acyclic class hierarchy graph for all types known to the program.
@@ -32,6 +30,35 @@ public class HierarchyGraph {
 
     processTypeDeclarationToken(classOrInterface, node);
     return this;
+  }
+
+  public HierarchyGraphNode isCyclic() {
+    HashSet<HierarchyGraphNode> visited = new HashSet<HierarchyGraphNode>();
+    HashSet<HierarchyGraphNode> recursionStack = new HashSet<HierarchyGraphNode>();
+    HierarchyGraphNode cyclicNode;
+
+    for (Map.Entry<String, HierarchyGraphNode> entry : nodes.entrySet()) {
+      HierarchyGraphNode currentNode = entry.getValue();
+      if ((cyclicNode = isCyclicHelper(currentNode, visited, recursionStack)) != null) {
+        return cyclicNode;
+      }
+    }
+    return null;
+  }
+
+  private HierarchyGraphNode isCyclicHelper(HierarchyGraphNode currentNode, HashSet<HierarchyGraphNode> visited, HashSet<HierarchyGraphNode> recursionStack) {
+    if (!visited.contains(currentNode)) {
+      visited.add(currentNode);
+      recursionStack.add(currentNode);
+      for (HierarchyGraphNode child : currentNode.children) {
+        if ( (!visited.contains(child) && isCyclicHelper(child, visited, recursionStack) != null) ||
+          recursionStack.contains(child)) {
+          return child;
+        }
+      }
+    }
+    recursionStack.remove(currentNode);
+    return null;
   }
 
   /**
@@ -81,6 +108,7 @@ public class HierarchyGraph {
    * Add method information, such as parameter types and modifiers to the node
    */
   private void addMethodsToNode(List<MethodHeader> methodHeaders, HierarchyGraphNode node) throws DeadCodeException {
+    if (methodHeaders == null) return;
     for (MethodHeader methodHeader : methodHeaders) {
       Method method = new Method();
       for (Token token : methodHeader.children) {
@@ -123,7 +151,7 @@ public class HierarchyGraph {
    * Retrieves all the MethodHeaders in the ClassBody passed in
    */
   private List<MethodHeader> extractMethodHeaders(ClassBody classBody) {
-    if (classBody.bodyDeclarations == null) return null;
+    if (classBody != null && classBody.bodyDeclarations == null) return null;
     List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
     for (ClassBodyDeclaration classBodyDeclaration : classBody.bodyDeclarations.getBodyDeclarations()) {
       if (classBodyDeclaration.isMethod()) {
@@ -134,7 +162,7 @@ public class HierarchyGraph {
   }
 
   private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody) {
-    if (interfaceBody.getInterfaceMemberDeclaration() == null) return null;
+    if (interfaceBody != null && interfaceBody.getInterfaceMemberDeclaration() == null) return null;
     List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
     for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getInterfaceMemberDeclarations()) {
       methodHeaders.add(interfaceMemberDeclaration.getMethodHeader());
