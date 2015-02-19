@@ -98,4 +98,12 @@ public class EnvironmentBuildingVisitorTest {
     visitor.buildGlobalScope(units);
   }
 
+  @Test
+  public void testStandard() throws IOException, CompilerException {
+    List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
+        "src/test/resources/environment_check/J1_01",
+    });
+    visitor.buildGlobalScope(units);
+  }
+
 }

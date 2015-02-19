@@ -1,6 +1,7 @@
 package symbol;
 
 import token.Declaration;
+import token.Token;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -10,14 +11,14 @@ import java.util.List;
  * Class that encapsulates a scoped-based stack for resolving symbol definitions.
  */
 public class SymbolTable {
-  private LinkedList<Scope<String, Symbol>> table;
+  private LinkedList<Scope<String, Token>> table;
 
   public SymbolTable() {
-    table = new LinkedList<Scope<String, Symbol>>();
+    table = new LinkedList<Scope<String, Token>>();
   }
 
   public SymbolTable newScope() {
-    table.push(new Scope<String, Symbol>());
+    table.push(new Scope<String, Token>());
     return this;
   }
 
@@ -27,12 +28,17 @@ public class SymbolTable {
   }
 
   public SymbolTable addDecl(String identifier, Declaration decl) {
-    table.peek().add(identifier, new Symbol(decl));
+    table.peek().add(identifier, decl);
     return this;
   }
 
-  public List<Symbol> find(String identifier) {
-    for (Scope<String, Symbol> scope : table) {
+  public SymbolTable removeDecl(String identifier, Declaration decl) {
+    table.peek().remove(identifier, decl);
+    return this;
+  }
+
+  public List<Token> find(String identifier) {
+    for (Scope<String, Token> scope : table) {
       if (scope.contains(identifier)) {
         return scope.find(identifier);
       }
@@ -40,9 +46,9 @@ public class SymbolTable {
     return null;
   }
 
-  public List<Symbol> findAll(String identifier) {
-    List<Symbol> results = new ArrayList<Symbol>();
-    for (Scope<String, Symbol> scope : table) {
+  public List<Token> findAll(String identifier) {
+    List<Token> results = new ArrayList<Token>();
+    for (Scope<String, Token> scope : table) {
       if (scope.contains(identifier)) {
         results.addAll(scope.find(identifier));
       }
@@ -51,7 +57,7 @@ public class SymbolTable {
   }
 
   public boolean contains(String identifier) {
-    for (Scope<String, Symbol> scope : table) {
+    for (Scope<String, Token> scope : table) {
       if (scope.contains(identifier)) {
         return true;
       }
@@ -60,10 +66,10 @@ public class SymbolTable {
   }
 
   public boolean containsAnyOfType(String identifier, Class clazz) {
-    for (Scope<String, Symbol> scope: table) {
+    for (Scope<String, Token> scope: table) {
       if (scope.contains(identifier)) {
-        for (Symbol symbol : scope.find(identifier)) {
-          if (clazz.isInstance(symbol.getToken())) {
+        for (Token symbol : scope.find(identifier)) {
+          if (clazz.isInstance(symbol)) {
             return true;
           }
         }

@@ -31,6 +31,13 @@ public class Scope<K, V> {
     return this;
   }
 
+  public Scope remove(K key, V value) {
+    if (symbols.containsKey(key)) {
+      symbols.get(key).remove(value);
+    }
+    return this;
+  }
+
   public List<V> find(K key) {
     return symbols.get(key);
   }

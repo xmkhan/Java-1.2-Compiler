@@ -2,7 +2,6 @@ package visitor;
 
 import exception.EnvironmentBuildingException;
 import exception.VisitorException;
-import symbol.Symbol;
 import symbol.SymbolTable;
 import token.AbstractMethodDeclaration;
 import token.ClassDeclaration;
@@ -10,7 +9,6 @@ import token.CompilationUnit;
 import token.Declaration;
 import token.FieldDeclaration;
 import token.FormalParameter;
-import token.FormalParameterList;
 import token.InterfaceDeclaration;
 import token.LocalVariableDeclaration;
 import token.MethodDeclaration;
@@ -73,6 +71,14 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
     table.addDecl(identifier, token);
+    // Manually remove arguments because they are before the "{" so "}" will not remove them from the Scope.
+    // The reason for this is that Visitors are performing an in-order traversal.
+    if (token.methodHeader.paramList != null) {
+      List<FormalParameter> params = token.methodHeader.paramList.params;
+      for (FormalParameter param : params) {
+        table.removeDecl(param.getIdentifier(), param);
+      }
+    }
   }
 
   @Override
@@ -85,16 +91,17 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   @Override
   public void visit(FormalParameter token) throws VisitorException {
     super.visit(token);
-    tryAddLocalDeclaration(token);
+    String identifier = token.getIdentifier();
+    if (table.containsAnyOfType(identifier, FormalParameter.class)) {
+      throw new EnvironmentBuildingException(
+          "No two local variables with overlapping scope have the same name.", token);
+    }
+    table.addDecl(identifier, token);
   }
 
   @Override
   public void visit(LocalVariableDeclaration token) throws VisitorException {
     super.visit(token);
-    tryAddLocalDeclaration(token);
-  }
-
-  private void tryAddLocalDeclaration(Declaration token) throws VisitorException {
     String identifier = token.getIdentifier();
     if (table.containsAnyOfType(identifier, LocalVariableDeclaration.class) ||
         table.containsAnyOfType(identifier, FormalParameter.class)) {
@@ -102,7 +109,6 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
           "No two local variables with overlapping scope have the same name.", token);
     }
     table.addDecl(identifier, token);
-
   }
 
   @Override
