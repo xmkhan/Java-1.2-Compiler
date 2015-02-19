@@ -1,0 +1,3 @@
+public interface InterfaceExtendClass extends Class1 {
+  public InterfaceExtendClass(){}
+}

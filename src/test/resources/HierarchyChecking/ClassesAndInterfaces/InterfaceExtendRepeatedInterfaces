@@ -1,0 +1,3 @@
+public interface InterfaceExtendRepeatedInterfaces extends Interface1, Interface1 {
+
+}

@@ -17,4 +17,8 @@ public class PrimitiveType extends Token {
     }
     v.visit(this);
   }
+
+  public Token getType() {
+    return children.get(0);
+  }
 }
