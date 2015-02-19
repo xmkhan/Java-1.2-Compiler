@@ -19,15 +19,18 @@ public class HierarchyGraphNode {
   // List of interfaces in the implements clause.  They point to the corresponding ClassNodes in HierarchyGraph
   public List<HierarchyGraphNode> implementsList;
   // Modifiers for the class or interface
-  public HashSet<TokenType> modifiers;
+  public List<Modifier> modifiers;
+  // All the information regarding methods of a class/interface
+  public List<Method> methods;
   // Class/interface identifier
   public String identifier;
 
   public HierarchyGraphNode() {
-    children = new ArrayList<>();
-    extendsList = new ArrayList<>();
-    implementsList = new ArrayList<>();
-    modifiers = new HashSet<>();
+    children = new ArrayList<HierarchyGraphNode>();
+    extendsList = new ArrayList<HierarchyGraphNode>();
+    implementsList = new ArrayList<HierarchyGraphNode>();
+    modifiers = new ArrayList<Modifier>();
+    methods = new ArrayList<Method>();
   }
 
   public boolean isFinal() {

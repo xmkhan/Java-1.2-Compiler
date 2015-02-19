@@ -17,4 +17,8 @@ public class SimpleName extends Token {
     }
     v.visit(this);
   }
+
+  public Token getIdentifier() {
+    return children.get(0);
+  }
 }

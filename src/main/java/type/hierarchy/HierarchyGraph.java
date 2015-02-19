@@ -4,7 +4,9 @@ import exception.DeadCodeException;
 import exception.TypeHierarchyException;
 import token.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Creates an acyclic class hierarchy graph for all types known to the program.
@@ -13,7 +15,7 @@ public class HierarchyGraph {
   public HashMap<String, HierarchyGraphNode> nodes;
 
   public HierarchyGraph() {
-    this.nodes = new HashMap<>();
+    this.nodes = new HashMap<String, HierarchyGraphNode>();
   }
 
   /**
@@ -22,23 +24,30 @@ public class HierarchyGraph {
    */
   public HierarchyGraph addNode(Token classOrInterface) throws TypeHierarchyException, DeadCodeException {
     HierarchyGraphNode node = null;
-    for (Token token : classOrInterface.children) {
-      if (token.getTokenType().equals(TokenType.IDENTIFIER)) {
-        node = createNodeIfItDoesntExist(token.getLexeme());
-      }
+    if (classOrInterface instanceof ClassDeclaration) {
+      node = createNodeIfItDoesntExist(((ClassDeclaration) classOrInterface).identifier.getLexeme());
+    } else {
+      node = createNodeIfItDoesntExist(((InterfaceDeclaration) classOrInterface).identifier.getLexeme());
     }
 
+    processTypeDeclarationToken(classOrInterface, node);
+    return this;
+  }
+
+  /**
+   * Add the data we need for Hierarchy checking to the node associated to the class or interface
+   * we are processing
+   */
+  private void processTypeDeclarationToken(Token classOrInterface, HierarchyGraphNode node) throws DeadCodeException, TypeHierarchyException {
     if (node == null) {
       throw new DeadCodeException("Failed to fetch or create a HierarchyGraphNode");
     }
 
     node.classOrInterface = classOrInterface;
-
-    // Process the TypeDeclaration token
     for (Token token : classOrInterface.children) {
       switch (token.getTokenType()) {
         case Modifiers:
-          extractModifiers((token.Modifiers) token, node);
+          node.modifiers = ((Modifiers) token).getModifiers();
           break;
         case IDENTIFIER:
           node.identifier = token.getLexeme();
@@ -47,16 +56,17 @@ public class HierarchyGraph {
           extend((Super) token, node);
           break;
         case Interfaces:
-          implementsInterfaces(token, node);
+          implementsInterfaces((Interfaces) token, node);
           break;
         case ExtendsInterfaces:
-          extendsInterfaces(token, node);
+          extendsInterfaces((ExtendsInterfaces) token, node);
           break;
         case CLASS:
           break;
         case INTERFACE:
           break;
         case ClassBody:
+          addMethodsToNode(extractMethodHeaders((ClassBody) token), node);
           break;
         case InterfaceBody:
           break;
@@ -64,23 +74,62 @@ public class HierarchyGraph {
           throw new DeadCodeException("bad class or interface declaration. TokenType received: " + token.getTokenType());
       }
     }
-    return this;
   }
 
   /**
-   * Creates a Set from modifiers (public, abstract, final, ...) used in the TypeDeclaration
-   * token, and adds it to the corresponding node in the graph
-   * @param modifiers Modifiers token which includes one or more modifiers
-   * @param node Add the modifiers to this node
+   * Add method information, such as parameter types and modifiers to the node
    */
-  private void extractModifiers(Modifiers modifiers, HierarchyGraphNode node) {
-    Token temp = modifiers;
-
-    while(temp.children.get(0).getTokenType().equals(TokenType.Modifiers)) {
-      node.modifiers.add(temp.children.get(1).children.get(0).getTokenType());
-      temp = temp.children.get(0);
+  private void addMethodsToNode(List<MethodHeader> methodHeaders, HierarchyGraphNode node) throws DeadCodeException {
+    for (MethodHeader methodHeader : methodHeaders) {
+      Method method = new Method();
+      for (Token token : methodHeader.children) {
+        switch (token.getTokenType()) {
+          case Type:
+            break;
+          case MethodDeclarator:
+            method.identifier = ((MethodDeclarator)token).identifier;
+            method.parameterTypes = extractParameterTypes((MethodDeclarator) token);
+            break;
+          case Modifiers:
+            method.modifiers = ((Modifiers)token).getModifiers();
+            break;
+          case VOID:
+            break;
+          default:
+            throw new DeadCodeException("bad class or interface declaration. TokenType received: " + token.getTokenType());
+        }
+      }
     }
-    node.modifiers.add(temp.children.get(0).children.get(0).getTokenType());
+  }
+
+  /**
+   * Extract the parameters of the MethodDeclarator passed in
+   */
+  private ArrayList<Parameter> extractParameterTypes(MethodDeclarator methodDeclarator) {
+    ArrayList<Parameter> parameterTypes = new ArrayList<Parameter>();
+    FormalParameterList parameterList = methodDeclarator.getParameterList();
+
+    if (parameterList == null) return null;
+
+    for (FormalParameter formalParameter : parameterList.getFormalParameters()) {
+      parameterTypes.add(new Parameter(formalParameter.getType().getLexeme(), formalParameter.isArray()));
+    }
+
+    return parameterTypes;
+  }
+
+  /**
+   * Retrieves all the MethodHeaders in the ClassBody passed in
+   */
+  private List<MethodHeader> extractMethodHeaders(ClassBody classBody) {
+    if (classBody.bodyDeclarations == null) return null;
+    List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
+    for (ClassBodyDeclaration classBodyDeclaration : classBody.bodyDeclarations.getBodyDeclarations()) {
+      if (classBodyDeclaration.isMethod()) {
+        methodHeaders.add(((MethodDeclaration) (classBodyDeclaration.children.get(0).children.get(0))).methodHeader);
+      }
+    }
+    return methodHeaders;
   }
 
   /**
@@ -91,13 +140,7 @@ public class HierarchyGraph {
    * @throws TypeHierarchyException
    */
   private void extend(Super extend, HierarchyGraphNode node) throws TypeHierarchyException {
-    Token token = extend.children.get(1).children.get(0).children.get(0).children.get(0).children.get(0);
-
-    if(!token.getTokenType().equals(TokenType.IDENTIFIER)) {
-      throw new TypeHierarchyException("Expected a QualifiedName, but received a QualifiedName");
-    }
-
-    updateNodeRelationships(token.getLexeme(), node, extend.getTokenType());
+    updateNodeRelationships(extend.getType().getLexeme(), node, extend.getTokenType());
   }
 
   /**
@@ -107,18 +150,10 @@ public class HierarchyGraph {
    * @param node The node representing the interface extending
    * @throws TypeHierarchyException
    */
-  private void implementsInterfaces(Token interfaces, HierarchyGraphNode node) throws TypeHierarchyException {
-    String interfaceName;
-    Token interfaceList = interfaces.children.get(1);
-
-    while(interfaceList.children.get(0).getTokenType().equals(TokenType.InterfaceTypeList)) {
-      interfaceName = getClassOrInterfaceIdentifier(interfaceList.children.get(2)).getLexeme();
-      updateNodeRelationships(interfaceName, node, interfaces.getTokenType());
-      interfaceList = interfaceList.children.get(0);
+  private void implementsInterfaces(Interfaces interfaces, HierarchyGraphNode node) throws TypeHierarchyException {
+    for (InterfaceType interfaceType : interfaces.interfaceTypeList.types) {
+      updateNodeRelationships(interfaceType.getType().getLexeme(), node, interfaces.getTokenType());
     }
-
-    interfaceName = getClassOrInterfaceIdentifier(interfaceList).getLexeme();
-    updateNodeRelationships(interfaceName, node, interfaces.getTokenType());
   }
 
   /**
@@ -128,19 +163,9 @@ public class HierarchyGraph {
    * @param node The node representing the interface extending
    * @throws TypeHierarchyException
    */
-  private void extendsInterfaces(Token interfaces, HierarchyGraphNode node) throws TypeHierarchyException {
-    Token interfaceList = interfaces;
-    while(true) {
-      String interfaceName = null;
-      if (interfaceList.children.get(0).getTokenType().equals(TokenType.ExtendsInterfaces)) {
-        interfaceName = getClassOrInterfaceIdentifier(interfaceList.children.get(2)).getLexeme();
-        updateNodeRelationships(interfaceName, node, interfaces.getTokenType());
-        interfaceList = interfaceList.children.get(0);
-      } else if (interfaceList.children.get(0).getTokenType().equals(TokenType.EXTENDS)) {
-        interfaceName = getClassOrInterfaceIdentifier(interfaceList.children.get(1)).getLexeme();
-        updateNodeRelationships(interfaceName, node, interfaces.getTokenType());
-        break;
-      }
+  private void extendsInterfaces(ExtendsInterfaces interfaces, HierarchyGraphNode node) throws TypeHierarchyException {
+    for (InterfaceType interfaceType : interfaces.getInterfaceType()) {
+      updateNodeRelationships(interfaceType.getType().getLexeme(), node, interfaces.getTokenType());
     }
   }
 
@@ -177,15 +202,5 @@ public class HierarchyGraph {
       nodes.put(name, node);
     }
     return node;
-  }
-
-  /**
-   * Takes in an InterfaceType or ClassTypes token and returns the associated Identifier token
-   */
-  private Token getClassOrInterfaceIdentifier(Token token) {
-    while(token.children != null && !token.getTokenType().equals(TokenType.IDENTIFIER)) {
-      token = token.children.get(0);
-    }
-    return token;
   }
 }

@@ -60,7 +60,13 @@ public class HierarchyChecking {
             }
           } catch (IOException e) {
             e.printStackTrace();
-          } catch (LexerException | MachineException | VisitorException e) {
+          } catch (LexerException e) {
+            e.printStackTrace();
+            System.err.println("Exception on file: " + file.getAbsolutePath());
+          } catch (MachineException e) {
+            e.printStackTrace();
+            System.err.println("Exception on file: " + file.getAbsolutePath());
+          } catch (VisitorException e) {
             e.printStackTrace();
             System.err.println("Exception on file: " + file.getAbsolutePath());
           }
