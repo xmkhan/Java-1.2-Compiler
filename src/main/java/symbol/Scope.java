@@ -21,7 +21,8 @@ public class Scope<K, V> {
     if (symbols.containsKey(key)) {
       symbols.get(key).add(value);
     } else {
-      symbols.put(key, new ArrayList<V>(Arrays.asList(value)));
+      symbols.put(key, new ArrayList<V>());
+      symbols.get(key).add(value);
     }
     return this;
   }
