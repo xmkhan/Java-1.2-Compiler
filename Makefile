@@ -13,6 +13,7 @@ CLASSES = \
   src/main/java/token/QualifiedName.java \
   src/main/java/token/AdditiveExpression.java \
   src/main/java/token/Name.java \
+  src/main/java/token/Declaration.java \
   src/main/java/token/InterfaceTypeList.java \
   src/main/java/token/ConditionalAndExpression.java \
   src/main/java/token/SimpleName.java \
@@ -103,13 +104,21 @@ CLASSES = \
   src/main/java/token/ConstructorBody.java \
   src/main/java/exception/VisitorException.java \
   src/main/java/exception/CompilerException.java \
+  src/main/java/exception/TypeHierarchyException.java \
   src/main/java/exception/LexerException.java \
   src/main/java/exception/MachineException.java \
+  src/main/java/exception/NameResolutionException.java \
+  src/main/java/exception/SymbolTableException.java \
+  src/main/java/exception/DeadCodeException.java \
+  src/main/java/visitor/TypeLinkingVisitor.java \
   src/main/java/visitor/GenericCheckVisitor.java \
   src/main/java/visitor/Visitee.java \
   src/main/java/visitor/Visitor.java \
   src/main/java/visitor/BaseVisitor.java \
   src/main/java/lexer/Lexer.java \
+  src/main/java/symbol/Scope.java \
+  src/main/java/symbol/Symbol.java \
+  src/main/java/symbol/SymbolTable.java \
   src/main/java/dfa/NumericDFA.java \
   src/main/java/dfa/LiteralDFA.java \
   src/main/java/dfa/IdentifierDFA.java \
@@ -118,7 +127,13 @@ CLASSES = \
   src/main/java/dfa/ReservedDFA.java \
   src/main/java/algorithm/trie/Trie.java \
   src/main/java/algorithm/base/Pair.java \
+  src/main/java/type/hierarchy/HierarchyChecker.java \
+  src/main/java/type/hierarchy/HierarchyGraphNode.java \
+  src/main/java/type/hierarchy/HierarchyGraph.java \
+  src/main/java/type/hierarchy/Method.java \
+  src/main/java/type/hierarchy/Parameter.java \
   src/main/java/algorithm/parsing/lr/ShiftReduceAlgorithm.java \
+  src/main/java/algorithm/name/resolution/NameResolutionAlgorithm.java \
   src/main/java/algorithm/parsing/lr/machine/MachineState.java \
   src/main/java/algorithm/parsing/lr/machine/Machine.java
 default: clean classesdir classes
