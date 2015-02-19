@@ -13,7 +13,13 @@ public class ImportDeclaration extends Token {
     onDemand = children.get(0) instanceof TypeImportOnDemandDeclaration;
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 }

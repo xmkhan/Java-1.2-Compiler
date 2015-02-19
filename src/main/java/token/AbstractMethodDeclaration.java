@@ -18,4 +18,9 @@ public class AbstractMethodDeclaration extends Declaration {
     methodHeader.accept(v);
     v.visit(this);
   }
+
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    methodHeader.acceptReverse(v);
+  }
 }

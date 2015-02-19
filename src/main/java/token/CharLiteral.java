@@ -14,4 +14,8 @@ public class CharLiteral extends Token {
   public void accept(Visitor v) throws VisitorException {
     v.visit(this);
   }
+
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

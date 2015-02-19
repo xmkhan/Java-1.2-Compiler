@@ -23,9 +23,17 @@ public class TypeDeclaration extends Token {
     return classDeclaration != null ? classDeclaration : interfaceDeclaration;
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     if (classDeclaration != null) classDeclaration.accept(v);
     else interfaceDeclaration.accept(v);
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    if (classDeclaration != null) classDeclaration.acceptReverse(v);
+    else interfaceDeclaration.acceptReverse(v);
   }
 }

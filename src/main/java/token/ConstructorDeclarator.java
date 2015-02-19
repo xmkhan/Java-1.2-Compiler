@@ -16,8 +16,15 @@ public class ConstructorDeclarator extends Token {
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     if (paramList != null) paramList.accept(v);
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    if (paramList != null) paramList.acceptReverse(v);
   }
 }

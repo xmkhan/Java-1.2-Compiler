@@ -9,12 +9,15 @@ import token.CompilationUnit;
 import token.ConstructorDeclaration;
 import token.Declaration;
 import token.FieldDeclaration;
+import token.ForInit;
 import token.FormalParameter;
+import token.FormalParameterList;
 import token.InterfaceDeclaration;
 import token.LocalVariableDeclaration;
 import token.MethodDeclaration;
 import token.Token;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,16 +26,18 @@ import java.util.List;
 public class EnvironmentBuildingVisitor extends BaseVisitor {
   private SymbolTable table;
   private StringBuilder prefix;
+  private boolean implicitScope;
 
   public EnvironmentBuildingVisitor(SymbolTable table) {
     this.table = table;
     this.prefix = new StringBuilder();
+    implicitScope = false;
   }
 
   public void buildGlobalScope(List<CompilationUnit> units) throws VisitorException {
     table.newScope();
     for (CompilationUnit unit : units) {
-      unit.accept(this);
+      unit.acceptReverse(this);
     }
   }
 
@@ -46,8 +51,8 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     }
     // Add the Class or Interface declaration to the symbol table, and set as prefix.
     Declaration decl = token.typeDeclaration.getDeclaration();
-    prefix.append(decl.getIdentifier());
-    String identifier = prefix.toString();
+    String identifier = prefix.toString() + decl.getIdentifier();
+    prefix.append(decl.getIdentifier() + ".");
     if (table.containsAnyOfType(identifier, ClassDeclaration.class) ||
         table.containsAnyOfType(identifier, InterfaceDeclaration.class)) {
       throw new EnvironmentBuildingException(
@@ -72,14 +77,6 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
     table.addDecl(identifier, token);
-    // Manually remove arguments because they are before the "{" so "}" will not remove them from the Scope.
-    // The reason for this is that Visitors are performing an in-order traversal.
-    if (token.methodHeader.paramList != null) {
-      List<FormalParameter> params = token.methodHeader.paramList.params;
-      for (FormalParameter param : params) {
-        table.removeDecl(param.getIdentifier(), param);
-      }
-    }
   }
 
   @Override
@@ -87,14 +84,6 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
     table.addDecl(identifier, token);
-    // Manually remove arguments because they are before the "{" so "}" will not remove them from the Scope.
-    // The reason for this is that Visitors are performing an in-order traversal.
-    if (token.declarator.paramList != null) {
-      List<FormalParameter> params = token.declarator.paramList.params;
-      for (FormalParameter param : params) {
-        table.removeDecl(param.getIdentifier(), param);
-      }
-    }
   }
 
 
@@ -106,6 +95,15 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(FormalParameterList token) throws VisitorException {
+    super.visit(token);
+    if (token.params != null && !token.params.isEmpty()) {
+      table.newScope();
+      implicitScope = true;
+    }
+  }
+
+  @Override
   public void visit(FormalParameter token) throws VisitorException {
     super.visit(token);
     String identifier = token.getIdentifier();
@@ -114,6 +112,15 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
           "No two local variables with overlapping scope have the same name.", token);
     }
     table.addDecl(identifier, token);
+  }
+
+  @Override
+  public void visit(ForInit token) throws VisitorException {
+    super.visit(token);
+    if (token.children.get(0) instanceof LocalVariableDeclaration) {
+      implicitScope = true;
+      table.newScope();
+    }
   }
 
   @Override
@@ -135,6 +142,8 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
       table.newScope();
     } else if (token.getLexeme().equals("}")) {
       table.deleteScope();
+      if (implicitScope) table.deleteScope();
+      implicitScope = false;
     }
   }
 }

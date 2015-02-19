@@ -27,9 +27,17 @@ public class UnaryExpression extends Token {
     return minus != null;
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     if (exp != null) exp.accept(v);
     if (posExp != null) posExp.accept(v);
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    if (exp != null) exp.acceptReverse(v);
+    if (posExp != null) posExp.acceptReverse(v);
   }
 }

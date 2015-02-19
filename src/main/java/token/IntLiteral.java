@@ -11,7 +11,13 @@ public class IntLiteral extends Token {
     super(children.get(0).getLexeme(), TokenType.INT_LITERAL, children);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 }

@@ -14,7 +14,13 @@ public class FormalParameter extends Declaration {
     identifier = children.get(1);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 }

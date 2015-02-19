@@ -17,9 +17,17 @@ public class MethodDeclaration extends Declaration {
     identifier = methodHeader.identifier;
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     methodHeader.accept(v);
     methodBody.accept(v);
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    methodHeader.acceptReverse(v);
+    methodBody.acceptReverse(v);
   }
 }

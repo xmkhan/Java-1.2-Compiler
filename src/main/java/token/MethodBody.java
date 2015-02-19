@@ -15,10 +15,19 @@ public class MethodBody extends Token {
     return children.get(0).getTokenType() == TokenType.SEMI_COLON;
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {
       token.accept(v);
     }
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    for (Token token : children) {
+      token.acceptReverse(v);
+    }
   }
 }

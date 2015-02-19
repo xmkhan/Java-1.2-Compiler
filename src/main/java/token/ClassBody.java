@@ -16,8 +16,15 @@ public class ClassBody extends Token {
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     if (bodyDeclarations != null) bodyDeclarations.accept(v);
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    if (bodyDeclarations != null) bodyDeclarations.acceptReverse(v);
   }
 }

@@ -11,6 +11,10 @@ import util.CompilationUnitGenerator;
 import java.io.IOException;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests the basic functionality of EnvironmentBuildingVisitor
  */
@@ -104,6 +108,27 @@ public class EnvironmentBuildingVisitorTest {
         "src/test/resources/environment_check/J1_01",
     });
     visitor.buildGlobalScope(units);
+  }
+
+  @Test
+  public void testSymbolTable() throws IOException, CompilerException {
+    List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
+        "src/test/resources/environment_check/symbol1",
+    });
+    visitor.buildGlobalScope(units);
+    assertTrue(table.contains("symbols.symbol1"));
+    assertTrue(table.contains("symbols.symbol1.a"));
+    assertTrue(table.contains("symbols.symbol1.b"));
+    assertTrue(table.contains("symbols.symbol1.c"));
+    assertTrue(table.contains("symbols.symbol1.symbol1"));
+    assertTrue(table.contains("symbols.symbol1.m1"));
+    assertTrue(table.contains("symbols.symbol1.m2"));
+
+    assertFalse(table.contains("symbols.symbol1.x"));
+    assertFalse(table.contains("x"));
+
+    assertEquals(1, table.findAll("symbols.symbol1.a").size());
+    assertEquals(1, table.findAll("symbols.symbol1.b").size());
   }
 
 }
