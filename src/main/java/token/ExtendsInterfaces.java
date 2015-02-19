@@ -17,7 +17,6 @@ public class ExtendsInterfaces extends Token {
       interfaceTypes.addAll(childInterfaces.interfaceTypes);
       interfaceTypes.add((InterfaceType) children.get(2));
     } else {
-      lexeme = children.get(1).getLexeme();
       interfaceTypes.add((InterfaceType) children.get(1));
     }
   }

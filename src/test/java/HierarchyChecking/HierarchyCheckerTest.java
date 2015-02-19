@@ -18,7 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class HierarchyChecking {
+public class HierarchyCheckerTest {
   private Lexer lexer;
   private ShiftReduceAlgorithm algm;
   private File classesAndInterfacesFolder = new File("src/test/resources/HierarchyChecking/ClassesAndInterfaces");
@@ -33,16 +33,16 @@ public class HierarchyChecking {
   }
 
   @Test
-  public void testValidHierarchy() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException, DeadCodeException {
+  public void testValidHierarchy() throws CompilerException, IOException {
     executeTests("src/test/resources/HierarchyChecking/ValidTests", false);
   }
 
   @Test
-  public void testInvalidHierarchy() throws LexerException, TypeHierarchyException, VisitorException, MachineException, IOException, DeadCodeException {
+  public void testInvalidHierarchy() throws CompilerException, IOException {
     executeTests("src/test/resources/HierarchyChecking/InvalidTests", true);
   }
 
-  private void executeTests(String testsFolder, boolean invalidTests) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException, DeadCodeException {
+  private void executeTests(String testsFolder, boolean invalidTests) throws CompilerException, IOException {
     Queue folders = new LinkedList();
     folders.add(new File(testsFolder));
 
@@ -77,7 +77,7 @@ public class HierarchyChecking {
     }
   }
 
-  private void testHierarchyChecking(String inputFile) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException, DeadCodeException {
+  private void testHierarchyChecking(String inputFile) throws IOException, CompilerException {
     BufferedReader br = new BufferedReader(new FileReader(inputFile));
     String line;
     List<String> classNames = new ArrayList<>();
@@ -88,7 +88,7 @@ public class HierarchyChecking {
     testHierarchyChecking(classNames);
   }
 
-  private void testHierarchyChecking(List<String> classNames) throws IOException, LexerException, MachineException, VisitorException, TypeHierarchyException, DeadCodeException {
+  private void testHierarchyChecking(List<String> classNames) throws IOException, CompilerException {
     List<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>(classNames.size());
     // 1. Phase 1: Construct the AST per CompilationUnit (per class), and do basic static checks.
     for (String className : classNames) {

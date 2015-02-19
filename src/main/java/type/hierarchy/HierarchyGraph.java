@@ -189,7 +189,7 @@ public class HierarchyGraph {
   }
 
   /**
-   * Returns the node corresponding to the passed in name.
+   * Returns the node corresponding to name
    * Creates a new node if it doesn't exist
    */
   private HierarchyGraphNode createNodeIfItDoesntExist(String name) {

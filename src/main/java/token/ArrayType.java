@@ -33,7 +33,6 @@ public class ArrayType extends Token {
 
   public Token getType() {
     if (primitiveType !=  null) return primitiveType.getType();
-    else if (name != null) return name.getSimpleName();
-    else return null;
+    return name.getSimpleName();
   }
 }
