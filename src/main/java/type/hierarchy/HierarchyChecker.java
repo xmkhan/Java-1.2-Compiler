@@ -112,8 +112,6 @@ public class HierarchyChecker {
    */
   public void extendsVerification(List<HierarchyGraphNode> parents, HierarchyGraphNode currentNode) throws TypeHierarchyException {
     for (HierarchyGraphNode parent : parents) {
-      currentNode.classOrInterface.getTokenType().equals(TokenType.ClassDeclaration);
-      parent.classOrInterface.getTokenType().equals(TokenType.InterfaceDeclaration);
       if (currentNode.classOrInterface.getTokenType().equals(TokenType.ClassDeclaration)) {
         if (parent.classOrInterface.getTokenType().equals(TokenType.InterfaceDeclaration)) {
           throw new TypeHierarchyException("A class cannot extend an interface[class: " + currentNode.identifier +
