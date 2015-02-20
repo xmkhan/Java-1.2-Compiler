@@ -13,6 +13,24 @@ public class ImportDeclaration extends Token {
     onDemand = children.get(0) instanceof TypeImportOnDemandDeclaration;
   }
 
+
+  public boolean containsSuffix(String suffix) {
+    return getSuffix().equals(suffix);
+  }
+
+  public String getSuffix() {
+    String[] names = getLexeme().split("\\.");
+    return names[names.length - 1];
+  }
+
+  public boolean isSingle() {
+    return !onDemand;
+  }
+
+  public boolean isOnDemand() {
+    return onDemand;
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     v.visit(this);

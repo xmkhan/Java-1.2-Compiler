@@ -51,8 +51,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     Declaration decl = token.typeDeclaration.getDeclaration();
     String identifier = prefix.toString() + decl.getIdentifier();
     prefix.append(decl.getIdentifier() + ".");
-    if (table.containsAnyOfType(identifier, ClassDeclaration.class) ||
-        table.containsAnyOfType(identifier, InterfaceDeclaration.class)) {
+    if (table.containsAnyOfType(identifier, new Class[] {ClassDeclaration.class, InterfaceDeclaration.class})) {
       throw new EnvironmentBuildingVisitorException(
           "Error: No two classes or interfaces have the same canonical name.", token);
     }
@@ -63,7 +62,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   public void visit(FieldDeclaration token) throws VisitorException {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
-    if (table.containsAnyOfType(identifier, FieldDeclaration.class)) {
+    if (table.containsAnyOfType(identifier, new Class[] {FieldDeclaration.class})) {
       throw new EnvironmentBuildingVisitorException(
           "Error: No two fields declared in the same class may have the same name.", token);
     }
@@ -95,7 +94,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   public void visit(FormalParameter token) throws VisitorException {
     super.visit(token);
     String identifier = token.getIdentifier();
-    if (table.containsAnyOfType(identifier, FormalParameter.class)) {
+    if (table.containsAnyOfType(identifier, new Class[] {FormalParameter.class})) {
       throw new EnvironmentBuildingVisitorException(
           "No two local variables with overlapping scope have the same name.", token);
     }
@@ -106,8 +105,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   public void visit(LocalVariableDeclaration token) throws VisitorException {
     super.visit(token);
     String identifier = token.getIdentifier();
-    if (table.containsAnyOfType(identifier, LocalVariableDeclaration.class) ||
-        table.containsAnyOfType(identifier, FormalParameter.class)) {
+    if (table.containsAnyOfType(identifier, new Class[] {LocalVariableDeclaration.class, FormalParameter.class})) {
       throw new EnvironmentBuildingVisitorException(
           "No two local variables with overlapping scope have the same name.", token);
     }

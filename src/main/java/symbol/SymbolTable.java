@@ -4,8 +4,11 @@ import token.Declaration;
 import token.Token;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Class that encapsulates a scoped-based stack for resolving symbol definitions.
@@ -64,13 +67,12 @@ public class SymbolTable {
     return false;
   }
 
-  public boolean containsAnyOfType(String identifier, Class clazz) {
+  public boolean containsAnyOfType(String identifier, Class[] classes) {
+    Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
     for (Scope<String, Token> scope: table) {
       if (scope.contains(identifier)) {
         for (Token symbol : scope.find(identifier)) {
-          if (clazz.isInstance(symbol)) {
-            return true;
-          }
+          if (classSet.contains(symbol.getClass())) return true;
         }
       }
     }

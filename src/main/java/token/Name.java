@@ -26,4 +26,12 @@ public class Name extends Token {
       token.acceptReverse(v);
     }
   }
+
+  public boolean isSimple() {
+    return !isQualified();
+  }
+
+  public boolean isQualified() {
+    return getLexeme().contains(".");
+  }
 }
