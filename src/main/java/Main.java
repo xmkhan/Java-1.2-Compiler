@@ -36,6 +36,8 @@ public class Main {
         compilationUnits.add(compilationUnit);
       }
       // 2. Phase 2: Construct SymbolTable, handle name resolution, and do type hierarchy checks.
+      HierarchyChecker hierarchyChecker = new HierarchyChecker();
+      hierarchyChecker.verifyClassAndInterfaceHierarchy(compilationUnits);
     } catch (CompilerException e) {
       System.exit(42);
     }

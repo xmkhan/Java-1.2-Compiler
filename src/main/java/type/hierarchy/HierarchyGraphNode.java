@@ -24,6 +24,8 @@ public class HierarchyGraphNode {
   public List<Method> methods;
   // Class/interface identifier
   public String identifier;
+  // List of constructors
+  public List<Method> constructors;
 
   public HierarchyGraphNode() {
     children = new ArrayList<HierarchyGraphNode>();
@@ -31,6 +33,7 @@ public class HierarchyGraphNode {
     implementsList = new ArrayList<HierarchyGraphNode>();
     modifiers = new ArrayList<Modifier>();
     methods = new ArrayList<Method>();
+    constructors = new ArrayList<Method>();
   }
 
   public boolean isFinal() {

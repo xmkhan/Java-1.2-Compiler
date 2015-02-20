@@ -60,7 +60,11 @@ public class HierarchyGraph {
           extendsInterfaces((ExtendsInterfaces) token, node);
           break;
         case ClassBody:
-          addMethodsToNode(extractMethodHeaders((ClassBody) token), node);
+          List<MethodHeader> methods = new ArrayList<MethodHeader>();
+          List<ConstructorDeclaration> constructors = new ArrayList<ConstructorDeclaration>();
+          extractMethodHeaders((ClassBody) token, methods, constructors);
+          addMethodsToNode(methods, node);
+          addConstructorsToNode(constructors, node);
           break;
         case InterfaceBody:
           addMethodsToNode(extractMethodHeaders((InterfaceBody) token), node);
@@ -71,6 +75,33 @@ public class HierarchyGraph {
           break;
         default:
           throw new DeadCodeException("bad class or interface declaration. TokenType received: " + token.getTokenType());
+      }
+    }
+  }
+
+  /**
+   * Add constructors to node
+   */
+  private void addConstructorsToNode(List<ConstructorDeclaration> constructors, HierarchyGraphNode node) throws DeadCodeException {
+    if (constructors == null) return;
+    for (ConstructorDeclaration constructor : constructors) {
+      Method method = new Method();
+      node.constructors.add(method);
+      method.classOrInterfaceName = node.identifier;
+      for (Token token : constructor.children) {
+        switch (token.getTokenType()) {
+          case ConstructorDeclarator:
+            method.identifier = ((ConstructorDeclarator)token).getIdentifier().getLexeme();
+            method.parameterTypes.addAll(extractParameterTypes(((ConstructorDeclarator) token).getParameterList()));
+            break;
+          case Modifiers:
+            method.addModifiers(((Modifiers)token).getModifiers());
+            break;
+          case ConstructorBody:
+            break;
+          default:
+            throw new DeadCodeException("bad class or interface declaration. TokenType received: " + token.getTokenType());
+        }
       }
     }
   }
@@ -91,7 +122,7 @@ public class HierarchyGraph {
             break;
           case MethodDeclarator:
             method.identifier = ((MethodDeclarator)token).identifier;
-            method.parameterTypes.addAll(extractParameterTypes((MethodDeclarator) token));
+            method.parameterTypes.addAll(extractParameterTypes(((MethodDeclarator) token).getParameterList()));
             break;
           case Modifiers:
             method.addModifiers(((Modifiers)token).getModifiers());
@@ -109,13 +140,13 @@ public class HierarchyGraph {
   /**
    * Extract the parameters of the MethodDeclarator passed in
    */
-  private ArrayList<Parameter> extractParameterTypes(MethodDeclarator methodDeclarator) {
+  private ArrayList<Parameter> extractParameterTypes(FormalParameterList parameterList) {
     ArrayList<Parameter> parameterTypes = new ArrayList<Parameter>();
-    FormalParameterList parameterList = methodDeclarator.getParameterList();
 
     if (parameterList == null) return parameterTypes;
 
     for (FormalParameter formalParameter : parameterList.getFormalParameters()) {
+      System.out.println(formalParameter.getType().getLexeme() + " | " + formalParameter.isArray());
       parameterTypes.add(new Parameter(formalParameter.getType().getLexeme(), formalParameter.isArray()));
     }
 
@@ -125,15 +156,16 @@ public class HierarchyGraph {
   /**
    * Retrieves all the MethodHeaders in the ClassBody passed in
    */
-  private List<MethodHeader> extractMethodHeaders(ClassBody classBody) {
-    if (classBody != null && classBody.bodyDeclarations == null) return null;
-    List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
+  private void extractMethodHeaders(ClassBody classBody, List<MethodHeader> methods, List<ConstructorDeclaration> constructors) {
+    if (classBody != null && classBody.bodyDeclarations == null) return;
     for (ClassBodyDeclaration classBodyDeclaration : classBody.bodyDeclarations.getBodyDeclarations()) {
       if (classBodyDeclaration.isMethod()) {
-        methodHeaders.add(((MethodDeclaration) (classBodyDeclaration.children.get(0).children.get(0))).methodHeader);
+        methods.add(((MethodDeclaration) (classBodyDeclaration.children.get(0).children.get(0))).methodHeader);
+      }
+      if (classBodyDeclaration.isConstructor()) {
+        constructors.add((ConstructorDeclaration) classBodyDeclaration.declaration);
       }
     }
-    return methodHeaders;
   }
 
   private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody) {
@@ -197,8 +229,10 @@ public class HierarchyGraph {
     if (tokenType.equals(TokenType.Super) ||
       tokenType.equals(TokenType.EXTENDS) ||
       tokenType.equals(TokenType.ExtendsInterfaces)) {
+      System.out.println("extends :(");
       child.extendsList.add(parentNode);
     } else {
+      System.out.println("impelments");
       child.implementsList.add(parentNode);
     }
   }

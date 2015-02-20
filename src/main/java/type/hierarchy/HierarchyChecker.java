@@ -70,6 +70,7 @@ public class HierarchyChecker {
 
       extendsVerification(currentNode.extendsList, currentNode);
       implementsVerification(currentNode.implementsList, name);
+      verifyConstructors(currentNode);
     }
     verifyHierarchyGraphIsAcyclic();
     verifyMethodHierarchy();
@@ -85,9 +86,12 @@ public class HierarchyChecker {
    */
   private void implementsVerification(List<HierarchyGraphNode> implementedParents, String className) throws TypeHierarchyException {
     for (HierarchyGraphNode parent : implementedParents) {
-      if (parent.classOrInterface.getTokenType().equals(TokenType.ClassDeclaration)) {
+      if (parent.classOrInterface instanceof ClassDeclaration) {
         throw new TypeHierarchyException("A Class cannot implement a class [class: " + className +
           ", implemented class: " + parent.identifier + "]");
+      }
+      if (parent.identifier.equals(className)) {
+        throw new TypeHierarchyException("Class " + className + " is implementing an interface with the same name");
       }
     }
   }
@@ -98,7 +102,7 @@ public class HierarchyChecker {
    * @param currentNode HierarchyGraph node associated to the class/interface being processed
    * @throws TypeHierarchyException
    */
-  public void extendsVerification(List<HierarchyGraphNode> parents, HierarchyGraphNode currentNode) throws TypeHierarchyException {
+  private void extendsVerification(List<HierarchyGraphNode> parents, HierarchyGraphNode currentNode) throws TypeHierarchyException {
     for (HierarchyGraphNode parent : parents) {
       if (currentNode.classOrInterface instanceof ClassDeclaration) {
         if (parent.classOrInterface instanceof InterfaceDeclaration) {
@@ -113,6 +117,9 @@ public class HierarchyChecker {
         throw new TypeHierarchyException("An interface cannot extend a class[Interface " + currentNode.identifier +
           ", class:" + parent.identifier + "]");
       }
+      if (parent.identifier.equals(currentNode.identifier)) {
+        throw new TypeHierarchyException("Class " + currentNode.identifier + " is extending itself");
+      }
     }
   }
 
@@ -122,7 +129,7 @@ public class HierarchyChecker {
       cyclicNode.identifier + " is causing cycles in hierarchy checking");
   }
 
-  public HierarchyGraphNode verifyMethodHierarchy() throws TypeHierarchyException {
+  private HierarchyGraphNode verifyMethodHierarchy() throws TypeHierarchyException {
     //Skip verifying nodes that have already been verified
     HashSet<HierarchyGraphNode> verified = new HashSet<HierarchyGraphNode>();
 
@@ -214,5 +221,15 @@ public class HierarchyChecker {
     }
     recursionStack.remove(currentNode);
     return null;
+  }
+
+  private void verifyConstructors(HierarchyGraphNode currentNode) throws TypeHierarchyException {
+    for (int i = 0; i < currentNode.constructors.size(); i++) {
+      for (int j = 0; j < currentNode.constructors.size(); j++) {
+        if (i != j && currentNode.constructors.get(i).signaturesMatch(currentNode.constructors.get(j))) {
+          throw new TypeHierarchyException("Class " + currentNode.identifier + " contains a duplicate constructor");
+        }
+      }
+    }
   }
 }
