@@ -34,6 +34,9 @@ public class SymbolTable {
 
   public SymbolTable removeDecl(String identifier, Declaration decl) {
     table.peek().remove(identifier, decl);
+    if(table.peek().size() == 0) {
+      table.pop();
+    }
     return this;
   }
 

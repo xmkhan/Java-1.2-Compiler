@@ -27,7 +27,7 @@ public class ClassBodyDeclarations extends Token {
 
   @Override
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : bodyDeclarations) {
+    for (ClassBodyDeclaration token : bodyDeclarations) {
       token.accept(v);
     }
     v.visit(this);
@@ -36,7 +36,7 @@ public class ClassBodyDeclarations extends Token {
   @Override
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
-    for (Token token : bodyDeclarations) {
+    for (ClassBodyDeclaration token : bodyDeclarations) {
       token.acceptReverse(v);
     }
   }

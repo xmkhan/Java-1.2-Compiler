@@ -42,6 +42,10 @@ public class Scope<K, V> {
     return this;
   }
 
+  public int size() {
+    return symbols.size();
+  }
+
   public List<V> find(K key) {
     return symbols.get(key);
   }

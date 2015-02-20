@@ -9,6 +9,9 @@ public class ForStatement extends Token {
 
   public ForStatement(ArrayList<Token> children) {
     super("", TokenType.ForStatement, children);
+    // To handle implicit scopes, we explicitly add the scope.
+    children.add(0, new Token("{", TokenType.LEFT_BRACE));
+    children.add(new Token("}", TokenType.RIGHT_BRACE));
   }
 
   @Override

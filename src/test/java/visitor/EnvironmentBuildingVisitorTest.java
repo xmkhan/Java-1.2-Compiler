@@ -111,6 +111,27 @@ public class EnvironmentBuildingVisitorTest {
   }
 
   @Test
+  public void testStdlib() throws IOException, CompilerException {
+    List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
+        "src/test/resources/stdlib/java/io/PrintStream.java",
+        "src/test/resources/stdlib/java/io/Serializable.java",
+        "src/test/resources/stdlib/java/lang/Boolean.java",
+        "src/test/resources/stdlib/java/lang/Byte.java",
+        "src/test/resources/stdlib/java/lang/Character.java",
+        "src/test/resources/stdlib/java/lang/Class.java",
+        "src/test/resources/stdlib/java/lang/Cloneable.java",
+        "src/test/resources/stdlib/java/lang/Integer.java",
+        "src/test/resources/stdlib/java/lang/Number.java",
+        "src/test/resources/stdlib/java/lang/Object.java",
+        "src/test/resources/stdlib/java/lang/Short.java",
+        "src/test/resources/stdlib/java/lang/String.java",
+        "src/test/resources/stdlib/java/lang/System.java",
+        "src/test/resources/stdlib/java/util/Arrays.java",
+    });
+    visitor.buildGlobalScope(units);
+  }
+
+  @Test
   public void testSymbolTable() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
         "src/test/resources/environment_check/symbol1",

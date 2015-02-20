@@ -9,6 +9,9 @@ public class ForStatementNoShortIf extends Token {
 
   public ForStatementNoShortIf(ArrayList<Token> children) {
     super("", TokenType.ForStatementNoShortIf, children);
+    // To handle implicit scopes, we explicitly add the scope.
+    children.add(0, new Token("{", TokenType.LEFT_BRACE));
+    children.add(new Token("}", TokenType.RIGHT_BRACE));
   }
 
   @Override

@@ -9,9 +9,7 @@ import token.CompilationUnit;
 import token.ConstructorDeclaration;
 import token.Declaration;
 import token.FieldDeclaration;
-import token.ForInit;
 import token.FormalParameter;
-import token.FormalParameterList;
 import token.InterfaceDeclaration;
 import token.LocalVariableDeclaration;
 import token.MethodDeclaration;
@@ -25,12 +23,10 @@ import java.util.List;
 public class EnvironmentBuildingVisitor extends BaseVisitor {
   private SymbolTable table;
   private StringBuilder prefix;
-  private boolean implicitScope;
 
   public EnvironmentBuildingVisitor(SymbolTable table) {
     this.table = table;
     this.prefix = new StringBuilder();
-    implicitScope = false;
   }
 
   public void buildGlobalScope(List<CompilationUnit> units) throws VisitorException {
@@ -96,15 +92,6 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(FormalParameterList token) throws VisitorException {
-    super.visit(token);
-    if (token.params != null && !token.params.isEmpty()) {
-      table.newScope();
-      implicitScope = true;
-    }
-  }
-
-  @Override
   public void visit(FormalParameter token) throws VisitorException {
     super.visit(token);
     String identifier = token.getIdentifier();
@@ -113,15 +100,6 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
           "No two local variables with overlapping scope have the same name.", token);
     }
     table.addDecl(identifier, token);
-  }
-
-  @Override
-  public void visit(ForInit token) throws VisitorException {
-    super.visit(token);
-    if (token.children.get(0) instanceof LocalVariableDeclaration) {
-      implicitScope = true;
-      table.newScope();
-    }
   }
 
   @Override
@@ -143,8 +121,6 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
       table.newScope();
     } else if (token.getLexeme().equals("}")) {
       table.deleteScope();
-      if (implicitScope) table.deleteScope();
-      implicitScope = false;
     }
   }
 }
