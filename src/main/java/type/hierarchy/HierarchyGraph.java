@@ -32,35 +32,6 @@ public class HierarchyGraph {
     return this;
   }
 
-  public HierarchyGraphNode isCyclic() {
-    HashSet<HierarchyGraphNode> visited = new HashSet<HierarchyGraphNode>();
-    HashSet<HierarchyGraphNode> recursionStack = new HashSet<HierarchyGraphNode>();
-    HierarchyGraphNode cyclicNode;
-
-    for (Map.Entry<String, HierarchyGraphNode> entry : nodes.entrySet()) {
-      HierarchyGraphNode currentNode = entry.getValue();
-      if ((cyclicNode = isCyclicHelper(currentNode, visited, recursionStack)) != null) {
-        return cyclicNode;
-      }
-    }
-    return null;
-  }
-
-  private HierarchyGraphNode isCyclicHelper(HierarchyGraphNode currentNode, HashSet<HierarchyGraphNode> visited, HashSet<HierarchyGraphNode> recursionStack) {
-    if (!visited.contains(currentNode)) {
-      visited.add(currentNode);
-      recursionStack.add(currentNode);
-      for (HierarchyGraphNode child : currentNode.children) {
-        if ( (!visited.contains(child) && isCyclicHelper(child, visited, recursionStack) != null) ||
-          recursionStack.contains(child)) {
-          return child;
-        }
-      }
-    }
-    recursionStack.remove(currentNode);
-    return null;
-  }
-
   /**
    * Add the data we need for Hierarchy checking to the node associated to the class or interface
    * we are processing
@@ -111,18 +82,22 @@ public class HierarchyGraph {
     if (methodHeaders == null) return;
     for (MethodHeader methodHeader : methodHeaders) {
       Method method = new Method();
+      node.methods.add(method);
+      method.classOrInterfaceName = node.identifier;
       for (Token token : methodHeader.children) {
         switch (token.getTokenType()) {
           case Type:
+            method.returnType = ((Type) token).getType().getLexeme();
             break;
           case MethodDeclarator:
             method.identifier = ((MethodDeclarator)token).identifier;
-            method.parameterTypes = extractParameterTypes((MethodDeclarator) token);
+            method.parameterTypes.addAll(extractParameterTypes((MethodDeclarator) token));
             break;
           case Modifiers:
-            method.modifiers = ((Modifiers)token).getModifiers();
+            method.addModifiers(((Modifiers)token).getModifiers());
             break;
           case VOID:
+            method.returnType = TokenType.VOID.toString();
             break;
           default:
             throw new DeadCodeException("bad class or interface declaration. TokenType received: " + token.getTokenType());
@@ -138,7 +113,7 @@ public class HierarchyGraph {
     ArrayList<Parameter> parameterTypes = new ArrayList<Parameter>();
     FormalParameterList parameterList = methodDeclarator.getParameterList();
 
-    if (parameterList == null) return null;
+    if (parameterList == null) return parameterTypes;
 
     for (FormalParameter formalParameter : parameterList.getFormalParameters()) {
       parameterTypes.add(new Parameter(formalParameter.getType().getLexeme(), formalParameter.isArray()));
@@ -219,7 +194,9 @@ public class HierarchyGraph {
     HierarchyGraphNode parentNode = createNodeIfItDoesntExist(name);
     parentNode.children.add(child);
 
-    if (tokenType.equals(TokenType.SUPER) || tokenType.equals(TokenType.ExtendsInterfaces)) {
+    if (tokenType.equals(TokenType.Super) ||
+      tokenType.equals(TokenType.EXTENDS) ||
+      tokenType.equals(TokenType.ExtendsInterfaces)) {
       child.extendsList.add(parentNode);
     } else {
       child.implementsList.add(parentNode);
