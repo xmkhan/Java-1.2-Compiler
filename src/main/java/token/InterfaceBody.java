@@ -10,7 +10,7 @@ public class InterfaceBody extends Token {
 
   public InterfaceBody(ArrayList<Token> children) {
     super("", TokenType.InterfaceBody, children);
-    this.interfaceMemberDeclarations = (InterfaceMemberDeclarations) children.get(1);
+    if (children.size() > 2) this.interfaceMemberDeclarations = (InterfaceMemberDeclarations) children.get(1);
   }
 
   public void accept(Visitor v) throws VisitorException {
