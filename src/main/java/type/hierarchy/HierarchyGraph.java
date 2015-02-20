@@ -168,8 +168,8 @@ public class HierarchyGraph {
   }
 
   private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody) {
-    if (interfaceBody != null && interfaceBody.getInterfaceMemberDeclaration() == null) return null;
     List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
+    if (interfaceBody != null && interfaceBody.getInterfaceMemberDeclaration() == null) return methodHeaders;
     for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getInterfaceMemberDeclarations()) {
       methodHeaders.add(interfaceMemberDeclaration.getMethodHeader());
     }
