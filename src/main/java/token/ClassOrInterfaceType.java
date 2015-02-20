@@ -15,6 +15,7 @@ public class ClassOrInterfaceType extends Token {
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {
       token.accept(v);
@@ -22,8 +23,16 @@ public class ClassOrInterfaceType extends Token {
     v.visit(this);
   }
 
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    for (Token token : children) {
+      token.acceptReverse(v);
+    }
+  }
+
   public Token getType() {
-    return name != null ? name.getSimpleName() : null;
+    return name;
   }
 
   private void assignType(Token token) {
@@ -31,4 +40,5 @@ public class ClassOrInterfaceType extends Token {
       name = (Name) token;
     }
   }
+
 }

@@ -17,7 +17,6 @@ public class ClassBodyDeclarations extends Token {
     super("", TokenType.ClassBodyDeclarations, children);
     bodyDeclarations = new ArrayList<ClassBodyDeclaration>();
     if (children.get(0) instanceof ClassBodyDeclaration) {
-      lexeme = children.get(0).getLexeme();
       bodyDeclarations.add((ClassBodyDeclaration) children.get(0));
     } else {
       ClassBodyDeclarations childBodyDeclarations = (ClassBodyDeclarations) children.get(0);
@@ -26,10 +25,19 @@ public class ClassBodyDeclarations extends Token {
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : bodyDeclarations) {
+    for (ClassBodyDeclaration token : bodyDeclarations) {
       token.accept(v);
     }
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    for (ClassBodyDeclaration token : bodyDeclarations) {
+      token.acceptReverse(v);
+    }
   }
 }

@@ -1,0 +1,10 @@
+package test1;
+
+public class A {
+  public A() {}
+
+  public int x = 3;
+  public short y = 4;
+
+  public int y() {}
+}

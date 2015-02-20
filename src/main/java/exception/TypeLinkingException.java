@@ -3,8 +3,8 @@ package exception;
 /**
  * An exception representing a failure during Symbol table construction.
  */
-public class SymbolTableException extends CompilerException {
-  public SymbolTableException(String msg) {
+public class TypeLinkingException extends CompilerException {
+  public TypeLinkingException(String msg) {
     super(msg);
   }
 }

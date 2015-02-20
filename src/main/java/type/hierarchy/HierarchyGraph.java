@@ -170,7 +170,7 @@ public class HierarchyGraph {
   private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody) {
     List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
     if (interfaceBody != null && interfaceBody.getInterfaceMemberDeclaration() == null) return methodHeaders;
-    for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getInterfaceMemberDeclarations()) {
+    for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getMemberDeclarations()) {
       methodHeaders.add(interfaceMemberDeclaration.getMethodHeader());
     }
     return methodHeaders;

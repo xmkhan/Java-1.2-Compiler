@@ -4,32 +4,40 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FormalParameterList extends Token {
-  private ArrayList<FormalParameter> formalParameters;
 
-  public ArrayList<FormalParameter> getFormalParameters() {
-    return formalParameters;
+  public List<FormalParameter> params;
+
+  public List<FormalParameter> getFormalParameters() {
+    return params;
   }
 
   public FormalParameterList(ArrayList<Token> children) {
     super("", TokenType.FormalParameterList, children);
-    formalParameters = new ArrayList<FormalParameter>();
-
-    if (children.get(0) instanceof FormalParameter) {
-      lexeme = children.get(0).getLexeme();
-      formalParameters.add((FormalParameter) children.get(0));
+    params = new ArrayList<FormalParameter>();
+    if (children.get(0) instanceof FormalParameterList) {
+      params.addAll(((FormalParameterList)children.get(0)).params);
+      params.add((FormalParameter) children.get(2));
     } else {
-      FormalParameterList childParameters = (FormalParameterList) children.get(0);
-      formalParameters.addAll(childParameters.formalParameters);
-      formalParameters.add((FormalParameter) children.get(2));
+      params.add((FormalParameter) children.get(0));
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : children) {
+    for (Token token : params) {
       token.accept(v);
     }
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    for (Token token : params) {
+      token.acceptReverse(v);
+    }
   }
 }

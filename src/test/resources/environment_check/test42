@@ -1,0 +1,6 @@
+package test4;
+
+public class A {
+  public A() {}
+  public int s = 3;
+}

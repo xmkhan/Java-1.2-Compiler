@@ -6,15 +6,20 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class ImportDeclaration extends Token {
+  public boolean onDemand = false;
 
   public ImportDeclaration(ArrayList<Token> children) {
-    super("", TokenType.ImportDeclaration, children);
+    super(children.get(0).getLexeme(), TokenType.ImportDeclaration, children);
+    onDemand = children.get(0) instanceof TypeImportOnDemandDeclaration;
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : children) {
-      token.accept(v);
-    }
+    v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 }

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 public class ClassDeclaration extends Declaration {
 
   public Modifiers modifiers;
-  public Token identifier;
   public Super extendsClass;
   public Interfaces implementsClasses;
   public ClassBody classBody;
@@ -34,9 +33,17 @@ public class ClassDeclaration extends Declaration {
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
-    classBody.accept(v);
-    v.visit(modifiers);
+    if (classBody != null) classBody.accept(v);
+    if (modifiers != null) modifiers.accept(v);
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    if (classBody != null) classBody.acceptReverse(v);
+    if (modifiers != null) modifiers.acceptReverse(v);
   }
 }

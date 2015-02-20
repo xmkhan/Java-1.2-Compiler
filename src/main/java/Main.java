@@ -1,9 +1,11 @@
 import algorithm.parsing.lr.ShiftReduceAlgorithm;
 import exception.CompilerException;
 import lexer.Lexer;
+import symbol.SymbolTable;
 import token.CompilationUnit;
 import token.Token;
 import type.hierarchy.HierarchyChecker;
+import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
 
 import java.io.File;
@@ -36,6 +38,10 @@ public class Main {
         compilationUnits.add(compilationUnit);
       }
       // 2. Phase 2: Construct SymbolTable, handle name resolution, and do type hierarchy checks.
+      SymbolTable table = new SymbolTable();
+      EnvironmentBuildingVisitor environmentVisitor = new EnvironmentBuildingVisitor(table);
+      environmentVisitor.buildGlobalScope(compilationUnits);
+
       HierarchyChecker hierarchyChecker = new HierarchyChecker();
       hierarchyChecker.verifyClassAndInterfaceHierarchy(compilationUnits);
     } catch (CompilerException e) {

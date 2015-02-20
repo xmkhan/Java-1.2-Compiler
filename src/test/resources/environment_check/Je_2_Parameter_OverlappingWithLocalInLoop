@@ -1,0 +1,15 @@
+public class Je_2_Parameter_OverlappingWithLocalInLoop {
+
+    public Je_2_Parameter_OverlappingWithLocalInLoop() {}
+
+    public void m(Object o) {
+        while (o.equals(o)){
+            Object o = new Object();
+        }
+    }
+
+    public static int test() {
+        return 123;
+    }
+
+}

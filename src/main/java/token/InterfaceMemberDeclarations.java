@@ -4,30 +4,40 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class InterfaceMemberDeclarations extends Token {
-  private ArrayList<InterfaceMemberDeclaration> interfaceMemberDeclarations;
+  public List<InterfaceMemberDeclaration> memberDeclarations;
 
-  public ArrayList<InterfaceMemberDeclaration> getInterfaceMemberDeclarations() {
-    return interfaceMemberDeclarations;
+  public List<InterfaceMemberDeclaration> getMemberDeclarations() {
+    return memberDeclarations;
   }
 
   public InterfaceMemberDeclarations(ArrayList<Token> children) {
-    super("", TokenType.InterfaceMemberDeclarations, children);
-    interfaceMemberDeclarations = new ArrayList<InterfaceMemberDeclaration>();
+    super(children.get(0).getLexeme(), TokenType.InterfaceMemberDeclarations, children);
+    memberDeclarations = new ArrayList<InterfaceMemberDeclaration>();
     if (children.get(0) instanceof InterfaceMemberDeclaration) {
-      interfaceMemberDeclarations.add((InterfaceMemberDeclaration) children.get(0));
+      memberDeclarations.add((InterfaceMemberDeclaration) children.get(0));
     } else {
-      InterfaceMemberDeclarations childDeclarations = (InterfaceMemberDeclarations) children.get(0);
-      interfaceMemberDeclarations.addAll(childDeclarations.interfaceMemberDeclarations);
-      interfaceMemberDeclarations.add((InterfaceMemberDeclaration) children.get(1));
+      InterfaceMemberDeclarations childMemberDeclarations = (InterfaceMemberDeclarations) children.get(0);
+      memberDeclarations.addAll(childMemberDeclarations.memberDeclarations);
+      memberDeclarations.add((InterfaceMemberDeclaration) children.get(1));
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : children) {
+    for (Token token : memberDeclarations) {
       token.accept(v);
     }
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    for (Token token : memberDeclarations) {
+      token.acceptReverse(v);
+    }
   }
 }
