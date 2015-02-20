@@ -1,8 +1,6 @@
 package type.hierarchy;
 
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import token.Modifier;
-import token.Token;
 import token.TokenType;
 
 import java.util.ArrayList;
