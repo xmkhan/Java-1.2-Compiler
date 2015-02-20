@@ -34,9 +34,9 @@ public class ConstructorDeclarator extends Token {
     return formalParameterList != null ? formalParameterList : null;
   }
 
-  /*public Token getIdentifier() {
+  public Token getIdentifier() {
     return simpleName.getIdentifier();
-  }*/
+  }
 
   private void assignType(Token token) {
     if (token instanceof FormalParameterList) {

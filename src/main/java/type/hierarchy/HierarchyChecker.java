@@ -35,22 +35,7 @@ public class HierarchyChecker {
    */
   private void createHierarchyGraph(List<CompilationUnit> compilationUnits) throws TypeHierarchyException, DeadCodeException {
     for (CompilationUnit compilationUnit : compilationUnits) {
-      addNode(compilationUnit);
-    }
-  }
-
-  /**
-   * Adds a node to the hierarchy graph
-   * @param compilationUnit Search this compilation unit for class/interface info
-   * @throws TypeHierarchyException
-   */
-  private void addNode(CompilationUnit compilationUnit) throws TypeHierarchyException, DeadCodeException {
-    Token classOrInterface = compilationUnit.children.get(compilationUnit.children.size()-1).children.get(0);
-    if (classOrInterface.getTokenType().equals(TokenType.ClassDeclaration) ||
-      classOrInterface.getTokenType().equals(TokenType.InterfaceDeclaration)) {
-      graph.addNode(classOrInterface);
-    } else {
-      throw new DeadCodeException("Expecting a ClassDeclaration or InterfaceDeclaration token but received " + classOrInterface.getTokenType());
+      graph.addNode(compilationUnit);
     }
   }
 
@@ -60,7 +45,6 @@ public class HierarchyChecker {
    * @throws TypeHierarchyException
    */
   private void verifyHierarchyGraph() throws TypeHierarchyException {
-    HierarchyGraphNode parentNode;
     HierarchyGraphNode currentNode;
     String name;
 
@@ -180,7 +164,7 @@ public class HierarchyChecker {
   }
 
   private void verifyOwnedMethods(HierarchyGraphNode currentNode) throws TypeHierarchyException {
-    boolean classIsStatic = currentNode.modifiers.contains(TokenType.ABSTRACT);
+    boolean classIsAbstract = currentNode.modifiers.contains(TokenType.ABSTRACT);
     for (int i = 0; i < currentNode.methods.size(); i++) {
       for (int j = 0; j < currentNode.methods.size(); j++) {
         if (i != j && currentNode.methods.get(i).signaturesMatch(currentNode.methods.get(j))) {
@@ -188,8 +172,8 @@ public class HierarchyChecker {
             + currentNode.identifier + " Method: " + currentNode.methods.get(i));
         }
       }
-      if (!classIsStatic && currentNode.methods.get(i).isAbstract()) {
-        throw new TypeHierarchyException(currentNode.identifier + " declares an abstract method but the class is not abstract.");
+      if (!classIsAbstract && currentNode.methods.get(i).isAbstract()) {
+        //throw new TypeHierarchyException(currentNode.identifier + " declares an abstract method but the class is not abstract.");
       }
     }
   }

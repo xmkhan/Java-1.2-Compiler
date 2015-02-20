@@ -23,9 +23,12 @@ public class Method {
 
   public List<Parameter> parameterTypes;
 
+  public List<String> imports;
+
   public Method() {
     modifiers = new ArrayList<TokenType>();
     parameterTypes = new ArrayList<Parameter>();
+    imports = new ArrayList<String>();
   }
 
   public boolean isFinal() {
@@ -63,7 +66,7 @@ public class Method {
       return false;
     }
     for (int i = 0; i < parameterTypes.size(); i++) {
-      if (parameterTypes.get(i) != method.parameterTypes.get(i)) {
+      if (!parameterTypes.get(i).type.equals(method.parameterTypes.get(i).type)) {
         return false;
       }
     }

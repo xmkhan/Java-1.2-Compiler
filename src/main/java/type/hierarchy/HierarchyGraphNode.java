@@ -27,6 +27,8 @@ public class HierarchyGraphNode {
   // List of constructors
   public List<Method> constructors;
 
+  private ImportDeclarations importDeclarations;
+
   public HierarchyGraphNode() {
     children = new ArrayList<HierarchyGraphNode>();
     extendsList = new ArrayList<HierarchyGraphNode>();
@@ -45,6 +47,14 @@ public class HierarchyGraphNode {
    */
   public boolean hasParent(String name) {
     return hasParent(name, extendsList) || hasParent(name, implementsList);
+  }
+
+  public List<ImportDeclaration> getImportList() {
+    return importDeclarations == null ? new ArrayList<ImportDeclaration>() : importDeclarations.importDeclarations;
+  }
+
+  public void setImportDeclarations(ImportDeclarations importDeclarations) {
+    this.importDeclarations = importDeclarations;
   }
 
   private boolean hasParent(String name, List<HierarchyGraphNode> parents) {

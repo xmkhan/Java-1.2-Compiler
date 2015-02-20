@@ -26,4 +26,8 @@ public class SimpleName extends Token {
       token.acceptReverse(v);
     }
   }
+
+  public Token getIdentifier() {
+    return children.get(0);
+  }
 }
