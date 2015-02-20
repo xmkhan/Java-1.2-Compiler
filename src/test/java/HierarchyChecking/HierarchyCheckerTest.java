@@ -80,7 +80,7 @@ public class HierarchyCheckerTest {
   private void testHierarchyChecking(String inputFile) throws IOException, CompilerException {
     BufferedReader br = new BufferedReader(new FileReader(inputFile));
     String line;
-    List<String> classNames = new ArrayList<>();
+    List<String> classNames = new ArrayList<String>();
     while ((line = br.readLine()) != null) {
       classNames.add(line);
     }

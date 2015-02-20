@@ -44,20 +44,13 @@ public class MakefileGenerator {
 
     writer.println("JFLAGS = -J-Xmx256M -cp");
     writer.println("JC = javac");
-    writer.println("CLASSPATH = src/main/java:.");
-    writer.println(".SUFFIXES: .java .class");
-    writer.println(".java.class:");
-    writer.println("\t$(JC) $(JFLAGS) src/main/java:. -d classes/ $*.java");
-    writer.println("CLASSES = \\");
-    for (int i = 0; i < files.size() - 1; ++i) {
-      writer.println("  " + files.get(i) + " \\");
+    writer.println("default: clean classesdir cs444");
+    writer.println("cs444:");
+    writer.print("\t$(JC) $(JFLAGS) src/main/java:. -d classes/");
+    for (int i = 0; i < files.size(); ++i) {
+      writer.print("  " + files.get(i));
     }
-    if (!files.isEmpty()) {
-      writer.println("  " + files.get(files.size() - 1));
-    }
-
-    writer.println("default: clean classesdir classes");
-    writer.println("classes: $(CLASSES:.java=.class)");
+    writer.println();
     writer.println("classesdir:");
     writer.println("\tmkdir classes");
     writer.println("clean:");
