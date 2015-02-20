@@ -21,6 +21,29 @@ public class ImportDeclarations extends Token {
     }
   }
 
+  /**
+   * Returns true if there contains at least ONE import with the matching suffix.
+   */
+  public boolean containsSuffix(String suffix) {
+    for (ImportDeclaration decl : importDeclarations) {
+      String importName = decl.getLexeme();
+      if (importName.substring(importName.length() - suffix.length()).equals(suffix)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Gets the subset of all imports that match the suffix.
+   */
+  public List<ImportDeclaration> getAllImportsWithSuffix(String suffix) {
+    List<ImportDeclaration> decls = new ArrayList<ImportDeclaration>();
+    for (ImportDeclaration decl : importDeclarations) {
+      String importName = decl.getLexeme();
+      if (importName.substring(importName.length() - suffix.length()).equals(suffix)) decls.add(decl);
+    }
+    return decls;
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     v.visit(this);
