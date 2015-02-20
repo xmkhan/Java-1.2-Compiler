@@ -1,7 +1,7 @@
 package visitor;
 
 import exception.CompilerException;
-import exception.EnvironmentBuildingException;
+import exception.EnvironmentBuildingVisitorException;
 import org.junit.Before;
 import org.junit.Test;
 import symbol.SymbolTable;
@@ -36,7 +36,7 @@ public class EnvironmentBuildingVisitorTest {
     visitor.buildGlobalScope(units);
   }
 
-  @Test(expected = EnvironmentBuildingException.class)
+  @Test(expected = EnvironmentBuildingVisitorException.class)
   public void testSameFieldName() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
         "src/test/resources/environment_check/test2",
@@ -44,7 +44,7 @@ public class EnvironmentBuildingVisitorTest {
     visitor.buildGlobalScope(units);
   }
 
-  @Test(expected = EnvironmentBuildingException.class)
+  @Test(expected = EnvironmentBuildingVisitorException.class)
   public void testOverlappingLocalVar() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
         "src/test/resources/environment_check/test3",
@@ -52,7 +52,7 @@ public class EnvironmentBuildingVisitorTest {
     visitor.buildGlobalScope(units);
   }
 
-  @Test(expected = EnvironmentBuildingException.class)
+  @Test(expected = EnvironmentBuildingVisitorException.class)
   public void testSameClassName() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
         "src/test/resources/environment_check/test41",
@@ -94,7 +94,7 @@ public class EnvironmentBuildingVisitorTest {
     visitor.buildGlobalScope(units);
   }
 
-  @Test(expected = EnvironmentBuildingException.class)
+  @Test(expected = EnvironmentBuildingVisitorException.class)
   public void testParameterForloopOverlap() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
         "src/test/resources/environment_check/Je_2_Parameter_OverlappingWithLocalInLoop",

@@ -1,6 +1,6 @@
 package visitor;
 
-import exception.EnvironmentBuildingException;
+import exception.EnvironmentBuildingVisitorException;
 import exception.VisitorException;
 import symbol.SymbolTable;
 import token.AbstractMethodDeclaration;
@@ -53,7 +53,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     prefix.append(decl.getIdentifier() + ".");
     if (table.containsAnyOfType(identifier, ClassDeclaration.class) ||
         table.containsAnyOfType(identifier, InterfaceDeclaration.class)) {
-      throw new EnvironmentBuildingException(
+      throw new EnvironmentBuildingVisitorException(
           "Error: No two classes or interfaces have the same canonical name.", token);
     }
     table.addDecl(identifier, decl);
@@ -64,7 +64,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
     if (table.containsAnyOfType(identifier, FieldDeclaration.class)) {
-      throw new EnvironmentBuildingException(
+      throw new EnvironmentBuildingVisitorException(
           "Error: No two fields declared in the same class may have the same name.", token);
     }
     table.addDecl(identifier, token);
@@ -96,7 +96,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     super.visit(token);
     String identifier = token.getIdentifier();
     if (table.containsAnyOfType(identifier, FormalParameter.class)) {
-      throw new EnvironmentBuildingException(
+      throw new EnvironmentBuildingVisitorException(
           "No two local variables with overlapping scope have the same name.", token);
     }
     table.addDecl(identifier, token);
@@ -108,7 +108,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     String identifier = token.getIdentifier();
     if (table.containsAnyOfType(identifier, LocalVariableDeclaration.class) ||
         table.containsAnyOfType(identifier, FormalParameter.class)) {
-      throw new EnvironmentBuildingException(
+      throw new EnvironmentBuildingVisitorException(
           "No two local variables with overlapping scope have the same name.", token);
     }
     table.addDecl(identifier, token);
