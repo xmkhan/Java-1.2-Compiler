@@ -13,6 +13,7 @@ CLASSES = \
   src/main/java/dfa/NumericDFA.java \
   src/main/java/dfa/ReservedDFA.java \
   src/main/java/exception/CompilerException.java \
+  src/main/java/exception/DeadCodeException.java \
   src/main/java/exception/EnvironmentBuildingException.java \
   src/main/java/exception/LexerException.java \
   src/main/java/exception/MachineException.java \
@@ -25,25 +26,7 @@ CLASSES = \
   src/main/java/symbol/SymbolTable.java \
   src/main/java/token/AbstractMethodDeclaration.java \
   src/main/java/token/AdditiveExpression.java \
-<<<<<<< HEAD
   src/main/java/token/AndExpression.java \
-=======
-  src/main/java/token/Name.java \
-  src/main/java/token/Declaration.java \
-  src/main/java/token/InterfaceTypeList.java \
-  src/main/java/token/ConditionalAndExpression.java \
-  src/main/java/token/SimpleName.java \
-  src/main/java/token/ClassInstanceCreationExpression.java \
-  src/main/java/token/ReturnStatement.java \
-  src/main/java/token/InterfaceBody.java \
-  src/main/java/token/CharLiteral.java \
-  src/main/java/token/WhileStatement.java \
-  src/main/java/token/FieldDeclaration.java \
-  src/main/java/token/Super.java \
-  src/main/java/token/IfThenElseStatement.java \
-  src/main/java/token/ImportDeclarations.java \
-  src/main/java/token/PackageDeclaration.java \
->>>>>>> master
   src/main/java/token/ArgumentList.java \
   src/main/java/token/ArrayAccess.java \
   src/main/java/token/ArrayCreationExpression.java \
@@ -137,70 +120,23 @@ CLASSES = \
   src/main/java/token/VariableDeclarator.java \
   src/main/java/token/WhileStatement.java \
   src/main/java/token/WhileStatementNoShortIf.java \
-<<<<<<< HEAD
   src/main/java/visitor/BaseVisitor.java \
   src/main/java/visitor/EnvironmentBuildingVisitor.java \
-=======
-  src/main/java/token/Token.java \
-  src/main/java/token/MethodBody.java \
-  src/main/java/token/ClassOrInterfaceType.java \
-  src/main/java/token/FieldAccess.java \
-  src/main/java/token/ForUpdate.java \
-  src/main/java/token/CastExpression.java \
-  src/main/java/token/InterfaceMemberDeclarations.java \
-  src/main/java/token/ClassDeclaration.java \
-  src/main/java/token/BlockStatement.java \
-  src/main/java/token/EqualityExpression.java \
-  src/main/java/token/ArrayCreationExpression.java \
-  src/main/java/token/BlockStatements.java \
-  src/main/java/token/ConstructorBody.java \
-  src/main/java/exception/VisitorException.java \
-  src/main/java/exception/CompilerException.java \
-  src/main/java/exception/TypeHierarchyException.java \
-  src/main/java/exception/LexerException.java \
-  src/main/java/exception/MachineException.java \
-  src/main/java/exception/NameResolutionException.java \
-  src/main/java/exception/SymbolTableException.java \
-  src/main/java/exception/DeadCodeException.java \
-  src/main/java/visitor/TypeLinkingVisitor.java \
->>>>>>> master
   src/main/java/visitor/GenericCheckVisitor.java \
   src/main/java/visitor/TypeLinkingVisitor.java \
   src/main/java/visitor/Visitee.java \
   src/main/java/visitor/Visitor.java \
-<<<<<<< HEAD
   src/main/java/algorithm/base/Pair.java \
   src/main/java/algorithm/trie/Trie.java \
-  src/main/java/type/hierarchy/ClassHierarchyGraph.java \
-  src/main/java/type/hierarchy/ClassNode.java \
+  src/main/java/type/hierarchy/HierarchyChecker.java \
+  src/main/java/type/hierarchy/HierarchyGraph.java \
+  src/main/java/type/hierarchy/HierarchyGraphNode.java \
+  src/main/java/type/hierarchy/Method.java \
+  src/main/java/type/hierarchy/Parameter.java \
   src/main/java/algorithm/name/resolution/NameResolutionAlgorithm.java \
   src/main/java/algorithm/parsing/lr/ShiftReduceAlgorithm.java \
   src/main/java/algorithm/parsing/lr/machine/Machine.java \
   src/main/java/algorithm/parsing/lr/machine/MachineState.java
-=======
-  src/main/java/visitor/BaseVisitor.java \
-  src/main/java/lexer/Lexer.java \
-  src/main/java/symbol/Scope.java \
-  src/main/java/symbol/Symbol.java \
-  src/main/java/symbol/SymbolTable.java \
-  src/main/java/dfa/NumericDFA.java \
-  src/main/java/dfa/LiteralDFA.java \
-  src/main/java/dfa/IdentifierDFA.java \
-  src/main/java/dfa/DFA.java \
-  src/main/java/dfa/CommentDFA.java \
-  src/main/java/dfa/ReservedDFA.java \
-  src/main/java/algorithm/trie/Trie.java \
-  src/main/java/algorithm/base/Pair.java \
-  src/main/java/type/hierarchy/HierarchyChecker.java \
-  src/main/java/type/hierarchy/HierarchyGraphNode.java \
-  src/main/java/type/hierarchy/HierarchyGraph.java \
-  src/main/java/type/hierarchy/Method.java \
-  src/main/java/type/hierarchy/Parameter.java \
-  src/main/java/algorithm/parsing/lr/ShiftReduceAlgorithm.java \
-  src/main/java/algorithm/name/resolution/NameResolutionAlgorithm.java \
-  src/main/java/algorithm/parsing/lr/machine/MachineState.java \
-  src/main/java/algorithm/parsing/lr/machine/Machine.java
->>>>>>> master
 default: clean classesdir classes
 classes: $(CLASSES:.java=.class)
 classesdir:
