@@ -5,21 +5,22 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class FormalParameter extends Token {
-  private Type type;
-  private Token identifier;
+public class FormalParameter extends Declaration {
+  public Type type;
 
   public FormalParameter(ArrayList<Token> children) {
     super("", TokenType.FormalParameter, children);
-    for (Token token : children) {
-      assignType(token);
-    }
+    type = (Type) children.get(0);
+    identifier = children.get(1);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : children) {
-      token.accept(v);
-    }
+    v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 

@@ -6,7 +6,7 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 /**
- * Interface for implementing a tokenType for the Java ASTda.
+ * Interface for implementing a tokenType for the Java AST.
  */
 public class Token {
   // position of the token
@@ -49,9 +49,17 @@ public class Token {
 
   /**
    * Pass the current token to the visitor
-   * to perform what it does.
+   * to perform an post-order traversal.
    */
   public void accept(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
+  /**
+   * Passes the current token to the visitor
+   * to perform a pre-order traversal.
+   */
+  public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 

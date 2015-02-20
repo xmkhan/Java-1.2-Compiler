@@ -17,4 +17,12 @@ public class ArrayAccess extends Token {
     }
     v.visit(this);
   }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    for (Token token : children) {
+      token.acceptReverse(v);
+    }
+  }
 }

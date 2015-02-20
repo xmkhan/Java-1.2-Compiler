@@ -5,16 +5,20 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class PackageDeclaration extends Token {
+public class PackageDeclaration extends Declaration {
 
   public PackageDeclaration(ArrayList<Token> children) {
-    super("", TokenType.PackageDeclaration, children);
+    super(children.get(1).getLexeme(), TokenType.PackageDeclaration, children);
+    identifier = children.get(1);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
-    for (Token token : children) {
-      token.accept(v);
-    }
+    v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 }

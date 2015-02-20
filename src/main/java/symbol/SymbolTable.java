@@ -1,5 +1,6 @@
 package symbol;
 
+import token.Declaration;
 import token.Token;
 
 import java.util.ArrayList;
@@ -10,29 +11,33 @@ import java.util.List;
  * Class that encapsulates a scoped-based stack for resolving symbol definitions.
  */
 public class SymbolTable {
-  private LinkedList<Scope<String, Symbol>> table;
+  private LinkedList<Scope<String, Token>> table;
 
   public SymbolTable() {
-    table = new LinkedList<Scope<String, Symbol>>();
+    table = new LinkedList<Scope<String, Token>>();
   }
 
-  public SymbolTable newStack() {
-    table.push(new Scope<String, Symbol>());
-    return this;
+  public void newScope() {
+    table.push(new Scope<String, Token>());
   }
 
-  public SymbolTable deleteStack() {
+  public void deleteScope() {
     table.pop();
-    return this;
   }
 
-  public SymbolTable addDecl(String identifier, Token token) {
-    table.peek().add(identifier, new Symbol(token));
-    return this;
+  public void addDecl(String identifier, Declaration decl) {
+    table.peek().add(identifier, decl);
   }
 
-  public Symbol find(String identifier) {
-    for (Scope<String, Symbol> scope : table) {
+  public void removeDecl(String identifier, Declaration decl) {
+    table.peek().remove(identifier, decl);
+    if(table.peek().size() == 0) {
+      table.pop();
+    }
+  }
+
+  public List<Token> find(String identifier) {
+    for (Scope<String, Token> scope : table) {
       if (scope.contains(identifier)) {
         return scope.find(identifier);
       }
@@ -40,22 +45,36 @@ public class SymbolTable {
     return null;
   }
 
-  public List<Symbol> findAll(String identifier) {
-    List<Symbol> results = new ArrayList<Symbol>();
-    for (Scope<String, Symbol> scope : table) {
+  public List<Token> findAll(String identifier) {
+    List<Token> results = new ArrayList<Token>();
+    for (Scope<String, Token> scope : table) {
       if (scope.contains(identifier)) {
-        results.add(scope.find(identifier));
+        results.addAll(scope.find(identifier));
       }
     }
     return results;
   }
 
   public boolean contains(String identifier) {
-    for (Scope<String, Symbol> scope : table) {
+    for (Scope<String, Token> scope : table) {
       if (scope.contains(identifier)) {
         return true;
       }
     }
+    return false;
+  }
+
+  public boolean containsAnyOfType(String identifier, Class clazz) {
+    for (Scope<String, Token> scope: table) {
+      if (scope.contains(identifier)) {
+        for (Token symbol : scope.find(identifier)) {
+          if (clazz.isInstance(symbol)) {
+            return true;
+          }
+        }
+      }
+    }
+
     return false;
   }
 }

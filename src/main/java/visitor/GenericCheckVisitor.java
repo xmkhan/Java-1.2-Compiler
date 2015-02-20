@@ -117,7 +117,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     // Check for an interface method can not be static, final, or native.
     if (modifierTypes.contains(TokenType.NATIVE) || modifierTypes.contains(TokenType.STATIC) ||
         modifierTypes.contains(TokenType.FINAL)) {
-      throw new VisitorException("Interface method " + token.methodHeader.methodDeclarator.getLexeme() +
+      throw new VisitorException("Interface method " + token.methodHeader.identifier +
           " can not be static, final, or native.", token);
     }
   }
@@ -130,25 +130,25 @@ public class GenericCheckVisitor extends BaseVisitor {
     // Check for method has a body if and only if it is neither abstract nor native.
     if ((token.methodBody.isEmpty() && !modifierTypes.contains(TokenType.ABSTRACT) && !modifierTypes.contains(TokenType.NATIVE))
         || (!token.methodBody.isEmpty() && (modifierTypes.contains(TokenType.ABSTRACT) || modifierTypes.contains(TokenType.NATIVE)))) {
-      throw new VisitorException("Method " + token.methodHeader.methodDeclarator.getLexeme() +
+      throw new VisitorException("Method " + token.methodHeader.identifier +
           " has a body and is abstract or native or doesn't have a body and is not abstract nor native.", token);
     }
 
     // Check for an abstract method cannot be static or final.
     if (modifierTypes.contains(TokenType.ABSTRACT) && (modifierTypes.contains(TokenType.STATIC) || modifierTypes.contains(TokenType.FINAL))) {
-      throw new VisitorException("Method " + token.methodHeader.methodDeclarator.getLexeme() +
+      throw new VisitorException("Method " + token.methodHeader.identifier +
           " can not be abstract and be static or final.", token);
     }
 
     // Check for a static method can not be final
     if (modifierTypes.contains(TokenType.STATIC) && modifierTypes.contains(TokenType.FINAL)) {
-      throw new VisitorException("Method " + token.methodHeader.methodDeclarator.getLexeme() +
+      throw new VisitorException("Method " + token.methodHeader.identifier +
           " can not be static and final.", token);
     }
 
     // Check for a native method must be static
     if (modifierTypes.contains(TokenType.NATIVE) && !modifierTypes.contains(TokenType.STATIC)) {
-      throw new VisitorException("Method " + token.methodHeader.methodDeclarator.getLexeme() +
+      throw new VisitorException("Method " + token.methodHeader.identifier +
           " has to be static due to it is native.", token);
     }
   }
@@ -160,7 +160,7 @@ public class GenericCheckVisitor extends BaseVisitor {
     HashSet<TokenType> modifierTypes = getModifierTypesAsSet(token.modifiers);
     // Check for no field declarations can be final.
     if (modifierTypes.contains(TokenType.FINAL)) {
-      throw new VisitorException("Identifier " + token.variableDeclarator.getLexeme() +
+      throw new VisitorException("Identifier " + token.getIdentifier() +
           " can not be declared final.", token);
     }
   }

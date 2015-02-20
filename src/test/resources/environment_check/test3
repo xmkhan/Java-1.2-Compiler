@@ -1,0 +1,11 @@
+package test3;
+
+public class A {
+  public A() {
+    int x = 4;
+    int y = 3;
+    if (y == 3) {
+      int x = 5;
+    }
+  }
+}

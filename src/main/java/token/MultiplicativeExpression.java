@@ -23,9 +23,17 @@ public class MultiplicativeExpression extends Token {
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     if (expr1 != null) expr1.accept(v);
     expr.accept(v);
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    if (expr1 != null) expr1.acceptReverse(v);
+    expr.acceptReverse(v);
   }
 }

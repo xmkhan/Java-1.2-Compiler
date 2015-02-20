@@ -18,7 +18,13 @@ public class Modifier extends Token {
     modifier = children.get(0);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 

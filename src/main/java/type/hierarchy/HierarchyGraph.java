@@ -136,7 +136,7 @@ public class HierarchyGraph {
   private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody) {
     if (interfaceBody.getInterfaceMemberDeclaration() == null) return new ArrayList<MethodHeader>();
     List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
-    for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getInterfaceMemberDeclarations()) {
+    for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getMemberDeclarations()) {
       methodHeaders.add(interfaceMemberDeclaration.getMethodHeader());
     }
     return methodHeaders;

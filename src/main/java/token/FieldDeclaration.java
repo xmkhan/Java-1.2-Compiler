@@ -9,7 +9,7 @@ public class FieldDeclaration extends Declaration {
 
   public Modifiers modifiers;
   public Type type;
-  public VariableDeclarator variableDeclarator;
+  public Expression expr;
 
   public FieldDeclaration(ArrayList<Token> children) {
     super("", TokenType.FieldDeclaration, children);
@@ -24,13 +24,24 @@ public class FieldDeclaration extends Declaration {
     } else if (token instanceof Type) {
       type = (Type) token;
     } else if (token instanceof VariableDeclarator) {
-      variableDeclarator = (VariableDeclarator) token;
+      identifier = token.children.get(0);
+      if (token.children.size() == 3) {
+        expr = (Expression) token.children.get(2);
+      }
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
-    variableDeclarator.accept(v);
     v.visit(modifiers);
+    if (expr != null) expr.accept(v);
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    v.visit(modifiers);
+    if (expr != null) expr.acceptReverse(v);
   }
 }

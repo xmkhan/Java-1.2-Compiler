@@ -16,6 +16,7 @@ public class ArrayType extends Token {
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {
       token.accept(v);
@@ -23,6 +24,13 @@ public class ArrayType extends Token {
     v.visit(this);
   }
 
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    for (Token token : children) {
+      token.acceptReverse(v);
+    }
+  }
   private void assignType(Token token) {
     if (token instanceof PrimitiveType) {
       primitiveType = (PrimitiveType) token;
@@ -33,6 +41,6 @@ public class ArrayType extends Token {
 
   public Token getType() {
     if (primitiveType !=  null) return primitiveType.getType();
-    return name.getSimpleName();
+    return name;
   }
 }

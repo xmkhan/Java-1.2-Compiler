@@ -38,7 +38,13 @@ public class Literal extends Token {
     return valueType == TokenType.NULL;
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 }

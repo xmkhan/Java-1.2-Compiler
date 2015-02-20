@@ -8,9 +8,10 @@ import java.util.ArrayList;
 public class SimpleName extends Token {
 
   public SimpleName(ArrayList<Token> children) {
-    super("", TokenType.SimpleName, children);
+    super(children.get(0).getLexeme(), TokenType.SimpleName, children);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {
       token.accept(v);
@@ -18,7 +19,11 @@ public class SimpleName extends Token {
     v.visit(this);
   }
 
-  public Token getIdentifier() {
-    return children.get(0);
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    for (Token token : children) {
+      token.acceptReverse(v);
+    }
   }
 }

@@ -14,9 +14,16 @@ public class ClassBodyDeclaration extends Token {
     this.declaration = children.get(0);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     declaration.accept(v);
     v.visit(this);
+  }
+
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    declaration.acceptReverse(v);
   }
 
   public boolean isMethod() {

@@ -1,0 +1,18 @@
+package symbols;
+
+public class symbol1 {
+  int a = 3;
+  int b = 4;
+  char c = 5;
+
+  public symbol1() {}
+
+  public void m1(int a, int b) {
+    int r = 3;
+    int r1 = r;
+    int r2 = r1;
+  }
+
+  public void m2(int x, char y, String z) {}
+
+}

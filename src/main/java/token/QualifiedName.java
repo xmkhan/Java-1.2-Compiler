@@ -6,16 +6,13 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class QualifiedName extends Token {
-  private QualifiedName qualifiedName;
-  private SimpleName simpleName;
 
   public QualifiedName(ArrayList<Token> children) {
-    super("", TokenType.QualifiedName, children);
-    for (Token token : children) {
-      assignType(token);
-    }
+    super(children.get(0).getLexeme() + children.get(1).getLexeme() + children.get(2).getLexeme(),
+        TokenType.QualifiedName, children);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {
       token.accept(v);
@@ -23,11 +20,11 @@ public class QualifiedName extends Token {
     v.visit(this);
   }
 
-  private void assignType(Token token) {
-    if (token instanceof QualifiedName) {
-      qualifiedName = (QualifiedName) token;
-    } else if (token instanceof SimpleName) {
-      simpleName = (SimpleName) token;
+  @Override
+  public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+    for (Token token : children) {
+      token.acceptReverse(v);
     }
   }
 }
