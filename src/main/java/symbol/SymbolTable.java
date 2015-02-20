@@ -17,27 +17,23 @@ public class SymbolTable {
     table = new LinkedList<Scope<String, Token>>();
   }
 
-  public SymbolTable newScope() {
+  public void newScope() {
     table.push(new Scope<String, Token>());
-    return this;
   }
 
-  public SymbolTable deleteScope() {
+  public void deleteScope() {
     table.pop();
-    return this;
   }
 
-  public SymbolTable addDecl(String identifier, Declaration decl) {
+  public void addDecl(String identifier, Declaration decl) {
     table.peek().add(identifier, decl);
-    return this;
   }
 
-  public SymbolTable removeDecl(String identifier, Declaration decl) {
+  public void removeDecl(String identifier, Declaration decl) {
     table.peek().remove(identifier, decl);
     if(table.peek().size() == 0) {
       table.pop();
     }
-    return this;
   }
 
   public List<Token> find(String identifier) {

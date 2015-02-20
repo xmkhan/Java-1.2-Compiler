@@ -17,29 +17,26 @@ public class Scope<K, V> {
     this.symbols = new TreeMap<K, List<V>>();
   }
 
-  public Scope add(K key, V value) {
+  public void add(K key, V value) {
     if (symbols.containsKey(key)) {
       symbols.get(key).add(value);
     } else {
       symbols.put(key, new ArrayList<V>());
       symbols.get(key).add(value);
     }
-    return this;
   }
 
-  public Scope remove(K key) {
+  public void remove(K key) {
     symbols.remove(key);
-    return this;
   }
 
-  public Scope remove(K key, V value) {
+  public void remove(K key, V value) {
     if (symbols.containsKey(key)) {
       symbols.get(key).remove(value);
       if (symbols.get(key).isEmpty()) {
         symbols.remove(key);
       }
     }
-    return this;
   }
 
   public int size() {
