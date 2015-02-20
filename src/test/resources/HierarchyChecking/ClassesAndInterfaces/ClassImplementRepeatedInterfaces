@@ -1,0 +1,3 @@
+public class ClassImplementRepeatedInterfaces implements Interface1, Interface1 {
+  public ClassImplementRepeatedInterfaces(){}
+}

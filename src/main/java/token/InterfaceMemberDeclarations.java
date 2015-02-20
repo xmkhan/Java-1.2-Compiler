@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InterfaceMemberDeclarations extends Token {
-
   public List<InterfaceMemberDeclaration> memberDeclarations;
 
   public List<InterfaceMemberDeclaration> getMemberDeclarations() {

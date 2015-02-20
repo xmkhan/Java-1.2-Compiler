@@ -1,0 +1,11 @@
+public class ClassWithMethods {
+  public ClassWithMethods(int z){}
+
+  public void test(int x, String[] y){}
+
+  public abstract void test2(int[] x, char[] z);
+
+  public final void test2(Objectz a, ZZAAA[] k) {
+    int x = 0;
+  }
+}

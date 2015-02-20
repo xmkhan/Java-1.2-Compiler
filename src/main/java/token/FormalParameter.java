@@ -23,4 +23,28 @@ public class FormalParameter extends Declaration {
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
+
+  private void assignType(Token token) {
+    if (token instanceof Type) {
+      type = (Type) token;
+    } else if (token.getTokenType().equals(TokenType.IDENTIFIER)) {
+      identifier = token;
+    }
+  }
+
+  public boolean isPrimitive() {
+    return children.get(0).children.get(0).getTokenType().equals(TokenType.PrimitiveType);
+  }
+
+  public boolean isReferenceType() {
+    return children.get(0).getTokenType().equals(TokenType.ReferenceType);
+  }
+
+  public boolean isArray() {
+    return type != null ? type.isArray() : false;
+  }
+
+  public Token getType() {
+    return type != null ? type.getType() : null;
+  }
 }

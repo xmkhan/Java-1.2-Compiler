@@ -26,4 +26,8 @@ public class PrimitiveType extends Token {
       token.acceptReverse(v);
     }
   }
+
+  public Token getType() {
+    return children.get(0);
+  }
 }

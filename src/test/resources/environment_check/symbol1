@@ -7,12 +7,12 @@ public class symbol1 {
 
   public symbol1() {}
 
-  public m1(int a, int b) {
+  public void m1(int a, int b) {
     int r = 3;
     int r1 = r;
     int r2 = r1;
   }
 
-  public m2(int x, char y, String z) {}
+  public void m2(int x, char y, String z) {}
 
 }

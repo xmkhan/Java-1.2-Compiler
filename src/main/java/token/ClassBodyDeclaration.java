@@ -25,4 +25,16 @@ public class ClassBodyDeclaration extends Token {
     v.visit(this);
     declaration.acceptReverse(v);
   }
+
+  public boolean isMethod() {
+    return declaration.children.get(0) instanceof MethodDeclaration;
+  }
+
+  public boolean isConstructor() {
+    return declaration instanceof ConstructorDeclaration;
+  }
+
+  public boolean isField() {
+    return declaration.children.get(0) instanceof FieldDeclaration;
+  }
 }

@@ -6,9 +6,13 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class ClassOrInterfaceType extends Token {
+  Name name;
 
   public ClassOrInterfaceType(ArrayList<Token> children) {
     super("", TokenType.ClassOrInterfaceType, children);
+    for (Token token : children) {
+      assignType(token);
+    }
   }
 
   @Override
@@ -26,4 +30,15 @@ public class ClassOrInterfaceType extends Token {
       token.acceptReverse(v);
     }
   }
+
+  public Token getType() {
+    return name;
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof Name) {
+      name = (Name) token;
+    }
+  }
+
 }

@@ -10,6 +10,10 @@ public class FormalParameterList extends Token {
 
   public List<FormalParameter> params;
 
+  public List<FormalParameter> getFormalParameters() {
+    return params;
+  }
+
   public FormalParameterList(ArrayList<Token> children) {
     super("", TokenType.FormalParameterList, children);
     params = new ArrayList<FormalParameter>();

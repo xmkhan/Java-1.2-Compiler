@@ -27,4 +27,8 @@ public class InterfaceBody extends Token {
     v.visit(this);
     if (interfaceMemberDeclarations != null) interfaceMemberDeclarations.acceptReverse(v);
   }
+
+  public InterfaceMemberDeclarations getInterfaceMemberDeclaration() {
+    return interfaceMemberDeclarations;
+  }
 }
