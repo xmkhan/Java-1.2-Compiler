@@ -123,7 +123,7 @@ public class HierarchyGraph {
    * Retrieves all the MethodHeaders in the ClassBody passed in
    */
   private List<MethodHeader> extractMethodHeaders(ClassBody classBody) {
-    if (classBody.bodyDeclarations == null) return null;
+    if (classBody.bodyDeclarations == null) return new ArrayList<MethodHeader>();
     List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
     for (ClassBodyDeclaration classBodyDeclaration : classBody.bodyDeclarations.getBodyDeclarations()) {
       if (classBodyDeclaration.isMethod()) {
@@ -134,7 +134,7 @@ public class HierarchyGraph {
   }
 
   private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody) {
-    if (interfaceBody.getInterfaceMemberDeclaration() == null) return null;
+    if (interfaceBody.getInterfaceMemberDeclaration() == null) return new ArrayList<MethodHeader>();
     List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
     for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getMemberDeclarations()) {
       methodHeaders.add(interfaceMemberDeclaration.getMethodHeader());
