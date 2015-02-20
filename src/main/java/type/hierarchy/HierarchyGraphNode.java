@@ -24,6 +24,10 @@ public class HierarchyGraphNode {
   public List<Method> methods;
   // Class/interface identifier
   public String identifier;
+  // List of constructors
+  public List<Method> constructors;
+
+  private ImportDeclarations importDeclarations;
 
   public HierarchyGraphNode() {
     children = new ArrayList<HierarchyGraphNode>();
@@ -31,6 +35,7 @@ public class HierarchyGraphNode {
     implementsList = new ArrayList<HierarchyGraphNode>();
     modifiers = new ArrayList<Modifier>();
     methods = new ArrayList<Method>();
+    constructors = new ArrayList<Method>();
   }
 
   public boolean isFinal() {
@@ -42,6 +47,14 @@ public class HierarchyGraphNode {
    */
   public boolean hasParent(String name) {
     return hasParent(name, extendsList) || hasParent(name, implementsList);
+  }
+
+  public List<ImportDeclaration> getImportList() {
+    return importDeclarations == null ? new ArrayList<ImportDeclaration>() : importDeclarations.importDeclarations;
+  }
+
+  public void setImportDeclarations(ImportDeclarations importDeclarations) {
+    this.importDeclarations = importDeclarations;
   }
 
   private boolean hasParent(String name, List<HierarchyGraphNode> parents) {

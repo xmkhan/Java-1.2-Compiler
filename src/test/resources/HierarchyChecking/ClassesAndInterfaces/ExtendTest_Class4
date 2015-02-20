@@ -1,0 +1,6 @@
+public class ExtendTest_Class4 extends ExtendTest_Class2 {
+  public ExtendTest_Class4() {}
+  public int test1() {
+    return 1;
+  }
+}

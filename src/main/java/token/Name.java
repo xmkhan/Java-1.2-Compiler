@@ -6,6 +6,8 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class Name extends Token {
+  SimpleName simpleName;
+  QualifiedName qualifiedName;
 
   public Name(ArrayList<Token> children) {
     super(children.get(0).getLexeme(), TokenType.Name, children);
@@ -25,5 +27,9 @@ public class Name extends Token {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  public Token getName() {
+    return simpleName != null ? simpleName : qualifiedName;
   }
 }

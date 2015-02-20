@@ -4,6 +4,7 @@ import lexer.Lexer;
 import symbol.SymbolTable;
 import token.CompilationUnit;
 import token.Token;
+import type.hierarchy.HierarchyChecker;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
 
@@ -41,6 +42,8 @@ public class Main {
       EnvironmentBuildingVisitor environmentVisitor = new EnvironmentBuildingVisitor(table);
       environmentVisitor.buildGlobalScope(compilationUnits);
 
+      HierarchyChecker hierarchyChecker = new HierarchyChecker();
+      hierarchyChecker.verifyClassAndInterfaceHierarchy(compilationUnits);
     } catch (CompilerException e) {
       System.exit(42);
     }
