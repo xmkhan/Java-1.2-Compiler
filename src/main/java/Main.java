@@ -1,4 +1,5 @@
 import algorithm.parsing.lr.ShiftReduceAlgorithm;
+import exception.CompilerException;
 import lexer.Lexer;
 import token.CompilationUnit;
 import token.Token;
@@ -7,6 +8,7 @@ import visitor.GenericCheckVisitor;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +18,7 @@ import java.util.List;
  */
 public class Main {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     try {
       InputStreamReader lr1Reader = new InputStreamReader(new FileInputStream(ShiftReduceAlgorithm.DEFAULT_LR1_FILE));
 
@@ -34,13 +36,7 @@ public class Main {
         compilationUnits.add(compilationUnit);
       }
       // 2. Phase 2: Construct SymbolTable, handle name resolution, and do type hierarchy checks.
-
-      // Hierarchy Checks
-      HierarchyChecker hierarchyChecker = new HierarchyChecker();
-      hierarchyChecker.verifyClassAndInterfaceHierarchy(compilationUnits);
-
-
-    } catch (Exception e) {
+    } catch (CompilerException e) {
       System.exit(42);
     }
     System.exit(0);
