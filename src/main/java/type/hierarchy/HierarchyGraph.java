@@ -146,7 +146,6 @@ public class HierarchyGraph {
     if (parameterList == null) return parameterTypes;
 
     for (FormalParameter formalParameter : parameterList.getFormalParameters()) {
-      System.out.println(formalParameter.getType().getLexeme() + " | " + formalParameter.isArray());
       parameterTypes.add(new Parameter(formalParameter.getType().getLexeme(), formalParameter.isArray()));
     }
 
@@ -229,10 +228,8 @@ public class HierarchyGraph {
     if (tokenType.equals(TokenType.Super) ||
       tokenType.equals(TokenType.EXTENDS) ||
       tokenType.equals(TokenType.ExtendsInterfaces)) {
-      System.out.println("extends :(");
       child.extendsList.add(parentNode);
     } else {
-      System.out.println("impelments");
       child.implementsList.add(parentNode);
     }
   }
