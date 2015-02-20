@@ -27,7 +27,7 @@ public class ImportDeclarations extends Token {
   public boolean containsSuffix(String suffix) {
     for (ImportDeclaration decl : importDeclarations) {
       String importName = decl.getLexeme();
-      if (importName.substring(importName.length() - suffix.length() + 1).equals(suffix)) return true;
+      if (importName.substring(importName.length() - suffix.length()).equals(suffix)) return true;
     }
     return false;
   }
@@ -39,7 +39,7 @@ public class ImportDeclarations extends Token {
     List<ImportDeclaration> decls = new ArrayList<ImportDeclaration>();
     for (ImportDeclaration decl : importDeclarations) {
       String importName = decl.getLexeme();
-      if (importName.substring(importName.length() - suffix.length() + 1).equals(suffix)) decls.add(decl);
+      if (importName.substring(importName.length() - suffix.length()).equals(suffix)) decls.add(decl);
     }
     return decls;
   }
