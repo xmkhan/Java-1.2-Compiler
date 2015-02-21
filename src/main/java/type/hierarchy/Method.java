@@ -1,5 +1,7 @@
 package type.hierarchy;
 
+import token.ImportDeclaration;
+import token.ImportDeclarations;
 import token.Modifier;
 import token.TokenType;
 
@@ -21,12 +23,11 @@ public class Method {
 
   public List<Parameter> parameterTypes;
 
-  public List<String> imports;
+  public HierarchyGraphNode parent;
 
   public Method() {
     modifiers = new ArrayList<TokenType>();
     parameterTypes = new ArrayList<Parameter>();
-    imports = new ArrayList<String>();
   }
 
   public boolean isFinal() {
@@ -50,6 +51,7 @@ public class Method {
   }
 
   public boolean signaturesMatch(Method method) {
+    //System.out.println("identifier: " + method.identifier + " " + this.identifier);
     return method.identifier.equals(this.identifier) && parameterTypesMatch(method);
   }
 
@@ -64,10 +66,26 @@ public class Method {
       return false;
     }
     for (int i = 0; i < parameterTypes.size(); i++) {
-      if (!parameterTypes.get(i).type.equals(method.parameterTypes.get(i).type)) {
+      boolean match = false;
+      //System.out.println("type a: " + parent.getFullname() + " " + method.parent.getFullname());
+      //System.out.println("type a: " + parameterTypes.get(i).type + " " + method.parameterTypes.get(i).type);
+      if (!parameterTypes.get(i).type.equals(method.parameterTypes.get(i).type) &&
+        !checkWithImports(parent.getImportList(), parameterTypes.get(i).type, method.parameterTypes.get(i).type) &&
+        !checkWithImports(method.parent.getImportList(), method.parameterTypes.get(i).type, parameterTypes.get(i).type)){
         return false;
       }
     }
     return true;
+  }
+
+  private boolean checkWithImports(List<ImportDeclaration> imports, String a, String b) {
+    for (ImportDeclaration imported : imports) {
+      String importPrefix = imported.getLexeme() + (imported.onDemand ? "." + a : "");
+      //System.out.println(importPrefix + " | " + b);
+      if (importPrefix.equals(b)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

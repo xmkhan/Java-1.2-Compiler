@@ -119,6 +119,7 @@ public class HierarchyGraph {
     if (constructors == null) return;
     for (ConstructorDeclaration constructor : constructors) {
       Method method = new Method();
+      method.parent = node;
       node.constructors.add(method);
       method.classOrInterfaceName = node.getFullname();
       for (Token token : constructor.children) {
@@ -146,6 +147,7 @@ public class HierarchyGraph {
     if (methodHeaders == null) return;
     for (MethodHeader methodHeader : methodHeaders) {
       Method method = new Method();
+      method.parent = node;
       node.methods.add(method);
       method.classOrInterfaceName = node.getFullname();
       for (Token token : methodHeader.children) {
@@ -252,6 +254,7 @@ public class HierarchyGraph {
    */
   private void updateNodeRelationships(String name, HierarchyGraphNode child, TokenType tokenType) throws TypeHierarchyException {
     HierarchyGraphNode parentNode = getNode(child, name, child.getImportList());
+    //System.out.println("parent name: " + name);
     if (child.hasParent(parentNode.getFullname())) {
       throw new TypeHierarchyException("Interface " + name + " is repeated in the TypeDeclaration of " + child.identifier);
     }

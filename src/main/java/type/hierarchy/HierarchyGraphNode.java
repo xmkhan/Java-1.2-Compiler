@@ -65,7 +65,12 @@ public class HierarchyGraphNode {
 
   private boolean hasParent(String name, List<HierarchyGraphNode> parents) {
     for (HierarchyGraphNode node : parents) {
+      //System.out.println(node.identifier);
       if (node.identifier.equals(name)) {
+        return true;
+      }
+      if (checkWithImports(getImportList(), name, node.identifier) ||
+        checkWithImports(node.getImportList(), node.identifier, name)) {
         return true;
       }
     }
@@ -83,5 +88,15 @@ public class HierarchyGraphNode {
     for (Modifier modifier : newModifiers) {
       modifiers.add(modifier.getModifier().getTokenType());
     }
+  }
+
+  private boolean checkWithImports(List<ImportDeclaration> imports, String a, String b) {
+    for (ImportDeclaration imported : imports) {
+      String importPrefix = imported.getLexeme() + (imported.onDemand ? "." + a : "");
+      if (importPrefix.equals(b)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
