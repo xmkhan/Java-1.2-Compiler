@@ -86,6 +86,16 @@ public class SymbolTable {
     return false;
   }
 
+  public boolean containsAnyPrefixOfType(String identifier, Class[] classes) {
+    Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
+    for (Scope<String, Token> scope: table) {
+      for (Token symbol : scope.findWithPrefix(identifier)) {
+        if (classSet.contains(symbol.getClass())) return true;
+      }
+    }
+    return false;
+  }
+
   public List<Token> findWithPrefix(String prefix) {
     List<Token> tokens = new ArrayList<Token>();
     for (Scope<String, Token> scope : table) {
