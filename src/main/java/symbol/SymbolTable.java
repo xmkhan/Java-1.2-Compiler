@@ -91,4 +91,12 @@ public class SymbolTable {
     }
     return tokens;
   }
+
+  public List<Token> findWithPrefixOfAnyType(String prefix, Class clazz) {
+    List<Token> tokensOfClazzType = new ArrayList<Token>();
+    for (Token token : findWithPrefix(prefix)) {
+      if (clazz.isInstance(token)) tokensOfClazzType.add(token);
+    }
+    return tokensOfClazzType;
+  }
 }
