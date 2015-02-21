@@ -6,6 +6,8 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class Name extends Token {
+  SimpleName simpleName;
+  QualifiedName qualifiedName;
 
   public Name(ArrayList<Token> children) {
     super(children.get(0).getLexeme(), TokenType.Name, children);
@@ -33,5 +35,8 @@ public class Name extends Token {
 
   public boolean isQualified() {
     return getLexeme().contains(".");
+  }
+  public Token getName() {
+    return simpleName != null ? simpleName : qualifiedName;
   }
 }

@@ -1,0 +1,6 @@
+public class ExtendTest_Class5 {
+  public ExtendTest_Class5() {}
+  public int test1() {
+    return 1;
+  }
+}

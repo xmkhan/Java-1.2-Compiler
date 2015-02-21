@@ -76,7 +76,29 @@ public class SymbolTable {
         }
       }
     }
-
     return false;
+  }
+
+  public boolean containsPrefix(String identifier) {
+    for (Scope<String, Token> scope : table) {
+      if (scope.containsPrefix(identifier)) return true;
+    }
+    return false;
+  }
+
+  public List<Token> findWithPrefix(String prefix) {
+    List<Token> tokens = new ArrayList<Token>();
+    for (Scope<String, Token> scope : table) {
+      tokens.addAll(scope.findWithPrefix(prefix));
+    }
+    return tokens;
+  }
+
+  public List<Token> findWithPrefixOfAnyType(String prefix, Class clazz) {
+    List<Token> tokensOfClazzType = new ArrayList<Token>();
+    for (Token token : findWithPrefix(prefix)) {
+      if (clazz.isInstance(token)) tokensOfClazzType.add(token);
+    }
+    return tokensOfClazzType;
   }
 }

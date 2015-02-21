@@ -1,0 +1,4 @@
+public class RepeatedConstructor {
+  public RepeatedConstructor(){}
+  public RepeatedConstructor() {}
+}
