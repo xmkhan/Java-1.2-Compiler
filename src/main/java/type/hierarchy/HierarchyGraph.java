@@ -16,24 +16,35 @@ public class HierarchyGraph {
     this.nodes = new HashMap<String, HierarchyGraphNode>();
   }
 
+  public HierarchyGraphNode createNode(CompilationUnit compilationUnit) throws DeadCodeException {
+    Token classOrInterface = compilationUnit.children.get(compilationUnit.children.size()-1).children.get(0);
+    String packageName = extractPackageName(compilationUnit);
+    String fullNodeName = constructFullName(packageName, classOrInterface);
+    HierarchyGraphNode node = createNode(fullNodeName);
+    node.packageName = packageName;
+    node.setImportDeclarations(extractImports(compilationUnit));
+    return node;
+  }
+
   /**
    * Add a node to the graph
    * @throws TypeHierarchyException
    */
-  public HierarchyGraph addNode(CompilationUnit compilationUnit) throws TypeHierarchyException, DeadCodeException {
+  public HierarchyGraph processNode(CompilationUnit compilationUnit, HierarchyGraphNode node) throws TypeHierarchyException, DeadCodeException {
     Token classOrInterface = compilationUnit.children.get(compilationUnit.children.size()-1).children.get(0);
-    String fullNodeName = constructFullName(extractPackageName(compilationUnit), classOrInterface);
-    HierarchyGraphNode node = createNodeIfItDoesntExist(fullNodeName);
-    node.setImportDeclarations(extractImports(compilationUnit));
     processTypeDeclarationToken(classOrInterface, node);
     return this;
   }
 
   private String constructFullName(String packageName, Token classOrInterface) throws DeadCodeException {
+    StringBuilder fullName = new StringBuilder();
+    if (packageName.length() > 0) {
+      fullName.append(packageName).append(".");
+    }
     if (classOrInterface instanceof ClassDeclaration) {
-      return packageName + "." + ((ClassDeclaration) classOrInterface).identifier.getLexeme();
+      return fullName.append(((ClassDeclaration) classOrInterface).identifier.getLexeme()).toString();
     } else if (classOrInterface instanceof InterfaceDeclaration) {
-      return packageName + "." + ((InterfaceDeclaration) classOrInterface).identifier.getLexeme();
+      return fullName.append(((InterfaceDeclaration) classOrInterface).identifier.getLexeme()).toString();
     } else {
       throw new DeadCodeException("Expecting a ClassDeclaration or InterfaceDeclaration token but received " + classOrInterface.getTokenType());
     }
@@ -63,13 +74,11 @@ public class HierarchyGraph {
       throw new DeadCodeException("Failed to fetch or create a HierarchyGraphNode");
     }
 
-    //System.out.println("nmae: " + node.identifier);
-
     node.classOrInterface = classOrInterface;
     for (Token token : classOrInterface.children) {
       switch (token.getTokenType()) {
         case Modifiers:
-          node.modifiers = ((Modifiers) token).getModifiers();
+          node.addModifiers(((Modifiers) token).getModifiers());
           break;
         case IDENTIFIER:
           node.identifier = token.getLexeme();
@@ -111,7 +120,7 @@ public class HierarchyGraph {
     for (ConstructorDeclaration constructor : constructors) {
       Method method = new Method();
       node.constructors.add(method);
-      method.classOrInterfaceName = node.identifier;
+      method.classOrInterfaceName = node.getFullname();
       for (Token token : constructor.children) {
         switch (token.getTokenType()) {
           case ConstructorDeclarator:
@@ -138,7 +147,7 @@ public class HierarchyGraph {
     for (MethodHeader methodHeader : methodHeaders) {
       Method method = new Method();
       node.methods.add(method);
-      method.classOrInterfaceName = node.identifier;
+      method.classOrInterfaceName = node.getFullname();
       for (Token token : methodHeader.children) {
         switch (token.getTokenType()) {
           case Type:
@@ -180,7 +189,7 @@ public class HierarchyGraph {
    * Retrieves all the MethodHeaders in the ClassBody passed in
    */
   private void extractMethodHeaders(ClassBody classBody, List<MethodHeader> methods, List<ConstructorDeclaration> constructors) {
-    if (classBody != null && classBody.bodyDeclarations == null) return;
+    if (classBody == null || classBody.bodyDeclarations == null) return;
     for (ClassBodyDeclaration classBodyDeclaration : classBody.bodyDeclarations.getBodyDeclarations()) {
       if (classBodyDeclaration.isMethod()) {
         methods.add(((MethodDeclaration) (classBodyDeclaration.children.get(0).children.get(0))).methodHeader);
@@ -193,7 +202,7 @@ public class HierarchyGraph {
 
   private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody) {
     List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
-    if (interfaceBody != null && interfaceBody.getInterfaceMemberDeclaration() == null) return methodHeaders;
+    if (interfaceBody == null || interfaceBody.getInterfaceMemberDeclaration() == null) return methodHeaders;
     for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getMemberDeclarations()) {
       methodHeaders.add(interfaceMemberDeclaration.getMethodHeader());
     }
@@ -242,11 +251,11 @@ public class HierarchyGraph {
    * @throws TypeHierarchyException
    */
   private void updateNodeRelationships(String name, HierarchyGraphNode child, TokenType tokenType) throws TypeHierarchyException {
-    if (child.hasParent(name)) {
+    HierarchyGraphNode parentNode = getNode(child, name, child.getImportList());
+    if (child.hasParent(parentNode.getFullname())) {
       throw new TypeHierarchyException("Interface " + name + " is repeated in the TypeDeclaration of " + child.identifier);
     }
 
-    HierarchyGraphNode parentNode = createNodeIfItDoesntExist(name, child.getImportList());
     parentNode.children.add(child);
 
     if (tokenType.equals(TokenType.Super) ||
@@ -258,30 +267,34 @@ public class HierarchyGraph {
     }
   }
 
-  private HierarchyGraphNode createNodeIfItDoesntExist(String name) {
-    return createNodeIfItDoesntExist(name, new ArrayList<ImportDeclaration>());
+  private HierarchyGraphNode createNode(String name) {
+    HierarchyGraphNode node;
+    node = new HierarchyGraphNode();
+    node.identifier = name;
+    nodes.put(name, node);
+    return node;
   }
 
   /**
    * Returns the node corresponding to name
    * Creates a new node if it doesn't exist
    */
-  private HierarchyGraphNode createNodeIfItDoesntExist(String name, List<ImportDeclaration> imports) {
+  private HierarchyGraphNode getNode(HierarchyGraphNode node, String name, List<ImportDeclaration> imports) throws TypeHierarchyException {
     if (nodes.containsKey(name)) {
       return nodes.get(name);
+    } else if (nodes.containsKey(node.getPackageName() + name)) {
+      return nodes.get(node.getPackageName() + name);
     } else if (imports.size() > 0) {
       // Check to see if a node with identifier import.class name exists
       for (ImportDeclaration imported : imports) {
-        if (nodes.containsKey(imported + name)) {
-          return nodes.get(imported + name);
+        String importName = imported.getLexeme() + (imported.onDemand ? "." + name : "");
+        if (nodes.containsKey(importName)) {
+          return nodes.get(importName);
         }
       }
+    } else if (nodes.containsKey("java.lang." + name)) {
+      return nodes.get("java.lang." + name);
     }
-    // Node doesn't exist, create a new one
-    HierarchyGraphNode node;
-    node = new HierarchyGraphNode();
-    node.identifier = name;
-    nodes.put(name, node);
-    return node;
+    throw new TypeHierarchyException("Class not found: " + name);
   }
 }

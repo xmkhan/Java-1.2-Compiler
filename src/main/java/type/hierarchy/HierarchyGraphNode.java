@@ -19,7 +19,7 @@ public class HierarchyGraphNode {
   // List of interfaces in the implements clause.  They point to the corresponding ClassNodes in HierarchyGraph
   public List<HierarchyGraphNode> implementsList;
   // Modifiers for the class or interface
-  public List<Modifier> modifiers;
+  public List<TokenType> modifiers;
   // All the information regarding methods of a class/interface
   public List<Method> methods;
   // Class/interface identifier
@@ -27,19 +27,25 @@ public class HierarchyGraphNode {
   // List of constructors
   public List<Method> constructors;
 
+  public String packageName;
+
   private ImportDeclarations importDeclarations;
 
   public HierarchyGraphNode() {
     children = new ArrayList<HierarchyGraphNode>();
     extendsList = new ArrayList<HierarchyGraphNode>();
     implementsList = new ArrayList<HierarchyGraphNode>();
-    modifiers = new ArrayList<Modifier>();
+    modifiers = new ArrayList<TokenType>();
     methods = new ArrayList<Method>();
     constructors = new ArrayList<Method>();
   }
 
   public boolean isFinal() {
     return modifiers.contains(TokenType.FINAL);
+  }
+
+  public boolean isAbstract() {
+    return modifiers.contains(TokenType.ABSTRACT);
   }
 
   /**
@@ -64,5 +70,18 @@ public class HierarchyGraphNode {
       }
     }
     return false;
+  }
+
+  public String getPackageName() {
+    return packageName != null && packageName.length() > 0 ? packageName + "." : "";
+  }
+  public String getFullname() {
+    return getPackageName() + identifier;
+  }
+
+  public void addModifiers(List<Modifier> newModifiers) {
+    for (Modifier modifier : newModifiers) {
+      modifiers.add(modifier.getModifier().getTokenType());
+    }
   }
 }

@@ -4,10 +4,7 @@ import exception.DeadCodeException;
 import exception.TypeHierarchyException;
 import token.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Responsible for performing Class Hierarchy checks
@@ -34,8 +31,13 @@ public class HierarchyChecker {
    * @throws TypeHierarchyException
    */
   private void createHierarchyGraph(List<CompilationUnit> compilationUnits) throws TypeHierarchyException, DeadCodeException {
+    Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode = new HashMap<CompilationUnit, HierarchyGraphNode>();
     for (CompilationUnit compilationUnit : compilationUnits) {
-      graph.addNode(compilationUnit);
+      compilationUnitToNode.put(compilationUnit, graph.createNode(compilationUnit));
+    }
+
+    for (CompilationUnit compilationUnit : compilationUnits) {
+      graph.processNode(compilationUnit, compilationUnitToNode.get(compilationUnit));
     }
   }
 
@@ -46,14 +48,11 @@ public class HierarchyChecker {
    */
   private void verifyHierarchyGraph() throws TypeHierarchyException {
     HierarchyGraphNode currentNode;
-    String name;
 
     for (Map.Entry<String, HierarchyGraphNode> entry : graph.nodes.entrySet()) {
-      name = entry.getKey();
       currentNode = entry.getValue();
-
       extendsVerification(currentNode.extendsList, currentNode);
-      implementsVerification(currentNode.implementsList, name);
+      implementsVerification(currentNode.implementsList, currentNode);
       verifyConstructors(currentNode);
     }
     verifyHierarchyGraphIsAcyclic();
@@ -65,18 +64,45 @@ public class HierarchyChecker {
   /**
    * Perform verification on the implements clause of a class
    * @param implementedParents interfaces implemented by this class
-   * @param className name of the class being processed
+   * @param currentNode name of the class being processed
    * @throws TypeHierarchyException
    */
-  private void implementsVerification(List<HierarchyGraphNode> implementedParents, String className) throws TypeHierarchyException {
+  private void implementsVerification(List<HierarchyGraphNode> implementedParents, HierarchyGraphNode currentNode) throws TypeHierarchyException {
     for (HierarchyGraphNode parent : implementedParents) {
       if (parent.classOrInterface instanceof ClassDeclaration) {
-        throw new TypeHierarchyException("A Class cannot implement a class [class: " + className +
+        throw new TypeHierarchyException("A Class cannot implement a class [class: " + currentNode.identifier +
           ", implemented class: " + parent.identifier + "]");
       }
-      if (parent.identifier.equals(className)) {
-        throw new TypeHierarchyException("Class " + className + " is implementing an interface with the same name");
+      if (parent.getFullname().equals(currentNode.getFullname())) {
+        throw new TypeHierarchyException("Class " + currentNode.identifier + " is implementing an interface with the same name");
       }
+    }
+    verifyInterfacesAreImplemented(currentNode);
+  }
+
+  private void verifyInterfacesAreImplemented(HierarchyGraphNode currentNode) throws TypeHierarchyException {
+    if (currentNode.isAbstract()) return;
+    Stack<HierarchyGraphNode> interfaces = new Stack<HierarchyGraphNode>();
+    interfaces.addAll(currentNode.implementsList);
+    while (!interfaces.empty()) {
+      HierarchyGraphNode implementedInterface = interfaces.pop();
+      boolean found = false;
+      for (Method methodToImplement : implementedInterface.methods) {
+        for (Method method : currentNode.methods) {
+          if (method.signaturesMatch(methodToImplement)) {
+            if (!method.returnType.equals(methodToImplement.returnType)) {
+              throw new TypeHierarchyException("failed");
+            }
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          throw new TypeHierarchyException("Class " + currentNode.identifier + " implements " + methodToImplement.classOrInterfaceName +
+          " but does not implement function " + methodToImplement.identifier);
+        }
+      }
+      interfaces.addAll(implementedInterface.implementsList);
     }
   }
 
@@ -101,8 +127,8 @@ public class HierarchyChecker {
         throw new TypeHierarchyException("An interface cannot extend a class[Interface " + currentNode.identifier +
           ", class:" + parent.identifier + "]");
       }
-      if (parent.identifier.equals(currentNode.identifier)) {
-        throw new TypeHierarchyException("Class " + currentNode.identifier + " is extending itself");
+      if (parent.getFullname().equals(currentNode.getFullname())) {
+        throw new TypeHierarchyException("Class " + currentNode.getFullname() + " is extending itself");
       }
     }
   }
@@ -186,6 +212,7 @@ public class HierarchyChecker {
     for (Map.Entry<String, HierarchyGraphNode> entry : graph.nodes.entrySet()) {
       HierarchyGraphNode currentNode = entry.getValue();
       if ((cyclicNode = isCyclicHelper(currentNode, visited, recursionStack)) != null) {
+
         return cyclicNode;
       }
     }
