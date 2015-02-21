@@ -1,0 +1,9 @@
+public class Je_2_ConstructorParameter_Duplicate {
+
+    public Je_2_ConstructorParameter_Duplicate (String f, int f) {}
+
+    public static int test() {
+        return 123;
+    }
+
+}

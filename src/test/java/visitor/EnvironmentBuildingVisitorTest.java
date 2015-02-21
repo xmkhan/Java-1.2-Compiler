@@ -61,6 +61,14 @@ public class EnvironmentBuildingVisitorTest {
     visitor.buildGlobalScope(units);
   }
 
+  @Test(expected = EnvironmentBuildingVisitorException.class)
+  public void testDuplicateParameterInConstructor() throws IOException, CompilerException {
+    List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
+        "src/test/resources/environment_check/Je_2_ConstructorParameter_Duplicate",
+    });
+    visitor.buildGlobalScope(units);
+  }
+
   @Test
   public void testSameMethodNameAsConstructor() throws IOException, CompilerException {
     List<CompilationUnit> units = CompilationUnitGenerator.make(new String[] {
