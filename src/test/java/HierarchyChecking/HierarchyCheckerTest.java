@@ -39,7 +39,7 @@ public class HierarchyCheckerTest {
 
   @Test
   public void testTemp() throws CompilerException, IOException {
-    executeTests("src/test/resources/HierarchyChecking/temp", false);
+    //executeTests("src/test/resources/HierarchyChecking/temp", false);
   }
 
   @Test
