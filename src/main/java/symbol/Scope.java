@@ -3,6 +3,7 @@ package symbol;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -37,6 +38,23 @@ public class Scope<K, V> {
         symbols.remove(key);
       }
     }
+  }
+
+  public boolean containsPrefix(String prefix) {
+    for (K key : symbols.keySet()) {
+      if (key.toString().substring(0, prefix.length()).equals(prefix)) return true;
+    }
+    return false;
+  }
+
+  public List<V> findWithPrefix(String prefix) {
+    List<V> values = new ArrayList<V>();
+    for (K key : symbols.keySet()) {
+      if (key.toString().substring(0, prefix.length()).equals(prefix)) {
+        values.addAll(symbols.get(key));
+      }
+    }
+    return values;
   }
 
   public int size() {
