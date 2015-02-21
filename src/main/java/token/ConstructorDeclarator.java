@@ -9,8 +9,6 @@ public class ConstructorDeclarator extends Token {
   private SimpleName simpleName;
   private FormalParameterList formalParameterList;
 
-  public FormalParameterList paramList;
-
   public ConstructorDeclarator(ArrayList<Token> children) {
     super(children.get(0).getLexeme(), TokenType.ConstructorDeclarator, children);
     for (Token token : children) {
@@ -20,14 +18,14 @@ public class ConstructorDeclarator extends Token {
 
   @Override
   public void accept(Visitor v) throws VisitorException {
-    if (paramList != null) paramList.accept(v);
+    if (formalParameterList != null) formalParameterList.accept(v);
     v.visit(this);
   }
 
   @Override
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
-    if (paramList != null) paramList.acceptReverse(v);
+    if (formalParameterList != null) formalParameterList.acceptReverse(v);
   }
 
   public FormalParameterList getParameterList() {
