@@ -1,9 +1,9 @@
 package symbols;
 
 public class symbol1 {
-  int a = 3;
-  int b = 4;
-  char c = 5;
+  public int a = 3;
+  public int b = 4;
+  public char c = 5;
 
   public symbol1() {}
 
