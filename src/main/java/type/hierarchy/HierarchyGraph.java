@@ -254,7 +254,6 @@ public class HierarchyGraph {
    */
   private void updateNodeRelationships(String name, HierarchyGraphNode child, TokenType tokenType) throws TypeHierarchyException {
     HierarchyGraphNode parentNode = getNode(child, name, child.getImportList());
-    //System.out.println("parent name: " + name);
     if (child.hasParent(parentNode.getFullname())) {
       throw new TypeHierarchyException("Interface " + name + " is repeated in the TypeDeclaration of " + child.identifier);
     }

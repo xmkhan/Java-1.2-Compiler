@@ -77,33 +77,6 @@ public class HierarchyChecker {
         throw new TypeHierarchyException("Class " + currentNode.identifier + " is implementing an interface with the same name");
       }
     }
-    //verifyInterfacesAreImplemented(currentNode);
-  }
-
-  private void verifyInterfacesAreImplemented(HierarchyGraphNode currentNode) throws TypeHierarchyException {
-    if (currentNode.isAbstract()) return;
-    Stack<HierarchyGraphNode> interfaces = new Stack<HierarchyGraphNode>();
-    interfaces.addAll(currentNode.implementsList);
-    while (!interfaces.empty()) {
-      HierarchyGraphNode implementedInterface = interfaces.pop();
-      boolean found = false;
-      for (Method methodToImplement : implementedInterface.methods) {
-        for (Method method : currentNode.methods) {
-          if (method.signaturesMatch(methodToImplement)) {
-            if (!method.returnType.equals(methodToImplement.returnType)) {
-              throw new TypeHierarchyException("failed");
-            }
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          throw new TypeHierarchyException("Class " + currentNode.identifier + " implements " + methodToImplement.classOrInterfaceName +
-          " but does not implement function " + methodToImplement.identifier);
-        }
-      }
-      interfaces.addAll(implementedInterface.implementsList);
-    }
   }
 
   /**
@@ -160,14 +133,15 @@ public class HierarchyChecker {
 
   public void test(List<Method> implementedMethods, List<Method> methodsAvailable, HierarchyGraphNode currentNode) throws TypeHierarchyException {
     if (currentNode.isAbstract() || currentNode.classOrInterface instanceof InterfaceBody) return;
-    System.out.println("getting executed: " + currentNode.getFullname());
     boolean found = false;
     for (Method methodToImplement : implementedMethods) {
+      //System.out.println("method to implement: " + methodToImplement.identifier);
       for (Method method : methodsAvailable) {
         if (method.signaturesMatch(methodToImplement)) {
           if (!method.returnType.equals(methodToImplement.returnType)) {
             throw new TypeHierarchyException("failed");
           }
+          //System.out.println("found?");
           found = true;
           break;
         }
@@ -191,6 +165,13 @@ public class HierarchyChecker {
     // and work our way up.
     for (HierarchyGraphNode node : currentNode.extendsList) {
       extendedMethods.addAll(verifyExtendedMethods(node, verified));
+      /*if (node.isAbstract()) {
+        System.out.println("abstract " + node.getFullname());
+        for (HierarchyGraphNode parentNode : node.implementsList) {
+          //System.out.println("implements: " + parentNode.getFullname());
+          implementedMethods.addAll(parentNode.methods);
+        }
+      }*/
     }
     for (HierarchyGraphNode node : currentNode.implementsList) {
       //System.out.println("IMPLEMENTED " + node.getFullname());
@@ -221,17 +202,17 @@ public class HierarchyChecker {
   private void checkForAbstractMethods(List<Method> extendedMethods, List<Method> methods) throws TypeHierarchyException {
     //System.out.println("size; " + extendedMethods.size());
     for (int i = 0; i < extendedMethods.size(); i++) {
-      boolean absractMethod = extendedMethods.get(i).isAbstract();
+      boolean absractMethod = extendedMethods.get(i).isAbstract() || extendedMethods.get(i).parent.classOrInterface instanceof InterfaceDeclaration;
       boolean nonAbstractClass = false;
       boolean found = false;
       //System.out.println("name : " + extendedMethods.get(i).identifier + " " + absractMethod);
       if (!absractMethod) continue;
-      //System.out.println("name2 : " + extendedMethods.get(i).identifier + " " + absractMethod);
+      //System.out.println("name2 : " + extendedMethods.get(i).identifier + " " + absractMethod + " " + extendedMethods.get(i).parent.identifier);
 
       for (int j = i+1; j < extendedMethods.size(); j++) {
         if (i != j) {
           //System.out.println("method name: " + extendedMethods.get(j).isAbstract() + " " + extendedMethods.get(i).isAbstract());
-          if (!extendedMethods.get(j).parent.isAbstract()) {
+          if (!extendedMethods.get(j).parent.isAbstract() && !(extendedMethods.get(j).parent.classOrInterface instanceof InterfaceDeclaration)) {
             nonAbstractClass = true;
           }
           //System.out.println("method name: " + extendedMethods.get(i).identifier + " " + extendedMethods.get(j).identifier);
@@ -243,7 +224,7 @@ public class HierarchyChecker {
       }
 
       for (Method method : methods) {
-        if (!method.parent.isAbstract()) {
+        if (!method.parent.isAbstract() && !(method.parent.classOrInterface instanceof InterfaceDeclaration)) {
           nonAbstractClass = true;
         }
         if (method.signaturesMatch(extendedMethods.get(i))) {
@@ -302,7 +283,7 @@ public class HierarchyChecker {
             + currentNode.identifier + " Method: " + currentNode.methods.get(i));
         }
       }
-      if (!classIsAbstract && currentNode.methods.get(i).isAbstract()) {
+      if (!classIsAbstract && currentNode.classOrInterface instanceof ClassDeclaration && currentNode.methods.get(i).isAbstract()) {
         throw new TypeHierarchyException(currentNode.identifier + " declares an abstract method but the class is not abstract.");
       }
     }
