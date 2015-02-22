@@ -51,7 +51,6 @@ public class Method {
   }
 
   public boolean signaturesMatch(Method method) {
-    //System.out.println("identifier: " + method.identifier + " " + this.identifier);
     return method.identifier.equals(this.identifier) && parameterTypesMatch(method);
   }
 
@@ -67,8 +66,6 @@ public class Method {
     }
     for (int i = 0; i < parameterTypes.size(); i++) {
       boolean match = false;
-      System.out.println("type a: " + parent.getFullname() + " " + method.parent.getFullname());
-      System.out.println("type a: " + parameterTypes.get(i).type + " " + method.parameterTypes.get(i).type);
       if (!parameterTypes.get(i).type.equals(method.parameterTypes.get(i).type) &&
         !checkWithImports(parent.getImportList(), parameterTypes.get(i).type, method.parameterTypes.get(i).type) &&
         !checkWithImports(method.parent.getImportList(), method.parameterTypes.get(i).type, parameterTypes.get(i).type)){
@@ -81,7 +78,6 @@ public class Method {
   private boolean checkWithImports(List<ImportDeclaration> imports, String a, String b) {
     for (ImportDeclaration imported : imports) {
       String importPrefix = imported.getLexeme() + (imported.onDemand ? "." + a : "");
-      //System.out.println(importPrefix + " | " + b);
       if (importPrefix.equals(b)) {
         return true;
       }

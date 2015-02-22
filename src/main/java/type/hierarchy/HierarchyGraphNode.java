@@ -65,7 +65,6 @@ public class HierarchyGraphNode {
 
   private boolean hasParent(String name, List<HierarchyGraphNode> parents) {
     for (HierarchyGraphNode node : parents) {
-      //System.out.println(node.identifier);
       if (node.identifier.equals(name)) {
         return true;
       }
