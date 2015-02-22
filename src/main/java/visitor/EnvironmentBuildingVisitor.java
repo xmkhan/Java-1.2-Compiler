@@ -24,6 +24,8 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   private SymbolTable table;
   private StringBuilder prefix;
 
+  private boolean isDefaultPackage = false;
+
   public EnvironmentBuildingVisitor(SymbolTable table) {
     this.table = table;
     this.prefix = new StringBuilder();
@@ -40,12 +42,15 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   public void visit(CompilationUnit token) throws VisitorException {
     super.visit(token);
     prefix.setLength(0);
+    isDefaultPackage = false;
     // Add the package as the prefix.
     if (token.packageDeclaration != null) {
       if (!table.contains(token.packageDeclaration.getIdentifier())) {
-        table.addDecl(token.packageDeclaration.getIdentifier(), token.packageDeclaration);
+        addDecl(token.packageDeclaration.getIdentifier(), token.packageDeclaration);
       }
       prefix.append(token.packageDeclaration.getIdentifier() + ".");
+    } else {
+      isDefaultPackage = true;
     }
     // Add the Class or Interface declaration to the symbol table, and set as prefix.
     Declaration decl = token.typeDeclaration.getDeclaration();
@@ -55,7 +60,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
       throw new EnvironmentBuildingVisitorException(
           "Error: No two classes or interfaces have the same canonical name.", token);
     }
-    table.addDecl(identifier, decl);
+    addDecl(identifier, decl);
   }
 
   @Override
@@ -66,28 +71,28 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
       throw new EnvironmentBuildingVisitorException(
           "Error: No two fields declared in the same class may have the same name.", token);
     }
-    table.addDecl(identifier, token);
+    addDecl(identifier, token);
   }
 
   @Override
   public void visit(MethodDeclaration token) throws VisitorException {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
-    table.addDecl(identifier, token);
+    addDecl(identifier, token);
   }
 
   @Override
   public void visit(ConstructorDeclaration token) throws VisitorException {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
-    table.addDecl(identifier, token);
+    addDecl(identifier, token);
   }
 
   @Override
   public void visit(AbstractMethodDeclaration token) throws VisitorException {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
-    table.addDecl(identifier, token);
+    addDecl(identifier, token);
   }
 
   @Override
@@ -120,5 +125,9 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     } else if (token.getLexeme().equals("}")) {
       table.deleteScope();
     }
+  }
+
+  private void addDecl(String identifier, Declaration decl) {
+    if (!isDefaultPackage) table.addDecl(identifier, decl);
   }
 }
