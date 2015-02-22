@@ -95,6 +95,18 @@ public class TypeLinkingVisitorTest {
     typeLinkingVisitor.typeLink(units);
   }
 
+  @Test(expected = TypeLinkingVisitorException.class)
+  public void testImplicitJavaImport() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/type_linking/Je_3_Resolve_ImplicitJavaIO/Main.java"
+
+    ));
+    List<CompilationUnit> units = CompilationUnitGenerator.make(files);
+    buildingVisitor.buildGlobalScope(units);
+    typeLinkingVisitor.typeLink(units);
+  }
+
   @Test
   public void testOnDemandImport() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
@@ -121,21 +133,10 @@ public class TypeLinkingVisitorTest {
   }
 
   @Test
-  public void test() throws IOException, CompilerException {
+  public void testImport() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
         "src/test/resources/type_linking/J1_importName9.java"
-
-    ));
-    List<CompilationUnit> units = CompilationUnitGenerator.make(files);
-    buildingVisitor.buildGlobalScope(units);
-    typeLinkingVisitor.typeLink(units);
-  }
-  @Test(expected = TypeLinkingVisitorException.class)
-  public void test1() throws IOException, CompilerException {
-    List<String> files = CompilationUnitGenerator.getStdlibFiles();
-    files.addAll(Arrays.asList(
-        "src/test/resources/type_linking/Je_3_Resolve_ImplicitJavaIO/Main.java"
 
     ));
     List<CompilationUnit> units = CompilationUnitGenerator.make(files);
