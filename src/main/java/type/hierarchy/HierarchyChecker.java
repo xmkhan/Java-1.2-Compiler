@@ -165,20 +165,13 @@ public class HierarchyChecker {
     // and work our way up.
     for (HierarchyGraphNode node : currentNode.extendsList) {
       extendedMethods.addAll(verifyExtendedMethods(node, verified));
-      /*if (node.isAbstract()) {
-        System.out.println("abstract " + node.getFullname());
-        for (HierarchyGraphNode parentNode : node.implementsList) {
-          //System.out.println("implements: " + parentNode.getFullname());
-          implementedMethods.addAll(parentNode.methods);
-        }
-      }*/
     }
     for (HierarchyGraphNode node : currentNode.implementsList) {
       //System.out.println("IMPLEMENTED " + node.getFullname());
       implementedMethods.addAll(verifyExtendedMethods(node, verified));
     }
 
-    checkForAbstractMethods(extendedMethods, currentNode.methods);
+    checkForAbstractMethods(extendedMethods, currentNode);
 
     List<Method> temp = new ArrayList<Method>();
     temp.addAll(extendedMethods);
@@ -199,7 +192,7 @@ public class HierarchyChecker {
     return extendedMethods;
   }
 
-  private void checkForAbstractMethods(List<Method> extendedMethods, List<Method> methods) throws TypeHierarchyException {
+  private void checkForAbstractMethods(List<Method> extendedMethods, HierarchyGraphNode currentNode) throws TypeHierarchyException {
     //System.out.println("size; " + extendedMethods.size());
     for (int i = 0; i < extendedMethods.size(); i++) {
       boolean absractMethod = extendedMethods.get(i).isAbstract() || extendedMethods.get(i).parent.classOrInterface instanceof InterfaceDeclaration;
@@ -208,7 +201,9 @@ public class HierarchyChecker {
       //System.out.println("name : " + extendedMethods.get(i).identifier + " " + absractMethod);
       if (!absractMethod) continue;
       //System.out.println("name2 : " + extendedMethods.get(i).identifier + " " + absractMethod + " " + extendedMethods.get(i).parent.identifier);
-
+      for (int z = 0; z< extendedMethods.size(); z++) {
+        //System.out.println("name; " + extendedMethods.get(z).identifier + " " + extendedMethods.get(z).parent.identifier);
+      }
       for (int j = i+1; j < extendedMethods.size(); j++) {
         if (i != j) {
           //System.out.println("method name: " + extendedMethods.get(j).isAbstract() + " " + extendedMethods.get(i).isAbstract());
@@ -223,15 +218,17 @@ public class HierarchyChecker {
         }
       }
 
-      for (Method method : methods) {
-        if (!method.parent.isAbstract() && !(method.parent.classOrInterface instanceof InterfaceDeclaration)) {
-          nonAbstractClass = true;
-        }
+      for (Method method : currentNode.methods) {
+        //System.out.println("own methods; " + method.identifier + " " + method.parent.identifier);
         if (method.signaturesMatch(extendedMethods.get(i))) {
           //System.out.println("MATCH");
           found = true;
         }
       }
+      if (!currentNode.isAbstract() && !(currentNode.classOrInterface instanceof InterfaceDeclaration)) {
+        nonAbstractClass = true;
+      }
+      //System.out.println( "found " + found);
       if (!found && nonAbstractClass) {
         throw new TypeHierarchyException("Abstract method not implemented");
       }
@@ -240,6 +237,8 @@ public class HierarchyChecker {
 
   private void methodCheck(Method method, Method extendedMethod) throws TypeHierarchyException {
     if (extendedMethod.signaturesMatch(method)) {
+      //System.out.println("extended method: " + extendedMethod.identifier + " " + extendedMethod.parent.identifier + " " + extendedMethod.isProtected());
+      //System.out.println("method   method: " + method.identifier + " " + method.parent.identifier + " " + method.isPublic());
       if (!extendedMethod.returnType.equals(method.returnType)) {
         throw new TypeHierarchyException("A class or interface must not contain two methods with the same signature but different return types");
       }
@@ -267,7 +266,7 @@ public class HierarchyChecker {
     for (int i = 0; i < extendedMethods.size(); i++) {
       for (int j = i+1; j < extendedMethods.size(); j++) {
         if (i != j) {
-          //System.out.println("method name: " + extendedMethods.get(i).identifier + " " + extendedMethods.get(j).identifier);
+          //System.out.println("method name: " + extendedMethods.get(j).parent.identifier +  " " + extendedMethods.get(i));
           methodCheck(extendedMethods.get(j), extendedMethods.get(i));
         }
       }
