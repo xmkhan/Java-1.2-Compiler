@@ -26,9 +26,7 @@ public class HierarchyGraphNode {
   public String identifier;
   // List of constructors
   public List<Method> constructors;
-
   public String packageName;
-
   private ImportDeclarations importDeclarations;
 
   public HierarchyGraphNode() {
@@ -63,22 +61,10 @@ public class HierarchyGraphNode {
     this.importDeclarations = importDeclarations;
   }
 
-  private boolean hasParent(String name, List<HierarchyGraphNode> parents) {
-    for (HierarchyGraphNode node : parents) {
-      if (node.identifier.equals(name)) {
-        return true;
-      }
-      if (checkWithImports(getImportList(), name, node.identifier) ||
-        checkWithImports(node.getImportList(), node.identifier, name)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   public String getPackageName() {
     return packageName != null && packageName.length() > 0 ? packageName + "." : "";
   }
+
   public String getFullname() {
     return getPackageName() + identifier;
   }
@@ -89,10 +75,13 @@ public class HierarchyGraphNode {
     }
   }
 
-  private boolean checkWithImports(List<ImportDeclaration> imports, String a, String b) {
-    for (ImportDeclaration imported : imports) {
-      String importPrefix = imported.getLexeme() + (imported.onDemand ? "." + a : "");
-      if (importPrefix.equals(b)) {
+  private boolean hasParent(String name, List<HierarchyGraphNode> parents) {
+    for (HierarchyGraphNode node : parents) {
+      if (node.identifier.equals(name)) {
+        return true;
+      }
+      if (HierarchyUtil.checkWithImports(getImportList(), name, node.identifier) ||
+        HierarchyUtil.checkWithImports(node.getImportList(), node.identifier, name)) {
         return true;
       }
     }

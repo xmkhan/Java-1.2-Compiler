@@ -67,21 +67,11 @@ public class Method {
     for (int i = 0; i < parameterTypes.size(); i++) {
       boolean match = false;
       if (!parameterTypes.get(i).type.equals(method.parameterTypes.get(i).type) &&
-        !checkWithImports(parent.getImportList(), parameterTypes.get(i).type, method.parameterTypes.get(i).type) &&
-        !checkWithImports(method.parent.getImportList(), method.parameterTypes.get(i).type, parameterTypes.get(i).type)){
+        !HierarchyUtil.checkWithImports(parent.getImportList(), parameterTypes.get(i).type, method.parameterTypes.get(i).type) &&
+        !HierarchyUtil.checkWithImports(method.parent.getImportList(), method.parameterTypes.get(i).type, parameterTypes.get(i).type)){
         return false;
       }
     }
     return true;
-  }
-
-  private boolean checkWithImports(List<ImportDeclaration> imports, String a, String b) {
-    for (ImportDeclaration imported : imports) {
-      String importPrefix = imported.getLexeme() + (imported.onDemand ? "." + a : "");
-      if (importPrefix.equals(b)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
