@@ -9,7 +9,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import token.CompilationUnit;
 import token.Token;
+import type.hierarchy.CompilationUnitsToHierarchyGraphConverter;
 import type.hierarchy.HierarchyChecker;
+import type.hierarchy.HierarchyGraph;
 import visitor.GenericCheckVisitor;
 
 import java.io.*;
@@ -21,7 +23,7 @@ import java.util.Queue;
 public class HierarchyCheckerTest {
   private Lexer lexer;
   private ShiftReduceAlgorithm algm;
-  private File classesAndInterfacesFolder = new File("src/test/resources/HierarchyChecking/ClassesAndInterfaces");
+  private File classesAndInterfacesFolder = new File("src/test/resources/HierarchyChecking/test");
 
   @Rule
   public ExpectedException exception = ExpectedException.none();
@@ -107,7 +109,8 @@ public class HierarchyCheckerTest {
       compilationUnits.add(compilationUnit);
     }
 
-    HierarchyChecker hierarchyChecker = new HierarchyChecker();
-    hierarchyChecker.verifyClassAndInterfaceHierarchy(compilationUnits);
+    CompilationUnitsToHierarchyGraphConverter converter = new CompilationUnitsToHierarchyGraphConverter();
+    HierarchyGraph graph = converter.convert(compilationUnits);
+    HierarchyChecker.verifyHierarchyGraph(graph);
   }
 }
