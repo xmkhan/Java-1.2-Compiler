@@ -104,10 +104,11 @@ public class SymbolTable {
     return tokens;
   }
 
-  public List<Token> findWithPrefixOfAnyType(String prefix, Class clazz) {
+  public List<Token> findWithPrefixOfAnyType(String prefix, Class[] classes) {
+    Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
     List<Token> tokensOfClazzType = new ArrayList<Token>();
-    for (Token token : findWithPrefix(prefix)) {
-      if (clazz.isInstance(token)) tokensOfClazzType.add(token);
+    for (Token symbol : findWithPrefix(prefix)) {
+      if (classSet.contains(symbol.getClass())) tokensOfClazzType.add(symbol);
     }
     return tokensOfClazzType;
   }

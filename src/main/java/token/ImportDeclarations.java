@@ -1,5 +1,6 @@
 package token;
 
+import com.sun.tools.internal.ws.wsdl.document.Import;
 import exception.VisitorException;
 import visitor.Visitor;
 
@@ -30,7 +31,7 @@ public class ImportDeclarations extends Token {
    */
   public boolean containsSuffix(String suffix) {
     for (ImportDeclaration decl : importDeclarations) {
-      if (decl.containsSuffix(suffix)) return true;
+      if (decl.isSingle() && decl.containsSuffix(suffix)) return true;
     }
     return false;
   }
@@ -42,6 +43,14 @@ public class ImportDeclarations extends Token {
     List<ImportDeclaration> decls = new ArrayList<ImportDeclaration>();
     for (ImportDeclaration decl : importDeclarations) {
       if (decl.containsSuffix(suffix)) decls.add(decl);
+    }
+    return decls;
+  }
+
+  public List<ImportDeclaration> getAllOnDemandImports() {
+    List<ImportDeclaration> decls = new ArrayList<ImportDeclaration>();
+    for (ImportDeclaration decl : importDeclarations) {
+      if (decl.isOnDemand()) decls.add(decl);
     }
     return decls;
   }

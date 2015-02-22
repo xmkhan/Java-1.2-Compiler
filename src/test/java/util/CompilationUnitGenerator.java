@@ -40,4 +40,23 @@ public class CompilationUnitGenerator {
     }
     return units;
   }
+
+  public static List<String> getStdlibFiles() {
+    return new ArrayList<String>(Arrays.asList(
+      "src/test/resources/stdlib/java/io/PrintStream.java",
+      "src/test/resources/stdlib/java/io/Serializable.java",
+      "src/test/resources/stdlib/java/lang/Boolean.java",
+      "src/test/resources/stdlib/java/lang/Byte.java",
+      "src/test/resources/stdlib/java/lang/Character.java",
+      "src/test/resources/stdlib/java/lang/Class.java",
+      "src/test/resources/stdlib/java/lang/Cloneable.java",
+      "src/test/resources/stdlib/java/lang/Integer.java",
+      "src/test/resources/stdlib/java/lang/Number.java",
+      "src/test/resources/stdlib/java/lang/Object.java",
+      "src/test/resources/stdlib/java/lang/Short.java",
+      "src/test/resources/stdlib/java/lang/String.java",
+      "src/test/resources/stdlib/java/lang/System.java",
+      "src/test/resources/stdlib/java/util/Arrays.java"
+    ));
+  }
 }

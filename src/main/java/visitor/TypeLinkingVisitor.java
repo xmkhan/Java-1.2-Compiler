@@ -1,22 +1,21 @@
 package visitor;
 
+import algorithm.name.resolution.NameResolutionAlgorithm;
+import exception.NameResolutionException;
 import exception.TypeLinkingVisitorException;
 import exception.VisitorException;
 import symbol.SymbolTable;
 import token.ArrayType;
-import token.ClassDeclaration;
 import token.ClassOrInterfaceType;
 import token.CompilationUnit;
 import token.ImportDeclaration;
 import token.ImportDeclarations;
-import token.InterfaceDeclaration;
 import token.Name;
 import token.PackageDeclaration;
 import token.ReferenceType;
 import token.Type;
 import token.TypeDeclaration;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -25,16 +24,16 @@ import java.util.List;
  */
 public class TypeLinkingVisitor extends BaseVisitor {
   private SymbolTable table;
+  private NameResolutionAlgorithm algm;
 
   // Ongoing data structures per CompilationUnit
-  private HashMap<String, ImportDeclaration> imports;
+  private ImportDeclarations importDeclarations;
   private TypeDeclaration typeDeclaration;
   private PackageDeclaration packageDeclaration;
 
-  private static String javaLangPrefix = "java.lang.";
-
   public TypeLinkingVisitor(SymbolTable table) {
     this.table = table;
+    this.algm = new NameResolutionAlgorithm(table);
   }
 
   public void typeLink(List<CompilationUnit> units) throws VisitorException {
@@ -46,32 +45,31 @@ public class TypeLinkingVisitor extends BaseVisitor {
   @Override
   public void visit(CompilationUnit token) throws VisitorException {
     super.visit(token);
-    imports = new HashMap<String, ImportDeclaration>();
     typeDeclaration = token.typeDeclaration;
     packageDeclaration = token.packageDeclaration;
+    importDeclarations = token.importDeclarations;
 
-    HashSet<String> importSuffix = new HashSet<String>();
     if (token.importDeclarations != null) {
+      HashSet<String> importSuffix = new HashSet<String>();
       List<ImportDeclaration> decls = token.importDeclarations.getImportDeclarations();
       for (ImportDeclaration decl : decls) {
         // Check for clash with ClassOrInterface name.
         if (decl.isSingle() && decl.containsSuffix(typeDeclaration.getDeclaration().getIdentifier())) {
           throw new TypeLinkingVisitorException("Import name clash with ClassName", token);
         }
-        // Check to make sure on-demand package exists.
-        if (decl.isOnDemand() && !table.containsAnyOfType(decl.getLexeme(), new Class[]{PackageDeclaration.class})) {
-          throw new TypeLinkingVisitorException("No on-demand package found: " + decl.getLexeme(), token);
+        // Check to make sure on-demand package exists, or that it is a prefix of some package.
+        if (decl.isOnDemand() && !table.containsAnyPrefixOfType(decl.getLexeme(), new Class[]{PackageDeclaration.class})) {
+          throw new TypeLinkingVisitorException("No on-demand package found for: " + decl.getLexeme(), token);
         }
         // Check for clashes between imports.
         if (importSuffix.contains(decl.getSuffix())) {
-          throw new TypeLinkingVisitorException("Import name clash with Imports", token);
+          throw new TypeLinkingVisitorException("Import name clash with imports", token);
         }
         // Check to make sure import actually exists.
         if (!table.contains(decl.getLexeme())) {
           throw new TypeLinkingVisitorException("No known symbol for import: " + decl.getLexeme(), token);
         }
         importSuffix.add(decl.getSuffix());
-        imports.put(decl.getSuffix(), decl);
       }
     }
   }
@@ -83,20 +81,18 @@ public class TypeLinkingVisitor extends BaseVisitor {
 
     Name name;
     if (((ReferenceType) token.getType()).getType() instanceof ClassOrInterfaceType) {
-      ClassOrInterfaceType type = (ClassOrInterfaceType)((ReferenceType) token.getType()).getType();
+      ClassOrInterfaceType type = (ClassOrInterfaceType) ((ReferenceType) token.getType()).getType();
       name = type.name;
     } else {
-      ArrayType type = (ArrayType)((ReferenceType) token.getType()).getType();
+      ArrayType type = (ArrayType) ((ReferenceType) token.getType()).getType();
       name = type.name;
     }
 
     // Check if the type exists in the SymbolTable w.r.t to the package.
-    Class[] classTypes = new Class[] { ClassDeclaration.class, InterfaceDeclaration.class};
-    if (name.isSimple() && !(
-        table.containsAnyOfType(name.getLexeme(), classTypes) ||
-        table.containsAnyOfType(packageDeclaration.getIdentifier() + "." + name.getLexeme(), classTypes) ||
-        table.containsAnyOfType(javaLangPrefix + name.getLexeme(), classTypes))) {
-      throw new TypeLinkingVisitorException("No class or interface for Type", token);
+    try {
+      algm.resolveType(name, packageDeclaration, typeDeclaration, importDeclarations);
+    } catch (NameResolutionException e) {
+      throw new TypeLinkingVisitorException(e.getMessage(), token);
     }
 
   }

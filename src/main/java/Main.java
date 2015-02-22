@@ -7,6 +7,7 @@ import token.Token;
 import type.hierarchy.HierarchyChecker;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
+import visitor.TypeLinkingVisitor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +42,9 @@ public class Main {
       SymbolTable table = new SymbolTable();
       EnvironmentBuildingVisitor environmentVisitor = new EnvironmentBuildingVisitor(table);
       environmentVisitor.buildGlobalScope(compilationUnits);
+
+      TypeLinkingVisitor typeLinkingVisitor = new TypeLinkingVisitor(table);
+      typeLinkingVisitor.typeLink(compilationUnits);
 
       HierarchyChecker hierarchyChecker = new HierarchyChecker();
       hierarchyChecker.verifyClassAndInterfaceHierarchy(compilationUnits);
