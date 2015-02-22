@@ -35,7 +35,7 @@ public class NameResolutionAlgorithm {
     if (name.isSimple()) {
       return resolveSimpleName(name, packageDeclaration, typeDeclaration, importDeclarations);
     } else {
-      return resolveQualifiedName(name, packageDeclaration);
+      return resolveQualifiedName(name, packageDeclaration, typeDeclaration, importDeclarations);
     }
   }
 
@@ -88,8 +88,16 @@ public class NameResolutionAlgorithm {
     return matches == 1;
   }
 
-  public boolean resolveQualifiedName(Name name, PackageDeclaration packageDeclaration) throws NameResolutionException {
+  public boolean resolveQualifiedName(Name name,
+                                      PackageDeclaration packageDeclaration,
+                                      TypeDeclaration typeDeclaration,
+                                      ImportDeclarations importDeclarations) throws NameResolutionException {
     String[] identifiers = name.getLexeme().split("\\.");
+
+    // Check if the first identifier is the class name, we already have the scope necessary.
+    if (identifiers[0].equals(typeDeclaration.getDeclaration().getIdentifier())) {
+      throw new NameResolutionException("Package conflict with class name: " + packageDeclaration.getIdentifier());
+    }
 
     StringBuilder sb = new StringBuilder(name.getLexeme().length());
     // For all prefixes, make sure that there does not exist a type.

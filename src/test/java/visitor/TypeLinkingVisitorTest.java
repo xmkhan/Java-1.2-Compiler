@@ -100,7 +100,17 @@ public class TypeLinkingVisitorTest {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
         "src/test/resources/type_linking/Je_3_Resolve_ImplicitJavaIO/Main.java"
+    ));
+    List<CompilationUnit> units = CompilationUnitGenerator.make(files);
+    buildingVisitor.buildGlobalScope(units);
+    typeLinkingVisitor.typeLink(units);
+  }
 
+  @Test(expected = TypeLinkingVisitorException.class)
+  public void testResolveSamePkgNameClassName() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/type_linking/Je_3_Resolve_SamePackageAndClassName.java"
     ));
     List<CompilationUnit> units = CompilationUnitGenerator.make(files);
     buildingVisitor.buildGlobalScope(units);
@@ -137,7 +147,6 @@ public class TypeLinkingVisitorTest {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
         "src/test/resources/type_linking/J1_importName9.java"
-
     ));
     List<CompilationUnit> units = CompilationUnitGenerator.make(files);
     buildingVisitor.buildGlobalScope(units);
