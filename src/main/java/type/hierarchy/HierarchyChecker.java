@@ -245,6 +245,9 @@ public class HierarchyChecker {
       if (extendedMethod.isStatic() && !method.isStatic()) {
         throw new TypeHierarchyException("A nonstatic method must not replace a static method");
       }
+      if (!extendedMethod.isStatic() && method.isStatic()) {
+        throw new TypeHierarchyException("A nonstatic method must not replace a static method");
+      }
       if (extendedMethod.isPublic() && method.isProtected()) {
         //System.out.println("extended method: " + extendedMethod.identifier + " " + extendedMethod.parent.identifier);
         //System.out.println("method   method: " + method.identifier + " " + method.parent.identifier);
