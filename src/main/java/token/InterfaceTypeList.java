@@ -22,11 +22,17 @@ public class InterfaceTypeList extends Token {
 
   @Override
   public void accept(Visitor v) throws VisitorException {
+    for (InterfaceType type : types) {
+      type.accept(v);
+    }
     v.visit(this);
   }
 
   @Override
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
+    for (InterfaceType type : types) {
+      type.acceptReverse(v);
+    }
   }
 }

@@ -13,7 +13,6 @@ public class ImportDeclaration extends Token {
     onDemand = children.get(0) instanceof TypeImportOnDemandDeclaration;
   }
 
-
   public boolean containsSuffix(String suffix) {
     return getSuffix().equals(suffix);
   }

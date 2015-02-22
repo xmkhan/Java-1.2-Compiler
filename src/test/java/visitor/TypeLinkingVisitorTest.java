@@ -43,7 +43,7 @@ public class TypeLinkingVisitorTest {
     typeLinkingVisitor.typeLink(units);
   }
 
-  @Test(expected = TypeLinkingVisitorException.class)
+  @Test
   public void testSingleImportOnDemandImportClash() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -82,6 +82,19 @@ public class TypeLinkingVisitorTest {
     typeLinkingVisitor.typeLink(units);
   }
 
+  @Test(expected = TypeLinkingVisitorException.class)
+  public void testTypeNamePrefixAsType() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/type_linking/Je_4_Resolve_DefaultPackage/Main.java",
+        "src/test/resources/type_linking/Je_4_Resolve_DefaultPackage/foo/bar.java",
+        "src/test/resources/type_linking/Je_4_Resolve_DefaultPackage/foo.java"
+    ));
+    List<CompilationUnit> units = CompilationUnitGenerator.make(files);
+    buildingVisitor.buildGlobalScope(units);
+    typeLinkingVisitor.typeLink(units);
+  }
+
   @Test
   public void testOnDemandImport() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
@@ -101,6 +114,29 @@ public class TypeLinkingVisitorTest {
     files.addAll(Arrays.asList(
         "src/test/resources/type_linking/J1_3_InfixResolvesToType/Main.java",
         "src/test/resources/type_linking/J1_3_InfixResolvesToType/foo/String/bar/foo.java"
+    ));
+    List<CompilationUnit> units = CompilationUnitGenerator.make(files);
+    buildingVisitor.buildGlobalScope(units);
+    typeLinkingVisitor.typeLink(units);
+  }
+
+  @Test
+  public void test() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/type_linking/J1_importName9.java"
+
+    ));
+    List<CompilationUnit> units = CompilationUnitGenerator.make(files);
+    buildingVisitor.buildGlobalScope(units);
+    typeLinkingVisitor.typeLink(units);
+  }
+  @Test(expected = TypeLinkingVisitorException.class)
+  public void test1() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/type_linking/Je_3_Resolve_ImplicitJavaIO/Main.java"
+
     ));
     List<CompilationUnit> units = CompilationUnitGenerator.make(files);
     buildingVisitor.buildGlobalScope(units);

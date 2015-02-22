@@ -16,6 +16,7 @@ import token.ReferenceType;
 import token.Type;
 import token.TypeDeclaration;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -62,26 +63,33 @@ public class TypeLinkingVisitor extends BaseVisitor {
     }
 
     if (token.importDeclarations != null) {
-      HashSet<String> importSuffix = new HashSet<String>();
+      HashMap<String, ImportDeclaration> importSuffix = new HashMap<String, ImportDeclaration>();
       List<ImportDeclaration> decls = token.importDeclarations.getImportDeclarations();
       for (ImportDeclaration decl : decls) {
         // Check for clash with ClassOrInterface name.
         if (decl.isSingle() && decl.containsSuffix(typeDeclaration.getDeclaration().getIdentifier())) {
-          throw new TypeLinkingVisitorException("Import name clash with ClassName", token);
+          // A class can import itself.
+          String packageName = packageDeclaration != null ? packageDeclaration.getLexeme() + "." : "";
+          String qualified = packageName + typeDeclaration.getDeclaration().getIdentifier();
+          if (!qualified.equals(decl.getLexeme())) {
+            throw new TypeLinkingVisitorException("Import name clash with ClassName", token);
+          }
         }
         // Check to make sure on-demand package exists, or that it is a prefix of some package.
         if (decl.isOnDemand() && !table.containsAnyPrefixOfType(decl.getLexeme(), new Class[]{PackageDeclaration.class})) {
           throw new TypeLinkingVisitorException("No on-demand package found for: " + decl.getLexeme(), token);
         }
         // Check for clashes between imports.
-        if (importSuffix.contains(decl.getSuffix())) {
-          throw new TypeLinkingVisitorException("Import name clash with imports", token);
+        if (decl.isSingle() && importSuffix.containsKey(decl.getSuffix())) {
+          if (!importSuffix.get(decl.getSuffix()).getLexeme().equals(decl.getLexeme())) {
+            throw new TypeLinkingVisitorException("Import name clash with imports", token);
+          }
         }
         // Check to make sure import actually exists.
-        if (!table.contains(decl.getLexeme())) {
+        if (!table.containsPrefix(decl.getLexeme())) {
           throw new TypeLinkingVisitorException("No known symbol for import: " + decl.getLexeme(), token);
         }
-        importSuffix.add(decl.getSuffix());
+        if (decl.isSingle()) importSuffix.put(decl.getSuffix(), decl);
       }
     }
   }
@@ -105,10 +113,9 @@ public class TypeLinkingVisitor extends BaseVisitor {
   private boolean resolveName(Name name) throws VisitorException {
     // Check if the type exists in the SymbolTable w.r.t to the package.
     try {
-      algm.resolveType(name, packageDeclaration, typeDeclaration, importDeclarations);
+      return algm.resolveType(name, packageDeclaration, typeDeclaration, importDeclarations);
     } catch (NameResolutionException e) {
       return false;
     }
-    return true;
   }
 }

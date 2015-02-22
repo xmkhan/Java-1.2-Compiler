@@ -11,6 +11,7 @@ import token.PackageDeclaration;
 import token.Token;
 import token.TypeDeclaration;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -34,7 +35,7 @@ public class NameResolutionAlgorithm {
     if (name.isSimple()) {
       return resolveSimpleName(name, packageDeclaration, typeDeclaration, importDeclarations);
     } else {
-      return resolveQualifiedName(name);
+      return resolveQualifiedName(name, packageDeclaration);
     }
   }
 
@@ -53,8 +54,8 @@ public class NameResolutionAlgorithm {
     }
 
     // 3. Try the same package
-    if (packageDeclaration != null &&
-        table.containsAnyOfType(packageDeclaration.getIdentifier() + "." + name.getLexeme(), CLASS_TYPES)) {
+    String packageName = packageDeclaration != null ? packageDeclaration.getIdentifier() + "." : "";
+    if (table.containsAnyOfType(packageName + name.getLexeme(), CLASS_TYPES)) {
       return true;
     }
 
@@ -63,7 +64,10 @@ public class NameResolutionAlgorithm {
     // 4. Try any import on-demand package (A.B.C.*), including java.lang.*
     if (importDeclarations != null) {
       List<ImportDeclaration> onDemandDecls = importDeclarations.getAllOnDemandImports();
+      HashSet<String> uniqueOnDemands = new HashSet<String>();
       for (ImportDeclaration decl : onDemandDecls) {
+        if (uniqueOnDemands.contains(decl.getLexeme())) continue;
+        uniqueOnDemands.add(decl.getLexeme());
         List<Token> types = table.findWithPrefixOfAnyType(decl.getLexeme(), CLASS_TYPES);
         for (Token type : types) {
           if (type.getLexeme().equals(name.getLexeme())) matches++;
@@ -81,10 +85,10 @@ public class NameResolutionAlgorithm {
     if (matches > 1) {
       throw new NameResolutionException("Ambiguous type, multiple matches: " + name.getLexeme());
     }
-    return true;
+    return matches == 1;
   }
 
-  public boolean resolveQualifiedName(Name name) throws NameResolutionException {
+  public boolean resolveQualifiedName(Name name, PackageDeclaration packageDeclaration) throws NameResolutionException {
     String[] identifiers = name.getLexeme().split("\\.");
 
     StringBuilder sb = new StringBuilder(name.getLexeme().length());
@@ -92,8 +96,10 @@ public class NameResolutionAlgorithm {
     for (int i = 0; i < identifiers.length - 1; ++i) {
       sb.append(identifiers[i]);
       if (table.containsAnyOfType(sb.toString(), CLASS_TYPES)) {
-        // Ignore the first prefix because that could be a type in the Default Package.
-        if (i > 0) throw new NameResolutionException("Prefix of Type resolved to a type: " + name.getLexeme());
+        // Ignore the first prefix because that could be a type in the Default Package unless we're in the default pkg.
+        if (i > 0 || packageDeclaration == null) {
+          throw new NameResolutionException("Prefix of Type resolved to a type: " + name.getLexeme());
+        }
       }
       if (!table.containsAnyPrefixOfType(sb.toString(), new Class[] {PackageDeclaration.class})) {
         throw new NameResolutionException("No package exists for Type: " + name.getLexeme());

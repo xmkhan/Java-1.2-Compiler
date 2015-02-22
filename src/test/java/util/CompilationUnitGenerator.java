@@ -43,6 +43,7 @@ public class CompilationUnitGenerator {
 
   public static List<String> getStdlibFiles() {
     return new ArrayList<String>(Arrays.asList(
+      "src/test/resources/stdlib/java/io/OutputStream.java",
       "src/test/resources/stdlib/java/io/PrintStream.java",
       "src/test/resources/stdlib/java/io/Serializable.java",
       "src/test/resources/stdlib/java/lang/Boolean.java",
