@@ -50,7 +50,8 @@ public class Scope<K, V> {
   public List<V> findWithPrefix(String prefix) {
     List<V> values = new ArrayList<V>();
     for (K key : symbols.keySet()) {
-      if (key.toString().substring(0, prefix.length()).equals(prefix)) {
+      if (key.toString().length() >= prefix.length() &&
+          key.toString().substring(0, prefix.length()).equals(prefix)) {
         values.addAll(symbols.get(key));
       }
     }

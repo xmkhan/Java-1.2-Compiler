@@ -49,6 +49,18 @@ public class TypeLinkingVisitor extends BaseVisitor {
     packageDeclaration = token.packageDeclaration;
     importDeclarations = token.importDeclarations;
 
+    if (packageDeclaration != null) {
+      String[] packagePrefixes = token.packageDeclaration.getLexeme().split("\\.");
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < packagePrefixes.length; i++) {
+        sb.append(packagePrefixes[i]);
+        if (i > 0 && table.containsAnyOfType(sb.toString(), NameResolutionAlgorithm.CLASS_TYPES)) {
+          throw new TypeLinkingVisitorException("Package name prefixes resolved to type", token);
+        }
+        sb.append('.');
+      }
+    }
+
     if (token.importDeclarations != null) {
       HashSet<String> importSuffix = new HashSet<String>();
       List<ImportDeclaration> decls = token.importDeclarations.getImportDeclarations();
@@ -75,25 +87,28 @@ public class TypeLinkingVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(Type token) throws VisitorException {
+  public void visit(ClassOrInterfaceType token) throws VisitorException {
     super.visit(token);
-    if (!(token.getType() instanceof ReferenceType)) return;
-
-    Name name;
-    if (((ReferenceType) token.getType()).getType() instanceof ClassOrInterfaceType) {
-      ClassOrInterfaceType type = (ClassOrInterfaceType) ((ReferenceType) token.getType()).getType();
-      name = type.name;
-    } else {
-      ArrayType type = (ArrayType) ((ReferenceType) token.getType()).getType();
-      name = type.name;
+    if (!resolveName(token.name)) {
+      throw new TypeLinkingVisitorException("Could not resolve Type", token);
     }
+  }
 
+  @Override
+  public void visit(ArrayType token) throws VisitorException {
+    super.visit(token);
+    if (token.name != null && !resolveName(token.name)) {
+      throw new TypeLinkingVisitorException("Could not resolve Type", token);
+    }
+  }
+
+  private boolean resolveName(Name name) throws VisitorException {
     // Check if the type exists in the SymbolTable w.r.t to the package.
     try {
       algm.resolveType(name, packageDeclaration, typeDeclaration, importDeclarations);
     } catch (NameResolutionException e) {
-      throw new TypeLinkingVisitorException(e.getMessage(), token);
+      return false;
     }
-
+    return true;
   }
 }

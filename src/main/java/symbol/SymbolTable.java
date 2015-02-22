@@ -45,7 +45,7 @@ public class SymbolTable {
         return scope.find(identifier);
       }
     }
-    return null;
+    return new ArrayList<Token>();
   }
 
   public List<Token> findAll(String identifier) {

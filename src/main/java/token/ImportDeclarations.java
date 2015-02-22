@@ -1,6 +1,5 @@
 package token;
 
-import com.sun.tools.internal.ws.wsdl.document.Import;
 import exception.VisitorException;
 import visitor.Visitor;
 

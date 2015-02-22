@@ -43,33 +43,42 @@ public class NameResolutionAlgorithm {
                                    TypeDeclaration typeDeclaration,
                                    ImportDeclarations importDeclarations) throws NameResolutionException {
 
-    // It's interesting to have a count of all ambiguous types for debug information later on.
-    int matched = 0;
     // 1. Try the enclosing class or interface.
     if (name.getLexeme().equals(typeDeclaration.getDeclaration().getIdentifier())) {
-      matched++;
+      return true;
     }
     // 2. Try any single-type import (A.B.C.D)
-    if (importDeclarations != null && !importDeclarations.getAllImportsWithSuffix(name.getLexeme()).isEmpty())) {
-      matched++;
+    if (importDeclarations != null && !importDeclarations.getAllImportsWithSuffix(name.getLexeme()).isEmpty()) {
+      return true;
     }
+
     // 3. Try the same package
     if (packageDeclaration != null &&
         table.containsAnyOfType(packageDeclaration.getIdentifier() + "." + name.getLexeme(), CLASS_TYPES)) {
-      matched++;
+      return true;
     }
-    // 4. Try any import-on-demand package (A.B.C.*), including java.lang.*
+
+    // It's interesting to have a count of all ambiguous types for debug information later on.
+    int matches = 0;
+    // 4. Try any import on-demand package (A.B.C.*), including java.lang.*
     if (importDeclarations != null) {
       List<ImportDeclaration> onDemandDecls = importDeclarations.getAllOnDemandImports();
       for (ImportDeclaration decl : onDemandDecls) {
         List<Token> types = table.findWithPrefixOfAnyType(decl.getLexeme(), CLASS_TYPES);
         for (Token type : types) {
-          if (type.getLexeme().equals(name.getLexeme())) matched++;
+          if (type.getLexeme().equals(name.getLexeme())) matches++;
         }
       }
     }
 
-    if (matched > 1) {
+    // 4.1 Try java.lang.* implicit on-demand package
+    List<Token> javaLangDecls = table.find(JAVA_LANG_PREFIX + name.getLexeme());
+    for (Token type : javaLangDecls) {
+      if (type instanceof ClassDeclaration || type instanceof InterfaceDeclaration) matches++;
+    }
+
+
+    if (matches > 1) {
       throw new NameResolutionException("Ambiguous type, multiple matches: " + name.getLexeme());
     }
     return true;
@@ -83,7 +92,8 @@ public class NameResolutionAlgorithm {
     for (int i = 0; i < identifiers.length - 1; ++i) {
       sb.append(identifiers[i]);
       if (table.containsAnyOfType(sb.toString(), CLASS_TYPES)) {
-        throw new NameResolutionException("Prefix of Type resolved to a type: " + name.getLexeme());
+        // Ignore the first prefix because that could be a type in the Default Package.
+        if (i > 0) throw new NameResolutionException("Prefix of Type resolved to a type: " + name.getLexeme());
       }
       if (!table.containsAnyPrefixOfType(sb.toString(), new Class[] {PackageDeclaration.class})) {
         throw new NameResolutionException("No package exists for Type: " + name.getLexeme());

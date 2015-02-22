@@ -49,6 +49,7 @@ public class Main {
       HierarchyChecker hierarchyChecker = new HierarchyChecker();
       hierarchyChecker.verifyClassAndInterfaceHierarchy(compilationUnits);
     } catch (CompilerException e) {
+      System.err.println(e.getMessage());
       System.exit(42);
     }
     System.exit(0);
