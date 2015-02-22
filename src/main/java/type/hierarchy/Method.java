@@ -1,5 +1,7 @@
 package type.hierarchy;
 
+import token.ImportDeclaration;
+import token.ImportDeclarations;
 import token.Modifier;
 import token.TokenType;
 
@@ -21,12 +23,11 @@ public class Method {
 
   public List<Parameter> parameterTypes;
 
-  public List<String> imports;
+  public HierarchyGraphNode parent;
 
   public Method() {
     modifiers = new ArrayList<TokenType>();
     parameterTypes = new ArrayList<Parameter>();
-    imports = new ArrayList<String>();
   }
 
   public boolean isFinal() {
@@ -64,7 +65,10 @@ public class Method {
       return false;
     }
     for (int i = 0; i < parameterTypes.size(); i++) {
-      if (!parameterTypes.get(i).type.equals(method.parameterTypes.get(i).type)) {
+      boolean match = false;
+      if (!parameterTypes.get(i).type.equals(method.parameterTypes.get(i).type) &&
+        !HierarchyUtil.checkWithImports(parent.getImportList(), parameterTypes.get(i).type, method.parameterTypes.get(i).type) &&
+        !HierarchyUtil.checkWithImports(method.parent.getImportList(), method.parameterTypes.get(i).type, parameterTypes.get(i).type)){
         return false;
       }
     }

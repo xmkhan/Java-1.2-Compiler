@@ -14,6 +14,7 @@ public class InterfaceTypeList extends Token {
     types = new ArrayList<InterfaceType>();
     if (children.get(0) instanceof InterfaceTypeList) {
       InterfaceTypeList childList = (InterfaceTypeList) children.get(0);
+      types.add((InterfaceType) children.get(2));
       types.addAll(childList.types);
     } else {
       types.add((InterfaceType) children.get(0));
