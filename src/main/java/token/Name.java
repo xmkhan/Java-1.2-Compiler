@@ -29,6 +29,13 @@ public class Name extends Token {
     }
   }
 
+  public boolean isSimple() {
+    return !isQualified();
+  }
+
+  public boolean isQualified() {
+    return getLexeme().contains(".");
+  }
   public Token getName() {
     return simpleName != null ? simpleName : qualifiedName;
   }

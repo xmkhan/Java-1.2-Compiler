@@ -6,8 +6,8 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class ArrayType extends Token {
-  private PrimitiveType primitiveType;
-  private Name name;
+  public PrimitiveType primitiveType;
+  public Name name;
 
   public ArrayType(ArrayList<Token> children) {
     super("", TokenType.ArrayType, children);

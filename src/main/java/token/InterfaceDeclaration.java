@@ -16,6 +16,7 @@ public class InterfaceDeclaration extends Declaration {
     for (Token token : children) {
       assignType(token);
     }
+    lexeme = identifier.getLexeme();
   }
 
   private void assignType(Token token) {

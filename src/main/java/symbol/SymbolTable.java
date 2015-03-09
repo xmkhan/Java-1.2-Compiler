@@ -4,8 +4,11 @@ import token.Declaration;
 import token.Token;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Class that encapsulates a scoped-based stack for resolving symbol definitions.
@@ -42,7 +45,7 @@ public class SymbolTable {
         return scope.find(identifier);
       }
     }
-    return null;
+    return new ArrayList<Token>();
   }
 
   public List<Token> findAll(String identifier) {
@@ -64,13 +67,12 @@ public class SymbolTable {
     return false;
   }
 
-  public boolean containsAnyOfType(String identifier, Class clazz) {
-    for (Scope<String, Token> scope : table) {
+  public boolean containsAnyOfType(String identifier, Class[] classes) {
+    Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
+    for (Scope<String, Token> scope: table) {
       if (scope.contains(identifier)) {
         for (Token symbol : scope.find(identifier)) {
-          if (clazz.isInstance(symbol)) {
-            return true;
-          }
+          if (classSet.contains(symbol.getClass())) return true;
         }
       }
     }
@@ -84,6 +86,16 @@ public class SymbolTable {
     return false;
   }
 
+  public boolean containsAnyPrefixOfType(String identifier, Class[] classes) {
+    Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
+    for (Scope<String, Token> scope: table) {
+      for (Token symbol : scope.findWithPrefix(identifier)) {
+        if (classSet.contains(symbol.getClass())) return true;
+      }
+    }
+    return false;
+  }
+
   public List<Token> findWithPrefix(String prefix) {
     List<Token> tokens = new ArrayList<Token>();
     for (Scope<String, Token> scope : table) {
@@ -92,10 +104,11 @@ public class SymbolTable {
     return tokens;
   }
 
-  public List<Token> findWithPrefixOfAnyType(String prefix, Class clazz) {
+  public List<Token> findWithPrefixOfAnyType(String prefix, Class[] classes) {
+    Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
     List<Token> tokensOfClazzType = new ArrayList<Token>();
-    for (Token token : findWithPrefix(prefix)) {
-      if (clazz.isInstance(token)) tokensOfClazzType.add(token);
+    for (Token symbol : findWithPrefix(prefix)) {
+      if (classSet.contains(symbol.getClass())) tokensOfClazzType.add(symbol);
     }
     return tokensOfClazzType;
   }

@@ -10,6 +10,10 @@ public class ImportDeclarations extends Token {
 
   public List<ImportDeclaration> importDeclarations;
 
+  public List<ImportDeclaration> getImportDeclarations() {
+    return importDeclarations;
+  }
+
   public ImportDeclarations(ArrayList<Token> children) {
     super("", TokenType.ImportDeclarations, children);
     importDeclarations = new ArrayList<ImportDeclaration>();
@@ -26,8 +30,7 @@ public class ImportDeclarations extends Token {
    */
   public boolean containsSuffix(String suffix) {
     for (ImportDeclaration decl : importDeclarations) {
-      String importName = decl.getLexeme();
-      if (importName.substring(importName.length() - suffix.length()).equals(suffix)) return true;
+      if (decl.isSingle() && decl.containsSuffix(suffix)) return true;
     }
     return false;
   }
@@ -38,8 +41,15 @@ public class ImportDeclarations extends Token {
   public List<ImportDeclaration> getAllImportsWithSuffix(String suffix) {
     List<ImportDeclaration> decls = new ArrayList<ImportDeclaration>();
     for (ImportDeclaration decl : importDeclarations) {
-      String importName = decl.getLexeme();
-      if (importName.substring(importName.length() - suffix.length()).equals(suffix)) decls.add(decl);
+      if (decl.containsSuffix(suffix)) decls.add(decl);
+    }
+    return decls;
+  }
+
+  public List<ImportDeclaration> getAllOnDemandImports() {
+    List<ImportDeclaration> decls = new ArrayList<ImportDeclaration>();
+    for (ImportDeclaration decl : importDeclarations) {
+      if (decl.isOnDemand()) decls.add(decl);
     }
     return decls;
   }

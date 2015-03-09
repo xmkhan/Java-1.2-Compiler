@@ -41,18 +41,36 @@ public class Scope<K, V> {
   }
 
   public boolean containsPrefix(String prefix) {
+    String[] prefixNames = prefix.split("\\.");
     for (K key : symbols.keySet()) {
-      if (key.toString().substring(0, prefix.length()).equals(prefix)) return true;
+      String[] keyNames = key.toString().split("\\.");
+      if (keyNames.length < prefixNames.length) continue;
+      boolean matched = true;
+      for (int i = 0; i < prefixNames.length; ++i) {
+        if (!prefixNames[i].equals(keyNames[i])) {
+          matched = false;
+          break;
+        }
+      }
+      if (matched) return true;
     }
     return false;
   }
 
   public List<V> findWithPrefix(String prefix) {
+    String[] prefixNames = prefix.split("\\.");
     List<V> values = new ArrayList<V>();
     for (K key : symbols.keySet()) {
-      if (key.toString().substring(0, prefix.length()).equals(prefix)) {
-        values.addAll(symbols.get(key));
+      String[] keyNames = key.toString().split("\\.");
+      if (keyNames.length < prefixNames.length) continue;
+      boolean matched = true;
+      for (int i = 0; i < prefixNames.length; ++i) {
+        if (!prefixNames[i].equals(keyNames[i])) {
+          matched = false;
+          break;
+        }
       }
+      if (matched) values.addAll(symbols.get(key));
     }
     return values;
   }
