@@ -339,7 +339,7 @@ public class HierarchyChecker {
   /**
    * A class not extending any other class automatically extends Object
    */
-  private static void extendObjectClass(HierarchyGraphNode currentNode) {
+  public static void extendObjectClass(HierarchyGraphNode currentNode) {
     if ((currentNode.extendsList.size() == 0 && !currentNode.getFullname().equals(OBJECT_CLASS) &&
       currentNode.classOrInterface instanceof ClassDeclaration) ||
       (currentNode.children.size() == 0 && currentNode.classOrInterface instanceof InterfaceDeclaration)) {
