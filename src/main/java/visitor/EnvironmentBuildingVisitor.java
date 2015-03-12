@@ -13,6 +13,7 @@ import token.FormalParameter;
 import token.InterfaceDeclaration;
 import token.LocalVariableDeclaration;
 import token.MethodDeclaration;
+import token.PackageDeclaration;
 import token.Token;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     prefix.setLength(0);
     // Add the package as the prefix.
     if (token.packageDeclaration != null) {
-      if (!table.contains(token.packageDeclaration.getIdentifier())) {
+      if (!table.containsAnyOfType(token.packageDeclaration.getIdentifier(), new Class[]{PackageDeclaration.class})) {
         table.addDecl(token.packageDeclaration.getIdentifier(), token.packageDeclaration);
       }
       prefix.append(token.packageDeclaration.getIdentifier() + ".");

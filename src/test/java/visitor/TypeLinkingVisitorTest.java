@@ -152,4 +152,20 @@ public class TypeLinkingVisitorTest {
     buildingVisitor.buildGlobalScope(units);
     typeLinkingVisitor.typeLink(units);
   }
+
+  @Test
+  public void testSameClassNameAsPkg() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/type_linking/J1_4_PackageNameIsClassName_DefaultPackage/Main.java",
+        "src/test/resources/type_linking/J1_4_PackageNameIsClassName_DefaultPackage/foo.java",
+        "src/test/resources/type_linking/J1_4_PackageNameIsClassName_DefaultPackage/bar/bar.java",
+        "src/test/resources/type_linking/J1_4_PackageNameIsClassName_DefaultPackage/foo/baz.java"
+    ));
+    List<CompilationUnit> units = CompilationUnitGenerator.make(files);
+    buildingVisitor.buildGlobalScope(units);
+    typeLinkingVisitor.typeLink(units);
+  }
+
+
 }
