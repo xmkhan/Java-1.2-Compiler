@@ -61,6 +61,10 @@ public class HierarchyGraph {
     return nodes.get(name);
   }
 
+  public boolean contains(String name) {
+    return nodes.containsKey(name);
+  }
+
   public Set<Map.Entry<String, HierarchyGraphNode>> entrySet() {
     return nodes.entrySet();
   }
