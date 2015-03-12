@@ -244,7 +244,7 @@ UnaryExpressionNotMinus Name
 UnaryExpressionNotMinus ! UnaryExpression
 UnaryExpressionNotMinus CastExpression
 
-CastExpression ( PrimitiveType [ ] ) UnaryExpression
+CastExpression ( PrimitiveType [ ] ) UnaryExpressionNotMinus
 CastExpression ( PrimitiveType ) UnaryExpression
 CastExpression ( Expression ) UnaryExpressionNotMinus
 CastExpression ( Name [ ] ) UnaryExpressionNotMinus
