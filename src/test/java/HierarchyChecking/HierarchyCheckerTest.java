@@ -23,7 +23,7 @@ import java.util.Queue;
 public class HierarchyCheckerTest {
   private Lexer lexer;
   private ShiftReduceAlgorithm algm;
-  private File classesAndInterfacesFolder = new File("src/test/resources/HierarchyChecking/test");
+  private File classesAndInterfacesFolder = new File("src/test/resources/HierarchyChecking/ClassesAndInterfaces");
 
   @Rule
   public ExpectedException exception = ExpectedException.none();

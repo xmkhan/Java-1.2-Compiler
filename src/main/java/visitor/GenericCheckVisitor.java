@@ -1,22 +1,7 @@
 package visitor;
 
 import exception.VisitorException;
-import token.AbstractMethodDeclaration;
-import token.CastExpression;
-import token.ClassBody;
-import token.ClassBodyDeclaration;
-import token.ClassDeclaration;
-import token.ConstructorDeclaration;
-import token.FieldDeclaration;
-import token.InterfaceDeclaration;
-import token.MethodDeclaration;
-import token.Modifier;
-import token.Modifiers;
-import token.MultiplicativeExpression;
-import token.Token;
-import token.TokenType;
-import token.UnaryExpression;
-import token.UnaryExpressionNotMinus;
+import token.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -195,6 +180,29 @@ public class GenericCheckVisitor extends BaseVisitor {
     // Integer validation check
     if (!token.expr.isNegative() && !isValidInteger(token.expr.posExp)) {
       throw new VisitorException("Not a valid integer at token: " + token.expr.posExp.literal.getLexeme(), token);
+    }
+  }
+
+  @Override
+  public void visit(MethodInvocation token) throws VisitorException {
+    super.visit(token);
+    if(token.isOnPrimary()) {
+      if (token.primary.children.get(0) instanceof ArrayCreationExpression) {
+        throw new VisitorException("Method " + token.identifier.getLexeme() + " can not be called on arrays", token);
+      }
+    }
+  }
+
+  @Override
+  public void visit(ArrayAccess token) throws VisitorException {
+    super.visit(token);
+    if(token.isAccessOnPrimary()) {
+      Token primaryChild = token.primary.children.get(0);
+      if (primaryChild instanceof ArrayAccess) {
+        throw new VisitorException("Can not access multi-dimensional arrays", token);
+      } else if (primaryChild instanceof ArrayCreationExpression) {
+        throw new VisitorException("Can not construct multi-dimensional arrays", token);
+      }
     }
   }
 
