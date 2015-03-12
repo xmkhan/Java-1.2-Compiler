@@ -213,6 +213,7 @@ Primary Literal
 Primary this
 Primary ( Expression )
 Primary ClassInstanceCreationExpression
+Primary ArrayCreationExpression
 Primary FieldAccess
 Primary MethodInvocation
 Primary ArrayAccess
@@ -226,7 +227,6 @@ ArgumentList Expression
 ArgumentList ArgumentList , Expression
 
 FieldAccess Primary . Identifier
-FieldAccess ArrayCreationExpression . Identifier
 
 MethodInvocation Name ( )
 MethodInvocation Name ( ArgumentList )
@@ -282,7 +282,6 @@ ConditionalOrExpression ConditionalAndExpression
 ConditionalOrExpression ConditionalOrExpression || ConditionalAndExpression
 
 AssignmentExpression ConditionalOrExpression
-AssignmentExpression ArrayCreationExpression
 AssignmentExpression Assignment
 
 Assignment LeftHandSide AssignmentOperator AssignmentExpression
