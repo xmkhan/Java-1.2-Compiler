@@ -123,9 +123,11 @@ public class CompilationUnitsToHierarchyGraphConverter {
         case ClassBody:
           List<MethodHeader> methods = new ArrayList<MethodHeader>();
           List<ConstructorDeclaration> constructors = new ArrayList<ConstructorDeclaration>();
-          extractMethodHeaders((ClassBody) token, methods, constructors);
+          List<FieldDeclaration> fields = new ArrayList<FieldDeclaration>();
+          extractMethodHeaders((ClassBody) token, fields, methods, constructors);
           addMethodsToNode(methods, node);
           addConstructorsToNode(constructors, node);
+          node.setFields(fields);
           break;
         case InterfaceBody:
           addMethodsToNode(extractMethodHeaders((InterfaceBody) token), node);
@@ -218,11 +220,17 @@ public class CompilationUnitsToHierarchyGraphConverter {
   /**
    * Retrieves all the MethodHeaders from a ClassBody
    */
-  private void extractMethodHeaders(ClassBody classBody, List<MethodHeader> methods, List<ConstructorDeclaration> constructors) {
+  private void extractMethodHeaders(ClassBody classBody,
+                                    List<FieldDeclaration> fields,
+                                    List<MethodHeader> methods,
+                                    List<ConstructorDeclaration> constructors) {
     if (classBody == null || classBody.bodyDeclarations == null) return;
     for (ClassBodyDeclaration classBodyDeclaration : classBody.bodyDeclarations.getBodyDeclarations()) {
       if (classBodyDeclaration.isMethod()) {
         methods.add(((MethodDeclaration) (classBodyDeclaration.children.get(0).children.get(0))).methodHeader);
+      }
+      if (classBodyDeclaration.isField()) {
+        fields.add((FieldDeclaration) (classBodyDeclaration.children.get(0).children.get(0)));
       }
       if (classBodyDeclaration.isConstructor()) {
         constructors.add((ConstructorDeclaration) classBodyDeclaration.declaration);

@@ -26,6 +26,8 @@ public class HierarchyGraphNode {
   public String identifier;
   // List of constructors
   public List<Method> constructors;
+  // List of class fields
+  public List<FieldDeclaration> fields;
   public String packageName;
   private ImportDeclarations importDeclarations;
 
@@ -51,6 +53,10 @@ public class HierarchyGraphNode {
    */
   public boolean hasParent(String name) {
     return hasParent(name, extendsList) || hasParent(name, implementsList);
+  }
+
+  public void setFields(List<FieldDeclaration> fields) {
+    this.fields = fields;
   }
 
   public List<ImportDeclaration> getImportList() {
@@ -86,5 +92,45 @@ public class HierarchyGraphNode {
       }
     }
     return false;
+  }
+
+  /**
+   * Traverse the graph and fetch all the fields extended by this class
+   * @return this node's fields + all the extended fields
+   */
+  public List<FieldDeclaration> getAllFields() {
+    return getAllFields(this);
+  }
+
+  private List<FieldDeclaration> getAllFields(HierarchyGraphNode hierarchyGraphNode) {
+    List<FieldDeclaration> allFields = new ArrayList<FieldDeclaration>();
+    for (HierarchyGraphNode node : hierarchyGraphNode.extendsList) {
+      allFields.addAll(getAllFields(node));
+    }
+    allFields.addAll(fields);
+    return allFields;
+  }
+
+  /**
+   * Traverse the graph and return this class/interface's methods, the methods it extends,
+   * and the methods it is supposed to implement
+   */
+  public List<Method> getAllMethods() {
+    return getAllMethods(this);
+  }
+
+  private List<Method> getAllMethods(HierarchyGraphNode currentNode) {
+    List<Method> allMethods = new ArrayList<Method>();
+
+    HierarchyChecker.extendObjectClass(currentNode);
+
+    for (HierarchyGraphNode node : currentNode.extendsList) {
+      allMethods.addAll(getAllMethods(node));
+    }
+    for (HierarchyGraphNode node : currentNode.implementsList) {
+      allMethods.addAll(getAllMethods(node));
+    }
+    allMethods.addAll(currentNode.methods);
+    return allMethods;
   }
 }
