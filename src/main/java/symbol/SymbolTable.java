@@ -30,6 +30,7 @@ public class SymbolTable {
 
   public void addDecl(String identifier, Declaration decl) {
     table.peek().add(identifier, decl);
+    decl.setAbsolutePath(identifier);
   }
 
   public void removeDecl(String identifier, Declaration decl) {
