@@ -22,6 +22,8 @@ public class HierarchyGraphNode {
   public List<TokenType> modifiers;
   // All the information regarding methods of a class/interface
   public List<Method> methods;
+  //pointer to BaseMethodDeclaration AST nodes
+  public List<BaseMethodDeclaration> baseMethodDeclarations;
   // Class/interface identifier
   public String identifier;
   // List of constructors
@@ -115,12 +117,12 @@ public class HierarchyGraphNode {
    * Traverse the graph and return this class/interface's methods, the methods it extends,
    * and the methods it is supposed to implement
    */
-  public List<Method> getAllMethods() {
+  public List<BaseMethodDeclaration> getAllMethods() {
     return getAllMethods(this);
   }
 
-  private List<Method> getAllMethods(HierarchyGraphNode currentNode) {
-    List<Method> allMethods = new ArrayList<Method>();
+  private List<BaseMethodDeclaration> getAllMethods(HierarchyGraphNode currentNode) {
+    List<BaseMethodDeclaration> allMethods = new ArrayList<BaseMethodDeclaration>();
 
     HierarchyChecker.extendObjectClass(currentNode);
 
@@ -130,7 +132,11 @@ public class HierarchyGraphNode {
     for (HierarchyGraphNode node : currentNode.implementsList) {
       allMethods.addAll(getAllMethods(node));
     }
-    allMethods.addAll(currentNode.methods);
+    allMethods.addAll(currentNode.baseMethodDeclarations);
     return allMethods;
+  }
+
+  public void setBaseMethodDeclarations(List<BaseMethodDeclaration> baseMethodDeclarations) {
+    this.baseMethodDeclarations = baseMethodDeclarations;
   }
 }

@@ -123,10 +123,12 @@ public class CompilationUnitsToHierarchyGraphConverter {
         case ClassBody:
           List<MethodHeader> methods = new ArrayList<MethodHeader>();
           List<ConstructorDeclaration> constructors = new ArrayList<ConstructorDeclaration>();
+          List<BaseMethodDeclaration> allMethodsDeclarations = new ArrayList<BaseMethodDeclaration>();
           List<FieldDeclaration> fields = new ArrayList<FieldDeclaration>();
-          extractMethodHeaders((ClassBody) token, fields, methods, constructors);
+          extractMethodHeaders((ClassBody) token, fields, methods, constructors, allMethodsDeclarations);
           addMethodsToNode(methods, node);
           addConstructorsToNode(constructors, node);
+          node.setBaseMethodDeclarations(allMethodsDeclarations);
           node.setFields(fields);
           break;
         case InterfaceBody:
@@ -223,16 +225,19 @@ public class CompilationUnitsToHierarchyGraphConverter {
   private void extractMethodHeaders(ClassBody classBody,
                                     List<FieldDeclaration> fields,
                                     List<MethodHeader> methods,
-                                    List<ConstructorDeclaration> constructors) {
+                                    List<ConstructorDeclaration> constructors,
+                                    List<BaseMethodDeclaration> allMethodDeclarations) {
     if (classBody == null || classBody.bodyDeclarations == null) return;
     for (ClassBodyDeclaration classBodyDeclaration : classBody.bodyDeclarations.getBodyDeclarations()) {
       if (classBodyDeclaration.isMethod()) {
+        allMethodDeclarations.add((MethodDeclaration) (classBodyDeclaration.children.get(0).children.get(0)));
         methods.add(((MethodDeclaration) (classBodyDeclaration.children.get(0).children.get(0))).methodHeader);
       }
       if (classBodyDeclaration.isField()) {
         fields.add((FieldDeclaration) (classBodyDeclaration.children.get(0).children.get(0)));
       }
       if (classBodyDeclaration.isConstructor()) {
+        allMethodDeclarations.add((ConstructorDeclaration) classBodyDeclaration.declaration);
         constructors.add((ConstructorDeclaration) classBodyDeclaration.declaration);
       }
     }

@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class AbstractMethodDeclaration extends Declaration {
+public class AbstractMethodDeclaration extends BaseMethodDeclaration {
   public MethodHeader methodHeader;
 
   public Token newScope;
