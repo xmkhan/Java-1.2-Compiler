@@ -27,8 +27,8 @@ public class TypeCheckToken {
       isArray = ((MethodDeclaration) token).methodHeader.type.isArray();
       tokenType = ((MethodDeclaration) token).methodHeader.type.getType().getTokenType();
     } else if (token instanceof LocalVariableDeclaration) {
-      isArray = ((LocalVariableDeclaration) token).type.isArray();
-      tokenType = ((LocalVariableDeclaration) token).type.getTokenType();
+//      isArray = ((LocalVariableDeclaration) token).type.isArray();
+//      tokenType = ((LocalVariableDeclaration) token).type.getTokenType();
     } else if(token instanceof FormalParameter) {
       isArray = ((FormalParameter) token).type.isArray();
       tokenType = ((FormalParameter) token).type.getType().getTokenType();

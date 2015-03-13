@@ -1,7 +1,9 @@
 package visitor;
 
+import exception.CompilerException;
 import exception.TypeHierarchyException;
 import exception.VisitorException;
+import org.omg.CORBA.portable.ValueInputStream;
 import symbol.SymbolTable;
 import token.*;
 import type.hierarchy.HierarchyGraph;
@@ -87,19 +89,21 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if(token.children.size() == 1) return;
 
-    TypeCheckToken type1 = tokenStack.pop();
-    TypeCheckToken type2 = tokenStack.pop();
+    TypeCheckToken rightSide = tokenStack.pop();
+    TypeCheckToken leftSide = tokenStack.pop();
 
     TokenType [] validTypes = {TokenType.BOOLEAN_LITERAL, TokenType.INT_LITERAL, TokenType.CHAR_LITERAL, TokenType.BYTE, TokenType.SHORT};
 
     try {
-      if(type1.isArray == type2.isArray && validType(type1.tokenType, validTypes) && type1.tokenType == type2.tokenType) {
+      if(rightSide.isArray == leftSide.isArray && validType(rightSide.tokenType, validTypes) && rightSide.tokenType == leftSide.tokenType) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN_LITERAL));
-      } else if(type1.isArray == type2.isArray && type1.tokenType == TokenType.OBJECT && type2.tokenType == TokenType.OBJECT &&
-              hierarchyGraph.areNodesConnected(type1.declaration.getAbsolutePath(), type2.declaration.getAbsolutePath())) {
+      } else if(rightSide.isArray == leftSide.isArray && rightSide.tokenType == TokenType.OBJECT && leftSide.tokenType == TokenType.OBJECT &&
+              hierarchyGraph.areNodesConnected(rightSide.declaration.getAbsolutePath(), leftSide.declaration.getAbsolutePath())) {
+        tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN_LITERAL));
+      } else if (leftSide.tokenType == TokenType.OBJECT && rightSide.tokenType == TokenType.NULL) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN_LITERAL));
       } else {
-        throw new VisitorException("Boolean Equality expression expected both of same inherited type but found " + type1.toString() + " & " + type2.toString(), token);
+        throw new VisitorException("Boolean Equality expression expected both of same inherited type but found " + rightSide.toString() + " & " + leftSide.toString(), token);
       }
     } catch(TypeHierarchyException e) {
       throw new VisitorException(e.getMessage(), token);
@@ -192,6 +196,45 @@ public class TypeCheckingVisitor extends BaseVisitor {
       // we just peeked the stack so no need to push the type back on the stack again
     }
   }
+
+  public void visit(Assignment token) throws VisitorException {
+    super.visit(token);
+
+    TypeCheckToken typeRightSide = tokenStack.pop();
+    TypeCheckToken typeLeftSide = tokenStack.pop();
+
+    TokenType [] validTypes = {TokenType.BOOLEAN_LITERAL, TokenType.INT_LITERAL, TokenType.CHAR_LITERAL, TokenType.BYTE, TokenType.SHORT};
+
+    try {
+      if (typeLeftSide.isArray == typeRightSide.isArray && validType(typeLeftSide.tokenType, validTypes) && typeLeftSide.tokenType == typeRightSide.tokenType) {
+        tokenStack.push(typeLeftSide);
+      } else if (typeLeftSide.isArray == typeRightSide.isArray && typeLeftSide.tokenType == TokenType.OBJECT && typeRightSide.tokenType == TokenType.OBJECT &&
+              hierarchyGraph.areNodesConnectedOneWay(typeRightSide.declaration.getAbsolutePath(), typeLeftSide.declaration.getAbsolutePath())) {
+        tokenStack.push(typeLeftSide);
+      } else if (typeLeftSide.tokenType == TokenType.OBJECT && typeRightSide.tokenType == TokenType.NULL) {
+        tokenStack.push(typeLeftSide);
+      } else {
+        throw new VisitorException("Assignment should be of same type or from parent to subclass.  Found: " + typeRightSide.toString() + " being assigned to "  + typeLeftSide.toString(), token);
+      }
+    } catch (TypeHierarchyException e) {
+      throw new VisitorException(e.getMessage(), token);
+    }
+  }
+
+  @Override
+  public void visit(LeftHandSide token) throws VisitorException {
+    super.visit(token);
+    if(token.children.get(0).getTokenType() == TokenType.Name) {
+      // call shahs code and push
+    }
+  }
+
+  @Override
+  public void visit(CastExpression token) throws VisitorException {
+    super.visit(token);
+
+  }
+
 
   private boolean validTypes(TokenType type1, TokenType type2, TokenType[] types) {
     return validType(type1, types) && validType(type2, types);
