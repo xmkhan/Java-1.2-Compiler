@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class MethodDeclaration extends Declaration {
+public class MethodDeclaration extends BaseMethodDeclaration {
 
   public MethodHeader methodHeader;
   public MethodBody methodBody;

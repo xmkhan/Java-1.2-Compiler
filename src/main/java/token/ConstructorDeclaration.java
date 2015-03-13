@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class ConstructorDeclaration extends Declaration {
+public class ConstructorDeclaration extends BaseMethodDeclaration {
   public Modifiers modifiers;
   public ConstructorDeclarator declarator;
   public ConstructorBody body;
