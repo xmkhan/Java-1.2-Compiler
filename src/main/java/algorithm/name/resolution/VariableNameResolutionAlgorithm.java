@@ -2,6 +2,7 @@ package algorithm.name.resolution;
 
 import exception.VariableNameResolutionException;
 import symbol.SymbolTable;
+import token.BaseMethodDeclaration;
 import token.ClassDeclaration;
 import token.CompilationUnit;
 import token.Declaration;
@@ -35,7 +36,7 @@ public class VariableNameResolutionAlgorithm {
     if (name.isSimple()) {
       resolveSingleNameDeclarations(unit, name, mostRecentField);
     } else {
-      resolveQualifiedNameDeclarations(unit, name);
+      resolveQualifiedNameDeclarations(unit, name, mostRecentField);
     }
     if (name.getDeclarationTypes() == null || name.getDeclarationTypes().isEmpty()) {
       throw new VariableNameResolutionException(
@@ -55,8 +56,8 @@ public class VariableNameResolutionAlgorithm {
     }
 
     // 2. Check the object hierarchy
-    List<MethodDeclaration> classMethods = node.getAllMethods();
-    for (MethodDeclaration method : classMethods) {
+    List<BaseMethodDeclaration> classMethods = node.getAllMethods();
+    for (BaseMethodDeclaration method : classMethods) {
       if (method.getIdentifier().equals(name.getLexeme())) {
         declarations.add(method);
 
@@ -109,7 +110,7 @@ public class VariableNameResolutionAlgorithm {
       if (!variableSymbols.isEmpty()) {
         lastMatchedDecl = (Declaration) variableSymbols.get(0);
         currentType.setLength(0);
-        currentType.append(getTypePath(lastMatchedDecl.type);
+        currentType.append(getTypePath(lastMatchedDecl.type));
         continue;
       }
 
@@ -162,14 +163,14 @@ public class VariableNameResolutionAlgorithm {
 
     // Fill in all matching declarations.
     HierarchyGraphNode node = hierarchyGraph.get(currentType.toString());
-    List<MethodDeclaration> classMethods = node.getAllMethods();
-    List<FieldDeclaration> classFields = node.getAllFields();
-    for (MethodDeclaration method : classMethods) {
+    List<BaseMethodDeclaration> classMethods = node.getAllMethods();
+    for (BaseMethodDeclaration method : classMethods) {
       if (method.getIdentifier().equals(name.getLexeme())) {
         declarations.add(method);
 
       }
     }
+    List<FieldDeclaration> classFields = node.getAllFields();
     for (FieldDeclaration field : classFields) {
       if (field.getIdentifier().equals(name.getLexeme())) {
         declarations.add(field);
