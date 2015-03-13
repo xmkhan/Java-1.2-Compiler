@@ -1,9 +1,7 @@
 package visitor;
 
-import exception.CompilerException;
 import exception.TypeHierarchyException;
 import exception.VisitorException;
-import org.omg.CORBA.portable.ValueInputStream;
 import symbol.SymbolTable;
 import token.*;
 import type.hierarchy.HierarchyGraph;
@@ -11,6 +9,7 @@ import type.hierarchy.HierarchyGraph;
 import java.util.Stack;
 
 public class TypeCheckingVisitor extends BaseVisitor {
+  private enum OperandSide {LEFT, RIGHT};
 
   private final SymbolTable symbolTable;
   private final HierarchyGraph hierarchyGraph;
@@ -123,13 +122,15 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      TokenType type1 = tokenStack.pop().tokenType;
-      TokenType type2 = tokenStack.pop().tokenType;
-      TokenType[] validTypes = new TokenType[]{TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
+      TypeCheckToken rightType = tokenStack.pop();
+      TypeCheckToken leftType = tokenStack.pop();
+      TokenType[] validTypes = {TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
 
-      if (!validTypes(type1, type2, validTypes)) {
-        throw new VisitorException("Relational expression expected 'int|char|byte|short RelationalOperator int|char|byte|short' but found " + type1 + " RelationalOperator " + type2, token);
+      if (!validTypes(rightType.tokenType, leftType.tokenType, validTypes)) {
+        throw new VisitorException("Relational expression expected 'int|char|byte|short RelationalOperator int|char|byte|short' but found " + rightType + " RelationalOperator " + leftType, token);
       }
+      assertNotArray(token, rightType, OperandSide.RIGHT, token.children.get(1).getLexeme());
+      assertNotArray(token, leftType, OperandSide.LEFT, token.children.get(1).getLexeme());
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     }
   }
@@ -139,27 +140,30 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if (token.children.size() == 1) return;
 
-    TokenType typeRightSide = tokenStack.pop().tokenType;
-    TokenType typeLeftSide = tokenStack.pop().tokenType;
+    TypeCheckToken rightSide = tokenStack.pop();
+    TypeCheckToken leftSide = tokenStack.pop();
+
+    assertNotArray(token, rightSide, OperandSide.RIGHT, token.children.get(1).getLexeme());
+    assertNotArray(token, leftSide, OperandSide.LEFT, token.children.get(1).getLexeme());
 
     // These types could be used with the '+' and '-' operators and the result is an int
-    TokenType[]  validMinusPlusTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
+    TokenType[]  validMinusPlusTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
 
     if (token.children.get(1).getTokenType() == TokenType.MINUS_OP) {
-      if (validTypes(typeLeftSide, typeRightSide, validMinusPlusTypes)) {
+      if (validTypes(leftSide.tokenType, rightSide.tokenType, validMinusPlusTypes)) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
       } else {
-        throw new VisitorException("AdditiveExpression expected 'short|int|byte|char - short|int|byte|char but found " + typeLeftSide + " - " + typeRightSide, token);
+        throw new VisitorException("AdditiveExpression expected 'short|int|byte|char - short|int|byte|char but found " + leftSide + " - " + rightSide, token);
       }
     } else if (token.children.get(1).getTokenType() == TokenType.PLUS_OP) {
-      TokenType[] validStringConcatTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN, TokenType.STR_LITERAL};
-      if (typeLeftSide == TokenType.STR_LITERAL && validType(typeRightSide, validStringConcatTypes) ||
-        typeRightSide == TokenType.STR_LITERAL && validType(typeLeftSide, validStringConcatTypes)) {
+      TokenType[] validStringConcatTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN, TokenType.STR_LITERAL};
+      if (leftSide.tokenType == TokenType.STR_LITERAL && validType(rightSide.tokenType, validStringConcatTypes) ||
+        rightSide.tokenType == TokenType.STR_LITERAL && validType(leftSide.tokenType, validStringConcatTypes)) {
         tokenStack.push(new TypeCheckToken(TokenType.STR_LITERAL));
-      } else if (validTypes(typeLeftSide, typeRightSide, validMinusPlusTypes)) {
+      } else if (validTypes(leftSide.tokenType, rightSide.tokenType, validMinusPlusTypes)) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
       } else {
-        throw new VisitorException("String concatenation found invalid types " + typeLeftSide + " + " + typeRightSide, token);
+        throw new VisitorException("String concatenation found invalid types " + leftSide + " + " + rightSide, token);
       }
     }
   }
@@ -169,16 +173,19 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if (token.children.size() == 1) return;
 
-    TokenType typeRightSide = tokenStack.pop().tokenType;
-    TokenType typeLeftSide = tokenStack.pop().tokenType;
+    TypeCheckToken rightSide = tokenStack.pop();
+    TypeCheckToken leftSide = tokenStack.pop();
 
-    TokenType[]  validUnaryExpressionTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
-    if (validTypes(typeLeftSide, typeRightSide, validUnaryExpressionTypes)) {
+    assertNotArray(token, rightSide, OperandSide.RIGHT, token.children.get(1).getLexeme());
+    assertNotArray(token, leftSide, OperandSide.LEFT, token.children.get(1).getLexeme());
+
+    TokenType[]  validUnaryExpressionTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
+    if (validTypes(leftSide.tokenType, rightSide.tokenType, validUnaryExpressionTypes)) {
       tokenStack.push(new TypeCheckToken(TokenType.INT));
     } else {
       throw new VisitorException("Expected short|int|byte|char " + token.children.get(1).getLexeme() +
-        " short|int|byte|char' but found " + typeLeftSide + " " + token.children.get(1).getLexeme() +
-        " " + typeRightSide, token);
+        " short|int|byte|char' but found " + leftSide + " " + token.children.get(1).getLexeme() +
+        " " + rightSide, token);
     }
   }
 
@@ -188,8 +195,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if (token.children.size() == 1) return;
 
     TokenType type = tokenStack.peek().tokenType;
-    TokenType[]  validUnaryExpressionTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
+    TokenType[]  validUnaryExpressionTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
 
+    assertNotArray(token, tokenStack.peek(), OperandSide.RIGHT, token.children.get(0).getLexeme());
     if (!validType(type, validUnaryExpressionTypes)) {
       throw new VisitorException("Unary operator '- UnaryExpression' was expecting UnaryExpression to be of type short|int|byte|char but found " + type, token);
     } else {
@@ -230,8 +238,11 @@ public class TypeCheckingVisitor extends BaseVisitor {
     // No need to pop since if the type is valid we would've to push it back on the stack anyways
     TokenType type = tokenStack.peek().tokenType;
 
-    if (token.children.size() == 2 && type != TokenType.BOOLEAN) {
-      throw new VisitorException("Unary operator '! UnaryExpression' was expecting UnaryExpression to be boolean but found " + type, token);
+    if (token.children.size() == 2) {
+      assertNotArray(token, tokenStack.peek(), OperandSide.RIGHT, token.children.get(0).getLexeme());
+      if (type != TokenType.BOOLEAN) {
+        throw new VisitorException("Unary operator '! UnaryExpression' was expecting UnaryExpression to be boolean but found " + type, token);
+      }
     }
   }
 
@@ -264,5 +275,11 @@ public class TypeCheckingVisitor extends BaseVisitor {
       if (validType == type) return true;
     }
     return false;
+  }
+
+  private void assertNotArray(Token token, TypeCheckToken type, OperandSide side, String operator) throws VisitorException {
+    if (type.isArray) {
+      throw new VisitorException("Arrays are not allowed to be used with the " + operator + " operator.  The " + side.toString().toLowerCase() + " hand operator is an array of type " + type.tokenType, token);
+    }
   }
 }
