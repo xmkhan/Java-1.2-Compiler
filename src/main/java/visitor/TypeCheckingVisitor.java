@@ -3,6 +3,8 @@ package visitor;
 import exception.VisitorException;
 import symbol.SymbolTable;
 import token.*;
+import type.hierarchy.HierarchyGraph;
+
 import java.util.Stack;
 
 public class TypeCheckingVisitor extends VariableScopeVisitor {
@@ -105,7 +107,7 @@ public class TypeCheckingVisitor extends VariableScopeVisitor {
     if (token.children.get(1).getTokenType() == TokenType.INSTANCEOF) {
       TokenType typeRightSide = tokenStack.pop().tokenType;
       TokenType typeLeftSide = tokenStack.pop().tokenType;
-      if (!(typeLeftSide == TokenType.ArrayType || typeLeftSide == TokenType.OBJECT)) {
+      if (!(typeLeftSide == TokenType.ArrayType || typeLeftSide == TokenType.OBJECT) && HierarchyGraph) {
         throw new VisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object but found " + typeLeftSide + " instanceOf " + typeRightSide, token);
       }
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
@@ -136,7 +138,7 @@ public class TypeCheckingVisitor extends VariableScopeVisitor {
       if (validTypes(typeLeftSide, typeRightSide, validMinusPlusTypes)) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
       } else {
-        throw new VisitorException("MultiplicativeExpression expected 'short|int|byte|char - short|int|byte|char but found " + typeLeftSide + " - " + typeRightSide, token);
+        throw new VisitorException("AdditiveExpression expected 'short|int|byte|char - short|int|byte|char but found " + typeLeftSide + " - " + typeRightSide, token);
       }
     } else if (token.children.get(1).getTokenType() == TokenType.PLUS_OP) {
       TokenType[] validStringConcatTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN, TokenType.STR_LITERAL};
@@ -182,6 +184,30 @@ public class TypeCheckingVisitor extends VariableScopeVisitor {
     } else {
       // we just peeked the stack so no need to push the type back on the stack again
     }
+  }
+
+  @Override
+  public void visit(UnaryExpressionNotMinus token) throws VisitorException {
+    super.visit(token);
+    if (token.children.get(0).getTokenType() == TokenType.Primary ||
+      token.children.get(0).getTokenType() == TokenType.Name) return;
+
+    // No need to pop since if the type is valid we would've to push it back on the stack anyways
+    TokenType type = tokenStack.peek().tokenType;
+
+    if (token.children.size() == 2 && type != TokenType.BOOLEAN) {
+      throw new VisitorException("Unary operator '! UnaryExpression' was expecting UnaryExpression to be boolean but found " + type, token);
+    } else if (token.children.get(0).getTokenType() == TokenType.CastExpression) {
+      //TODO(mano) do the cast expression check here
+    }
+  }
+
+  @Override
+  public void visit(Primary token) throws VisitorException {
+    super.visit(token);
+    if (token.children.get(0).getTokenType() != TokenType.THIS) return;
+
+
   }
 
   private boolean validTypes(TokenType type1, TokenType type2, TokenType[] types) {

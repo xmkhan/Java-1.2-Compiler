@@ -9,6 +9,7 @@ import type.hierarchy.HierarchyChecker;
 import type.hierarchy.HierarchyGraph;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
+import visitor.TypeCheckingVisitor;
 import visitor.TypeLinkingVisitor;
 
 import java.io.File;
@@ -52,6 +53,10 @@ public class Main {
       HierarchyGraph graph = converter.convert(compilationUnits);
       HierarchyChecker.verifyHierarchyGraph(graph);
 
+      for (CompilationUnit compilationUnit : compilationUnits) {
+        //TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table);
+        //compilationUnit.accept(typeCheckingVisitor);
+      }
     } catch (CompilerException e) {
       System.err.println(e.getMessage());
       System.exit(42);
