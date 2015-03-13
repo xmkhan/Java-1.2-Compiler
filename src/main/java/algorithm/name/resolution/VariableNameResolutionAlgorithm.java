@@ -72,12 +72,14 @@ public class VariableNameResolutionAlgorithm {
     }
 
     // 3. Check single import
-    List<ImportDeclaration> importDeclarations = unit.importDeclarations.getAllImportsWithSuffix(name.getLexeme());
-    if (!importDeclarations.isEmpty()) {
-      String absolutePathToType = importDeclarations.get(0).getLexeme() + '.' + name.getLexeme();
-      Declaration declaration = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
-      if (declaration != null) {
-        declarations.add(declaration);
+    if (unit.importDeclarations != null) {
+      List<ImportDeclaration> importDeclarations = unit.importDeclarations.getAllImportsWithSuffix(name.getLexeme());
+      if (!importDeclarations.isEmpty()) {
+        String absolutePathToType = importDeclarations.get(0).getLexeme() + '.' + name.getLexeme();
+        Declaration declaration = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
+        if (declaration != null) {
+          declarations.add(declaration);
+        }
       }
     }
 
@@ -90,13 +92,15 @@ public class VariableNameResolutionAlgorithm {
 
     // 5. Check on-demand import
     int matches = 0;
-    List<ImportDeclaration> onDemandImportDeclarations = unit.importDeclarations.getAllOnDemandImports();
-    for (ImportDeclaration importDeclaration : onDemandImportDeclarations) {
-      String absolutePathToType = importDeclaration.getLexeme() + '.' + name.getLexeme();
-      Declaration declaration = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
-      if (declaration != null) {
-        declarations.add(declaration);
-        matches++;
+    if (unit.importDeclarations != null) {
+      List<ImportDeclaration> onDemandImportDeclarations = unit.importDeclarations.getAllOnDemandImports();
+      for (ImportDeclaration importDeclaration : onDemandImportDeclarations) {
+        String absolutePathToType = importDeclaration.getLexeme() + '.' + name.getLexeme();
+        Declaration declaration = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
+        if (declaration != null) {
+          declarations.add(declaration);
+          matches++;
+        }
       }
     }
     if (matches > 1) throw new VariableNameResolutionException("Multiple on-demand imports found");
