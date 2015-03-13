@@ -129,13 +129,58 @@ public class TypeCheckingVisitor extends VariableScopeVisitor {
     TokenType typeRightSide = tokenStack.pop().tokenType;
     TokenType typeLeftSide = tokenStack.pop().tokenType;
 
-    if (token.children.get(1).getTokenType() == TokenType.MINUS_OP) {
-      TokenType[]  validMinusTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
+    // These types could be used with the '+' and '-' operators and the result is an int
+    TokenType[]  validMinusPlusTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
 
-      if (!validTypes(typeLeftSide, typeRightSide, validMinusTypes)) {
+    if (token.children.get(1).getTokenType() == TokenType.MINUS_OP) {
+      if (validTypes(typeLeftSide, typeRightSide, validMinusPlusTypes)) {
+        tokenStack.push(new TypeCheckToken(TokenType.INT));
+      } else {
         throw new VisitorException("MultiplicativeExpression expected 'short|int|byte|char - short|int|byte|char but found " + typeLeftSide + " - " + typeRightSide, token);
       }
+    } else if (token.children.get(1).getTokenType() == TokenType.PLUS_OP) {
+      TokenType[] validStringConcatTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN, TokenType.STR_LITERAL};
+      if (typeLeftSide == TokenType.STR_LITERAL && validType(typeRightSide, validStringConcatTypes) ||
+        typeRightSide == TokenType.STR_LITERAL && validType(typeLeftSide, validStringConcatTypes)) {
+        tokenStack.push(new TypeCheckToken(TokenType.STR_LITERAL));
+      } else if (validTypes(typeLeftSide, typeRightSide, validMinusPlusTypes)) {
+        tokenStack.push(new TypeCheckToken(TokenType.INT));
+      } else {
+        throw new VisitorException("String concatenation found invalid types " + typeLeftSide + " + " + typeRightSide, token);
+      }
+    }
+  }
+
+  @Override
+  public void visit(MultiplicativeExpression token) throws VisitorException {
+    super.visit(token);
+    if (token.children.size() == 1) return;
+
+    TokenType typeRightSide = tokenStack.pop().tokenType;
+    TokenType typeLeftSide = tokenStack.pop().tokenType;
+
+    TokenType[]  validUnaryExpressionTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
+    if (validTypes(typeLeftSide, typeRightSide, validUnaryExpressionTypes)) {
       tokenStack.push(new TypeCheckToken(TokenType.INT));
+    } else {
+      throw new VisitorException("Expected short|int|byte|char " + token.children.get(1).getLexeme() +
+        " short|int|byte|char' but found " + typeLeftSide + " " + token.children.get(1).getLexeme() +
+        " " + typeRightSide, token);
+    }
+  }
+
+  @Override
+  public void visit(UnaryExpression token) throws VisitorException {
+    super.visit(token);
+    if (token.children.size() == 1) return;
+
+    TokenType type = tokenStack.peek().tokenType;
+    TokenType[]  validUnaryExpressionTypes = new TokenType[]{TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
+
+    if (!validType(type, validUnaryExpressionTypes)) {
+      throw new VisitorException("Unary operator '- UnaryExpression' was expecting UnaryExpression to be of type short|int|byte|char but found " + type, token);
+    } else {
+      // we just peeked the stack so no need to push the type back on the stack again
     }
   }
 
