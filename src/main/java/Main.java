@@ -7,6 +7,7 @@ import token.Token;
 import type.hierarchy.CompilationUnitsToHierarchyGraphConverter;
 import type.hierarchy.HierarchyChecker;
 import type.hierarchy.HierarchyGraph;
+import type.hierarchy.HierarchyGraphNode;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
 import visitor.TypeCheckingVisitor;
@@ -58,8 +59,8 @@ public class Main {
           // we don't need to type check interfaces
           continue;
         }
-        String className = compilationUnit.typeDeclaration.classDeclaration.getIdentifier();
-        TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, className);
+        HierarchyGraphNode node = converter.compilationUnitToNode.get(compilationUnit);
+        TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, node);
         compilationUnit.accept(typeCheckingVisitor);
       }
     } catch (CompilerException e) {
