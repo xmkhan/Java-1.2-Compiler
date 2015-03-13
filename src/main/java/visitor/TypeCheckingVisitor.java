@@ -1,17 +1,22 @@
 package visitor;
 
+import exception.TypeHierarchyException;
 import exception.VisitorException;
 import symbol.SymbolTable;
 import token.*;
+import type.hierarchy.HierarchyGraph;
+
 import java.util.Stack;
 
 public class TypeCheckingVisitor extends BaseVisitor {
 
   private final SymbolTable symbolTable;
+  private final HierarchyGraph hierarchyGraph;
   public Stack<TypeCheckToken> tokenStack;
 
-  public TypeCheckingVisitor(SymbolTable symbolTable) {
+  public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph) {
     this.symbolTable = symbolTable;
+    this.hierarchyGraph = hierarchyGraph;
     tokenStack = new Stack<TypeCheckToken>();
   }
 
@@ -87,12 +92,17 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     TokenType [] validTypes = {TokenType.BOOLEAN_LITERAL, TokenType.INT_LITERAL, TokenType.CHAR_LITERAL, TokenType.BYTE, TokenType.SHORT};
 
-    if(type1.tokenType == TokenType.BOOLEAN_LITERAL && type2.tokenType == TokenType.BOOLEAN_LITERAL) {
-      tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN_LITERAL));
-    } if(type1.tokenType == TokenType.CHAR_LITERAL && type2.tokenType == TokenType.BOOLEAN_LITERAL) {
-      tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN_LITERAL));
-    }   else {
-      throw new VisitorException("Boolean OR expression expected boolean & boolean but found " + type1.toString() + " & " + type2.toString(), token);
+    try {
+      if(type1.isArray == type2.isArray && validType(type1.tokenType, validTypes) && type1.tokenType == type2.tokenType) {
+        tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN_LITERAL));
+      } else if(type1.isArray == type2.isArray && type1.tokenType == TokenType.OBJECT && type2.tokenType == TokenType.OBJECT &&
+              hierarchyGraph.areNodesConnected(type1.declaration.getAbsolutePath(), type2.declaration.getAbsolutePath())) {
+        tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN_LITERAL));
+      } else {
+        throw new VisitorException("Boolean Equality expression expected both of same inherited type but found " + type1.toString() + " & " + type2.toString(), token);
+      }
+    } catch(TypeHierarchyException e) {
+      throw new VisitorException(e.getMessage(), token);
     }
   }
 
