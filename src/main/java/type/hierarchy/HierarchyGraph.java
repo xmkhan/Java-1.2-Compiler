@@ -74,11 +74,13 @@ public class HierarchyGraph {
     if (a.children.contains(b)) {
       return true;
     }
-    boolean found = false;
+
     for (HierarchyGraphNode child : a.children) {
-      found |= nodeAIsParentOfNodeB(child, b);
+      if(nodeAIsParentOfNodeB(child, b) == true) {
+        return true;
+      }
     }
-    return found;
+    return false;
   }
 
   public boolean areNodesConnected(String nodeName1, String nodeName2) throws TypeHierarchyException {
