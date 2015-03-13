@@ -9,12 +9,14 @@ public class FieldDeclaration extends Declaration {
 
   public Modifiers modifiers;
   public Expression expr;
+  public Token delimiter;
 
   public FieldDeclaration(ArrayList<Token> children) {
     super("", TokenType.FieldDeclaration, children);
     for (Token token : children) {
       assignType(token);
     }
+    delimiter = children.get(children.size() - 1);
   }
 
   private void assignType(Token token) {
@@ -34,6 +36,7 @@ public class FieldDeclaration extends Declaration {
   public void accept(Visitor v) throws VisitorException {
     v.visit(modifiers);
     if (expr != null) expr.accept(v);
+    v.visit(delimiter);
     v.visit(this);
   }
 
@@ -42,5 +45,6 @@ public class FieldDeclaration extends Declaration {
     v.visit(this);
     v.visit(modifiers);
     if (expr != null) expr.acceptReverse(v);
+    v.visit(delimiter);
   }
 }

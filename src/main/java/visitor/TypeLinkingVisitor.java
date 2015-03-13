@@ -12,12 +12,9 @@ import token.ImportDeclaration;
 import token.ImportDeclarations;
 import token.Name;
 import token.PackageDeclaration;
-import token.ReferenceType;
-import token.Type;
 import token.TypeDeclaration;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -47,6 +44,7 @@ public class TypeLinkingVisitor extends BaseVisitor {
   public void visit(CompilationUnit token) throws VisitorException {
     super.visit(token);
     typeDeclaration = token.typeDeclaration;
+
     packageDeclaration = token.packageDeclaration;
     importDeclarations = token.importDeclarations;
 

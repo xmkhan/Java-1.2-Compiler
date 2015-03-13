@@ -28,12 +28,6 @@ public class VariableScopeVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(FieldDeclaration token) throws VisitorException {
-    super.visit(token);
-    variableTable.addDecl(token.getIdentifier(), token);
-  }
-
-  @Override
   public void visit(FormalParameter token) throws VisitorException {
     super.visit(token);
     variableTable.addDecl(token.getIdentifier(), token);

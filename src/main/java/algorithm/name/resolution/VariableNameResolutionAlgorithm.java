@@ -31,19 +31,24 @@ public class VariableNameResolutionAlgorithm {
     this.hierarchyGraph = hierarchyGraph;
   }
 
-  public void resolveName(CompilationUnit unit, Name name) throws VariableNameResolutionException {
+  public void resolveName(CompilationUnit unit, Name name, FieldDeclaration mostRecentField) throws VariableNameResolutionException {
     if (name.isSimple()) {
-      resolveSingleNameDeclarations(unit, name);
+      resolveSingleNameDeclarations(unit, name, mostRecentField);
     } else {
       resolveQualifiedNameDeclarations(unit, name);
     }
+    if (name.getDeclarationTypes() == null || name.getDeclarationTypes().isEmpty()) {
+      throw new VariableNameResolutionException(
+          "No Variable name resolution could be made for name:" + name.getLexeme(), name);
+    }
   }
 
-  private void resolveSingleNameDeclarations(CompilationUnit unit, Name name) throws VariableNameResolutionException {
+  private void resolveSingleNameDeclarations(CompilationUnit unit, Name name, FieldDeclaration mostRecentField)
+      throws VariableNameResolutionException {
     HierarchyGraphNode node = hierarchyGraph.get(unit.typeDeclaration.getDeclaration().getAbsolutePath());
     List<Declaration> declarations = new ArrayList<Declaration>();
 
-    // 1. Check if it is a local variable, method param, or field.
+    // 1. Check if it is a local variable, method param.
     List<Token> variableSymbols = variableTable.find(name.getLexeme());
     if (!variableSymbols.isEmpty()) {
       declarations.add((Declaration) variableSymbols.get(0));
@@ -59,9 +64,10 @@ public class VariableNameResolutionAlgorithm {
     }
     List<FieldDeclaration> classFields = node.getAllFields();
     for (FieldDeclaration field : classFields) {
-        if (field.getIdentifier().equals(name.getLexeme())) {
-          declarations.add(field);
-        }
+      if (field.getIdentifier().equals(name.getLexeme())) {
+        declarations.add(field);
+      }
+      if (mostRecentField != null && field.equals(mostRecentField)) break;
     }
 
     // 3. Check single import
@@ -89,7 +95,7 @@ public class VariableNameResolutionAlgorithm {
     name.setDeclarationTypes(declarations);
   }
 
-  private void resolveQualifiedNameDeclarations(CompilationUnit unit, Name name) throws VariableNameResolutionException {
+  private void resolveQualifiedNameDeclarations(CompilationUnit unit, Name name, FieldDeclaration mostRecentField) throws VariableNameResolutionException {
     String[] identifiers = name.getLexeme().split("\\.");
 
     StringBuilder currentType = new StringBuilder();
@@ -141,6 +147,7 @@ public class VariableNameResolutionAlgorithm {
           match = true;
           break;
         }
+        if (mostRecentField != null && field.equals(mostRecentField)) break;
       }
       if (!match || matches > 1) {
         throw new VariableNameResolutionException("Unable to resolve part of type", name);
@@ -172,10 +179,11 @@ public class VariableNameResolutionAlgorithm {
   }
 
   private String getTypePath(Type type) throws VariableNameResolutionException {
-    if (type.primitiveType != null) {
+    if (type == null) {
+      throw new VariableNameResolutionException("No type to reverse lookup", type);
+    } else if (type.primitiveType != null) {
       throw new VariableNameResolutionException("Cannot get type path for primitive", type);
-    }
-    if (type.referenceType.arrayType != null) {
+    } else if (type.referenceType.arrayType != null) {
       return "[]";
     } else {
       return type.referenceType.classOrInterfaceType.name.getAbsolutePath();
