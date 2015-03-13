@@ -111,7 +111,8 @@ public class TypeLinkingVisitor extends BaseVisitor {
   private boolean resolveName(Name name) throws VisitorException {
     // Check if the type exists in the SymbolTable w.r.t to the package.
     try {
-      return algm.resolveType(name, packageDeclaration, typeDeclaration, importDeclarations);
+      boolean result = algm.resolveType(name, packageDeclaration, typeDeclaration, importDeclarations);
+      return result;
     } catch (NameResolutionException e) {
       return false;
     }

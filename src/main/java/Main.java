@@ -7,6 +7,7 @@ import token.Token;
 import type.hierarchy.CompilationUnitsToHierarchyGraphConverter;
 import type.hierarchy.HierarchyChecker;
 import type.hierarchy.HierarchyGraph;
+import visitor.DisambiguityVisitor;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
 import visitor.TypeLinkingVisitor;
@@ -52,7 +53,12 @@ public class Main {
       HierarchyGraph graph = converter.convert(compilationUnits);
       HierarchyChecker.verifyHierarchyGraph(graph);
 
+      // 3. Phase 3: Disambiguate types, and perform type checking.
+      DisambiguityVisitor disambiguityVisitor = new DisambiguityVisitor(table, graph);
+      disambiguityVisitor.disambiguateUnits(compilationUnits);
+
     } catch (CompilerException e) {
+      e.printStackTrace();
       System.err.println(e.getMessage());
       System.exit(42);
     }

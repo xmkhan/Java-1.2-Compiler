@@ -75,18 +75,25 @@ public class VariableNameResolutionAlgorithm {
     List<ImportDeclaration> importDeclarations = unit.importDeclarations.getAllImportsWithSuffix(name.getLexeme());
     if (!importDeclarations.isEmpty()) {
       String absolutePathToType = importDeclarations.get(0).getLexeme() + '.' + name.getLexeme();
-      Declaration declaration = (Declaration) symbolTable.findWithType(absolutePathToType, ClassDeclaration.class);
+      Declaration declaration = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
       if (declaration != null) {
         declarations.add(declaration);
       }
     }
 
-    // 4. Check on-demand import
+    // 4. Check the same package for a type declaration
+    String packageClassName = unit.packageDeclaration.getLexeme() + '.' + name.getLexeme();
+    Declaration packageClassType = (Declaration) symbolTable.findWithType(packageClassName, NameResolutionAlgorithm.CLASS_TYPES);
+    if (packageClassName != null) {
+      declarations.add(packageClassType);
+    }
+
+    // 5. Check on-demand import
     int matches = 0;
     List<ImportDeclaration> onDemandImportDeclarations = unit.importDeclarations.getAllOnDemandImports();
     for (ImportDeclaration importDeclaration : onDemandImportDeclarations) {
       String absolutePathToType = importDeclaration.getLexeme() + '.' + name.getLexeme();
-      Declaration declaration = (Declaration) symbolTable.findWithType(absolutePathToType, ClassDeclaration.class);
+      Declaration declaration = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
       if (declaration != null) {
         declarations.add(declaration);
         matches++;
@@ -118,7 +125,17 @@ public class VariableNameResolutionAlgorithm {
       List<ImportDeclaration> importDeclarations = unit.importDeclarations.getAllImportsWithSuffix(currentType.toString());
       if (!importDeclarations.isEmpty()) {
         String absolutePathToType = importDeclarations.get(0).getLexeme() + '.' + currentType.toString();
-        lastMatchedDecl = (Declaration) symbolTable.findWithType(absolutePathToType, ClassDeclaration.class);
+        lastMatchedDecl = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
+        if (lastMatchedDecl != null) {
+          currentType.setLength(0);
+          currentType.append(lastMatchedDecl.getAbsolutePath());
+        }
+      }
+
+      // 3. Check package for Type, can only attempt to resolve when i = 0.
+      if (i == 0) {
+        String packageClassName = unit.packageDeclaration.getLexeme() + '.' + name.getLexeme();
+        lastMatchedDecl = (Declaration) symbolTable.findWithType(packageClassName, NameResolutionAlgorithm.CLASS_TYPES);
         if (lastMatchedDecl != null) {
           currentType.setLength(0);
           currentType.append(lastMatchedDecl.getAbsolutePath());
@@ -130,7 +147,7 @@ public class VariableNameResolutionAlgorithm {
       List<ImportDeclaration> onDemandImportDeclarations = unit.importDeclarations.getAllOnDemandImports();
       for (ImportDeclaration importDeclaration : onDemandImportDeclarations) {
         String absolutePathToType = importDeclaration.getLexeme() + '.' + name.getLexeme();
-        lastMatchedDecl = (Declaration) symbolTable.findWithType(absolutePathToType, ClassDeclaration.class);
+        lastMatchedDecl = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
         if (lastMatchedDecl != null) {
           currentType.setLength(0);
           currentType.append(lastMatchedDecl.getAbsolutePath());
@@ -138,7 +155,7 @@ public class VariableNameResolutionAlgorithm {
         }
       }
 
-      // 3. Check the object hierarchy
+      // 5. Check the object hierarchy
       HierarchyGraphNode node = hierarchyGraph.get(currentType.toString());
       List<FieldDeclaration> classFields = node.getAllFields();
       for (FieldDeclaration field : classFields) {

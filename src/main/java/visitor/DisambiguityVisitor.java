@@ -11,6 +11,8 @@ import token.Name;
 import token.Token;
 import type.hierarchy.HierarchyGraph;
 
+import java.util.List;
+
 /**
  * Responsible for resolving ambiguity in type names.
  */
@@ -25,6 +27,12 @@ public class DisambiguityVisitor extends VariableScopeVisitor {
     super(symbolTable);
     this.graph = graph;
     resolutionAlgm = new VariableNameResolutionAlgorithm(getSymbolTable(), getVariableTable(), graph);
+  }
+
+  public void disambiguateUnits(List<CompilationUnit> units) throws VisitorException {
+    for (CompilationUnit unit : units) {
+      unit.acceptReverse(this);
+    }
   }
 
   @Override
