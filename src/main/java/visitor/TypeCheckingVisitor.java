@@ -3,8 +3,6 @@ package visitor;
 import exception.VisitorException;
 import symbol.SymbolTable;
 import token.*;
-import type.hierarchy.HierarchyGraph;
-
 import java.util.Stack;
 
 public class TypeCheckingVisitor extends VariableScopeVisitor {
@@ -107,7 +105,7 @@ public class TypeCheckingVisitor extends VariableScopeVisitor {
     if (token.children.get(1).getTokenType() == TokenType.INSTANCEOF) {
       TokenType typeRightSide = tokenStack.pop().tokenType;
       TokenType typeLeftSide = tokenStack.pop().tokenType;
-      if (!(typeLeftSide == TokenType.ArrayType || typeLeftSide == TokenType.OBJECT) && HierarchyGraph) {
+      if (!(typeLeftSide == TokenType.ArrayType || typeLeftSide == TokenType.OBJECT)) {
         throw new VisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object but found " + typeLeftSide + " instanceOf " + typeRightSide, token);
       }
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
