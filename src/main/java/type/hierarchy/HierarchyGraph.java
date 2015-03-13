@@ -68,4 +68,32 @@ public class HierarchyGraph {
   public Set<Map.Entry<String, HierarchyGraphNode>> entrySet() {
     return nodes.entrySet();
   }
+
+  public boolean nodeAIsParentOfNodeB(HierarchyGraphNode a, HierarchyGraphNode b) {
+    if (a.children.size() == 0) return false;
+    if (a.children.contains(b)) {
+      return true;
+    }
+
+    for (HierarchyGraphNode child : a.children) {
+      if(nodeAIsParentOfNodeB(child, b) == true) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean areNodesConnected(String nodeName1, String nodeName2) throws TypeHierarchyException {
+    if (!contains(nodeName1)) {
+      throw new TypeHierarchyException("Node named " + nodeName1 + " does not exist in the graph");
+    } else if (!contains(nodeName2)) {
+      throw new TypeHierarchyException("Node named " + nodeName2 + " does not exist in the graph");
+    }
+    return nodeAIsParentOfNodeB(get(nodeName1), get(nodeName2)) ||
+      nodeAIsParentOfNodeB(get(nodeName2), get(nodeName1));
+  }
+
+  public boolean areNodesConnected(HierarchyGraphNode node1, HierarchyGraphNode node2) throws TypeHierarchyException {
+    return areNodesConnected(node1.getFullname(), node2.getFullname());
+  }
 }
