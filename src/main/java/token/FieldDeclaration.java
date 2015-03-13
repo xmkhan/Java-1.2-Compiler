@@ -8,7 +8,6 @@ import java.util.ArrayList;
 public class FieldDeclaration extends Declaration {
 
   public Modifiers modifiers;
-  public Type type;
   public Expression expr;
 
   public FieldDeclaration(ArrayList<Token> children) {

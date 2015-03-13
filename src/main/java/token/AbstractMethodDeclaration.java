@@ -15,6 +15,7 @@ public class AbstractMethodDeclaration extends Declaration {
     super("", TokenType.AbstractMethodDeclaration, children);
     methodHeader = (MethodHeader) children.get(0);
     identifier = methodHeader.identifier;
+    type = methodHeader.type;
     // To handle implicit scopes, we explicitly add the scope.
     newScope = new Token("{", TokenType.LEFT_BRACE);
     closeScope = new Token("}", TokenType.RIGHT_BRACE);

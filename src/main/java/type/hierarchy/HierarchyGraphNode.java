@@ -104,10 +104,10 @@ public class HierarchyGraphNode {
 
   private List<FieldDeclaration> getAllFields(HierarchyGraphNode hierarchyGraphNode) {
     List<FieldDeclaration> allFields = new ArrayList<FieldDeclaration>();
+    allFields.addAll(fields);
     for (HierarchyGraphNode node : hierarchyGraphNode.extendsList) {
       allFields.addAll(getAllFields(node));
     }
-    allFields.addAll(fields);
     return allFields;
   }
 
@@ -122,7 +122,7 @@ public class HierarchyGraphNode {
   private List<Method> getAllMethods(HierarchyGraphNode currentNode) {
     List<Method> allMethods = new ArrayList<Method>();
 
-    HierarchyChecker.extendObjectClass(currentNode);
+    allMethods.addAll(currentNode.methods);
 
     for (HierarchyGraphNode node : currentNode.extendsList) {
       allMethods.addAll(getAllMethods(node));
@@ -130,7 +130,6 @@ public class HierarchyGraphNode {
     for (HierarchyGraphNode node : currentNode.implementsList) {
       allMethods.addAll(getAllMethods(node));
     }
-    allMethods.addAll(currentNode.methods);
     return allMethods;
   }
 }

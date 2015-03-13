@@ -6,7 +6,6 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class FormalParameter extends Declaration {
-  public Type type;
 
   public FormalParameter(ArrayList<Token> children) {
     super("", TokenType.FormalParameter, children);

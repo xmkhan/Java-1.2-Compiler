@@ -6,8 +6,8 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class ReferenceType extends Token {
-  ArrayType arrayType;
-  ClassOrInterfaceType classOrInterfaceType;
+  public ArrayType arrayType;
+  public ClassOrInterfaceType classOrInterfaceType;
 
   public ReferenceType(ArrayList<Token> children) {
     super("", TokenType.ReferenceType, children);
