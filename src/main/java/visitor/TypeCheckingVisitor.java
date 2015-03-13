@@ -14,10 +14,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
   private final SymbolTable symbolTable;
   private final HierarchyGraph hierarchyGraph;
   public Stack<TypeCheckToken> tokenStack;
+  private String className;
 
-  public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph) {
+  public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph, String className) {
     this.symbolTable = symbolTable;
     this.hierarchyGraph = hierarchyGraph;
+    this.className = className;
     tokenStack = new Stack<TypeCheckToken>();
   }
 
@@ -245,6 +247,13 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     } else if (token.children.get(0).getTokenType() == TokenType.CastExpression) {
       //TODO(mano) do the cast expression check here
+    }
+  }
+
+  @Override
+  public void visit(ConstructorDeclarator token) throws VisitorException {
+    if (token.getIdentifier().equals(className)) {
+      throw new VisitorException("Constructor name " + token.getIdentifier() + " does not match class name " + className, token);
     }
   }
 

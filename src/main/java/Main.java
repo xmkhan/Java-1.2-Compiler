@@ -54,8 +54,13 @@ public class Main {
       HierarchyChecker.verifyHierarchyGraph(graph);
 
       for (CompilationUnit compilationUnit : compilationUnits) {
-        //TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table);
-        //compilationUnit.accept(typeCheckingVisitor);
+        if (compilationUnit.typeDeclaration.classDeclaration == null) {
+          // we don't need to type check interfaces
+          continue;
+        }
+        String className = compilationUnit.typeDeclaration.classDeclaration.getIdentifier();
+        TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, className);
+        compilationUnit.accept(typeCheckingVisitor);
       }
     } catch (CompilerException e) {
       System.err.println(e.getMessage());
