@@ -232,8 +232,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     if (token.children.size() == 2 && type != TokenType.BOOLEAN) {
       throw new VisitorException("Unary operator '! UnaryExpression' was expecting UnaryExpression to be boolean but found " + type, token);
-    } else if (token.children.get(0).getTokenType() == TokenType.CastExpression) {
-      //TODO(mano) do the cast expression check here
     }
   }
 
@@ -248,7 +246,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(CastExpression token) throws VisitorException {
     super.visit(token);
-
   }
 
   public void visit(Primary token) throws VisitorException {
