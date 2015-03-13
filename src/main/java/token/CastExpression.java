@@ -56,4 +56,8 @@ public class CastExpression extends Token {
   public boolean isName() {
     return name != null;
   }
+
+  public boolean isArrayCast() {
+    return children.size() == 6;
+  }
 }
