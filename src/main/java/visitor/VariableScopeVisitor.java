@@ -11,11 +11,9 @@ import token.Token;
  * Keeps track of the { variableName -> Type } mapping w.r.t to scopes
  */
 public class VariableScopeVisitor extends BaseVisitor {
-  private final SymbolTable symbolTable;
   private SymbolTable variableTable;
 
-  public VariableScopeVisitor(SymbolTable symbolTable) {
-    this.symbolTable = symbolTable;
+  public VariableScopeVisitor() {
     variableTable = new SymbolTable();
   }
 
@@ -23,8 +21,10 @@ public class VariableScopeVisitor extends BaseVisitor {
     return variableTable;
   }
 
-  protected SymbolTable getSymbolTable() {
-    return variableTable;
+  @Override
+  public void visit(FieldDeclaration token) throws VisitorException {
+    super.visit(token);
+    variableTable.addDecl(token.getIdentifier(), token);
   }
 
   @Override

@@ -19,19 +19,23 @@ import java.util.List;
 public class DisambiguityVisitor extends VariableScopeVisitor {
 
   private final HierarchyGraph graph;
+  private final SymbolTable table;
   private final VariableNameResolutionAlgorithm resolutionAlgm;
   private CompilationUnit unit;
   private FieldDeclaration mostRecentField;
 
   public DisambiguityVisitor(SymbolTable symbolTable, HierarchyGraph graph) {
-    super(symbolTable);
+    super();
+    this.table = symbolTable;
     this.graph = graph;
-    resolutionAlgm = new VariableNameResolutionAlgorithm(getSymbolTable(), getVariableTable(), graph);
+    resolutionAlgm = new VariableNameResolutionAlgorithm(symbolTable, getVariableTable(), graph);
   }
 
   public void disambiguateUnits(List<CompilationUnit> units) throws VisitorException {
     for (CompilationUnit unit : units) {
+      getVariableTable().newScope();
       unit.acceptReverse(this);
+      getVariableTable().deleteScope();
     }
   }
 

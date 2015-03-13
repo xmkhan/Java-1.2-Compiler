@@ -15,12 +15,14 @@ public class FormalParameter extends Declaration {
 
   @Override
   public void accept(Visitor v) throws VisitorException {
+    type.accept(v);
     v.visit(this);
   }
 
   @Override
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
+    type.acceptReverse(v);
   }
 
   private void assignType(Token token) {

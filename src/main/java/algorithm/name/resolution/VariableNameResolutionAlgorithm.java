@@ -8,7 +8,7 @@ import token.CompilationUnit;
 import token.Declaration;
 import token.FieldDeclaration;
 import token.ImportDeclaration;
-import token.MethodDeclaration;
+import token.InterfaceDeclaration;
 import token.Name;
 import token.Token;
 import token.Type;
@@ -112,98 +112,131 @@ public class VariableNameResolutionAlgorithm {
     String[] identifiers = name.getLexeme().split("\\.");
 
     StringBuilder currentType = new StringBuilder();
-    Declaration lastMatchedDecl;
-    for (int i = 0; i < identifiers.length - 1; ++i) {
-      if (i > 0) currentType.append('.');
-      currentType.append(identifiers[i]);
+
+    // 1.The initial base of a.b.c.d resolution. 'a' must resolve to a type.
+    // 2. For the resolution of b.c we simply use the hierarchy to keep nesting fields
+    // 3. Finally for d resolution we get all potential declaration(field, method) matches.
+    currentType.append(identifiers[0]);
+    Declaration lastMatchedDecl = resolveInitialQualified(unit, name, mostRecentField, currentType, identifiers);
+    if (lastMatchedDecl == null) {
+      throw new VariableNameResolutionException("No type found for identifiers[0] of: " + name.getLexeme(), name);
+    }
+    // 2.1. Check the object hierarchy, specifically for fields
+    for (int i = 1; i < identifiers.length - 1; ++i) {
       boolean match = false;
-      // 1. Check if it is a local variable, method param, or field.
-      List<Token> variableSymbols = variableTable.find(currentType.toString());
-      if (!variableSymbols.isEmpty()) {
-        lastMatchedDecl = (Declaration) variableSymbols.get(0);
-        currentType.setLength(0);
-        currentType.append(getTypePath(lastMatchedDecl.type));
-        continue;
-      }
-
-      // 2. Check single import
-      if (unit.importDeclarations != null) {
-        List<ImportDeclaration> importDeclarations = unit.importDeclarations.getAllImportsWithSuffix(currentType.toString());
-        if (!importDeclarations.isEmpty()) {
-          String absolutePathToType = importDeclarations.get(0).getLexeme() + '.' + currentType.toString();
-          lastMatchedDecl = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
-          if (lastMatchedDecl != null) {
-            currentType.setLength(0);
-            currentType.append(lastMatchedDecl.getAbsolutePath());
-          }
-        }
-      }
-
-      // 3. Check package for Type, can only attempt to resolve when i = 0.
-      if (i == 0) {
-        String packageNamePrefix = unit.packageDeclaration != null ? unit.packageDeclaration.getIdentifier() + "." : "";
-        String packageClassName = packageNamePrefix + identifiers[i];
-        lastMatchedDecl = (Declaration) symbolTable.findWithType(packageClassName, NameResolutionAlgorithm.CLASS_TYPES);
-        if (lastMatchedDecl != null) {
-          currentType.setLength(0);
-          currentType.append(lastMatchedDecl.getAbsolutePath());
-        }
-      }
-
-      // 4. Check on-demand import
-      int matches = 0;
-      if (unit.importDeclarations != null) {
-        List<ImportDeclaration> onDemandImportDeclarations = unit.importDeclarations.getAllOnDemandImports();
-        for (ImportDeclaration importDeclaration : onDemandImportDeclarations) {
-          String absolutePathToType = importDeclaration.getLexeme() + '.' + name.getLexeme();
-          lastMatchedDecl = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
-          if (lastMatchedDecl != null) {
-            currentType.setLength(0);
-            currentType.append(lastMatchedDecl.getAbsolutePath());
-            matches++;
-          }
-        }
-      }
-
-      // 5. Check the object hierarchy
       HierarchyGraphNode node = hierarchyGraph.get(currentType.toString());
-      List<FieldDeclaration> classFields = node.getAllFields();
-      for (FieldDeclaration field : classFields) {
-        if (field.getIdentifier().equals(identifiers[i])) {
-          currentType.setLength(0);
-          currentType.append(getTypePath(field.type));
-          match = true;
-          break;
+      if (node != null) {
+        List<FieldDeclaration> classFields = node.getAllFields();
+        for (FieldDeclaration field : classFields) {
+          if (field.getIdentifier().equals(identifiers[i])) {
+            currentType.setLength(0);
+            currentType.append(getTypePath(field.type));
+            currentType.append('.');
+            match = true;
+            break;
+          }
+          if (mostRecentField != null && field.equals(mostRecentField)) break;
         }
-        if (mostRecentField != null && field.equals(mostRecentField)) break;
       }
-      if (!match || matches > 1) {
-        throw new VariableNameResolutionException("Unable to resolve part of type", name);
+      if (!match) {
+        throw new VariableNameResolutionException("Failed to disambiguate type: " + name.getLexeme(), name);
       }
     }
     List<Declaration> declarations = new ArrayList<Declaration>();
 
     // Change edge case for array[] types.
-    if (currentType.toString().contains("[]") && !identifiers[identifiers.length - 1].equals("length")) {
-      throw new VariableNameResolutionException("No Array[] field found", name);
+    if (currentType.toString().contains("[]")) {
+      if (!identifiers[identifiers.length - 1].equals("length") || lastMatchedDecl == null) {
+        throw new VariableNameResolutionException("No Array[] field found", name);
+      }
+      declarations.add(lastMatchedDecl);
+      name.setDeclarationTypes(declarations);
+      return;
     }
 
     // Fill in all matching declarations.
     HierarchyGraphNode node = hierarchyGraph.get(currentType.toString());
     List<BaseMethodDeclaration> classMethods = node.getAllMethods();
     for (BaseMethodDeclaration method : classMethods) {
-      if (method.getIdentifier().equals(name.getLexeme())) {
+      if (method.getIdentifier().equals(identifiers[identifiers.length - 1])) {
         declarations.add(method);
 
       }
     }
     List<FieldDeclaration> classFields = node.getAllFields();
     for (FieldDeclaration field : classFields) {
-      if (field.getIdentifier().equals(name.getLexeme())) {
+      if (field.getIdentifier().equals(identifiers[identifiers.length - 1])) {
         declarations.add(field);
       }
     }
     name.setDeclarationTypes(declarations);
+  }
+
+  private Declaration resolveInitialQualified(CompilationUnit unit, Name name, FieldDeclaration mostRecentField,
+                                              StringBuilder currentType, String[] identifiers
+  ) throws VariableNameResolutionException {
+    // 1.1. Check variable table.
+    Declaration lastMatchedDecl = null;
+    List<Token> variableSymbols = variableTable.find(currentType.toString());
+    if (!variableSymbols.isEmpty()) {
+      lastMatchedDecl = (Declaration) variableSymbols.get(0);
+      currentType.setLength(0);
+      currentType.append(getTypePath(lastMatchedDecl.type));
+      return lastMatchedDecl;
+    }
+
+    // 1.2. Check single import
+    if (unit.importDeclarations != null) {
+      List<ImportDeclaration> importDeclarations = unit.importDeclarations.getAllImportsWithSuffix(currentType.toString());
+      if (!importDeclarations.isEmpty()) {
+        String absolutePathToType = importDeclarations.get(0).getLexeme();
+        lastMatchedDecl = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
+        if (lastMatchedDecl != null) {
+          currentType.setLength(0);
+          currentType.append(lastMatchedDecl.getAbsolutePath());
+          return lastMatchedDecl;
+        }
+      }
+    }
+
+    // 1.3. Check package for Type, can only attempt to resolve when i = 0.
+    String packageNamePrefix = unit.packageDeclaration != null ? unit.packageDeclaration.getIdentifier() + "." : "";
+    String packageClassName = packageNamePrefix + identifiers[0];
+    lastMatchedDecl = (Declaration) symbolTable.findWithType(packageClassName, NameResolutionAlgorithm.CLASS_TYPES);
+    if (lastMatchedDecl != null) {
+      currentType.setLength(0);
+      currentType.append(lastMatchedDecl.getAbsolutePath());
+      return lastMatchedDecl;
+    }
+
+    // 1.4. Check on-demand import
+    int matches = 0;
+    if (unit.importDeclarations != null) {
+      List<ImportDeclaration> onDemandImportDeclarations = unit.importDeclarations.getAllOnDemandImports();
+      for (ImportDeclaration importDeclaration : onDemandImportDeclarations) {
+        String absolutePathToType = importDeclaration.getLexeme() + '.' + name.getLexeme();
+        lastMatchedDecl = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
+        if (lastMatchedDecl != null) {
+          currentType.setLength(0);
+          currentType.append(lastMatchedDecl.getAbsolutePath());
+          matches++;
+        }
+      }
+    }
+    if (matches > 1) {
+      throw new VariableNameResolutionException("Ambiguous on demand import for name: " + name.getLexeme(), name);
+    } else if (matches == 1) return lastMatchedDecl;
+
+    // 1.5. Try java.lang.* implicit on-demand package
+    List<Token> javaLangDecls = symbolTable.find(NameResolutionAlgorithm.JAVA_LANG_PREFIX + identifiers[0]);
+    for (Token type : javaLangDecls) {
+      if (type instanceof ClassDeclaration || type instanceof InterfaceDeclaration) {
+        lastMatchedDecl = (Declaration) type;
+        currentType.setLength(0);
+        currentType.append(lastMatchedDecl.getAbsolutePath());
+      }
+    }
+    return lastMatchedDecl;
   }
 
   private String getTypePath(Type type) throws VariableNameResolutionException {

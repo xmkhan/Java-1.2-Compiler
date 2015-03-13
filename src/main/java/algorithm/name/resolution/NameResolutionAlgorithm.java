@@ -88,7 +88,10 @@ public class NameResolutionAlgorithm {
     // 4.1 Try java.lang.* implicit on-demand package
     List<Token> javaLangDecls = table.find(JAVA_LANG_PREFIX + name.getLexeme());
     for (Token type : javaLangDecls) {
-      if (type instanceof ClassDeclaration || type instanceof InterfaceDeclaration) matches++;
+      if (type instanceof ClassDeclaration || type instanceof InterfaceDeclaration) {
+        name.setAbsolutePath(((Declaration) type).getAbsolutePath());
+        matches++;
+      }
     }
 
 

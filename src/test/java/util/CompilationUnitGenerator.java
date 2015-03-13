@@ -3,8 +3,14 @@ package util;
 import algorithm.parsing.lr.ShiftReduceAlgorithm;
 import exception.CompilerException;
 import lexer.Lexer;
+import symbol.SymbolTable;
 import token.CompilationUnit;
 import token.Token;
+import type.hierarchy.CompilationUnitsToHierarchyGraphConverter;
+import type.hierarchy.HierarchyChecker;
+import type.hierarchy.HierarchyGraph;
+import visitor.EnvironmentBuildingVisitor;
+import visitor.TypeLinkingVisitor;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,6 +47,24 @@ public class CompilationUnitGenerator {
     return units;
   }
 
+  public static Bundle makeUpToTypeChecking(List<String> filePaths) throws IOException, CompilerException {
+    Bundle bundle = new Bundle();
+    bundle.units = make(filePaths);
+    bundle.symbolTable = new SymbolTable();
+
+    EnvironmentBuildingVisitor environmentVisitor = new EnvironmentBuildingVisitor(bundle.symbolTable);
+    environmentVisitor.buildGlobalScope(bundle.units);
+
+    TypeLinkingVisitor typeLinkingVisitor = new TypeLinkingVisitor(bundle.symbolTable);
+    typeLinkingVisitor.typeLink(bundle.units);
+
+    CompilationUnitsToHierarchyGraphConverter converter = new CompilationUnitsToHierarchyGraphConverter();
+    bundle.graph = converter.convert(bundle.units);
+    HierarchyChecker.verifyHierarchyGraph(bundle.graph);
+
+    return bundle;
+  }
+
   public static List<String> getStdlibFiles() {
     return new ArrayList<String>(Arrays.asList(
       "src/test/resources/stdlib/java/io/OutputStream.java",
@@ -59,5 +83,11 @@ public class CompilationUnitGenerator {
       "src/test/resources/stdlib/java/lang/System.java",
       "src/test/resources/stdlib/java/util/Arrays.java"
     ));
+  }
+
+  public static class Bundle {
+    public List<CompilationUnit> units;
+    public SymbolTable symbolTable;
+    public HierarchyGraph graph;
   }
 }
