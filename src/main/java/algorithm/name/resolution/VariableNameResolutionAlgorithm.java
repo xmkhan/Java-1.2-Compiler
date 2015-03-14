@@ -23,7 +23,7 @@ import java.util.List;
  * Variable resolution algorithm for checking variable
  */
 public class VariableNameResolutionAlgorithm {
-  private SymbolTable symbolTable;
+  private final SymbolTable symbolTable;
   private SymbolTable variableTable;
   private HierarchyGraph hierarchyGraph;
 
@@ -137,17 +137,20 @@ public class VariableNameResolutionAlgorithm {
             match = true;
             break;
           }
-          if (mostRecentField != null && field.equals(mostRecentField)) break;
         }
       }
       if (!match) {
         currentType.append('.');
         currentType.append(identifiers[i]);
-        Declaration pkgDecl = (Declaration) symbolTable.findWithType(
+        Declaration classDecl = (Declaration) symbolTable.findWithType(
+            currentType.toString(), NameResolutionAlgorithm.CLASS_TYPES);
+        if (classDecl != null) continue;
+        List<Token> pkgDecls = symbolTable.findWithPrefixOfAnyType(
             currentType.toString(), new Class[] {PackageDeclaration.class});
-        if (pkgDecl == null) {
+        if (pkgDecls == null) {
           throw new VariableNameResolutionException("Failed to disambiguate type: " + name.getLexeme(), name);
         }
+
       }
     }
     List<Declaration> declarations = new ArrayList<Declaration>();
@@ -258,8 +261,8 @@ public class VariableNameResolutionAlgorithm {
       }
     }
 
-    lastMatchedDecl = (Declaration) symbolTable.findWithType(currentType.toString(), new Class[] {PackageDeclaration.class});
-
+    List<Token> pkgs = symbolTable.findWithPrefixOfAnyType(currentType.toString(), new Class[] {PackageDeclaration.class});
+    if (pkgs != null) lastMatchedDecl = (Declaration) pkgs.get(0);
     return lastMatchedDecl;
   }
 
