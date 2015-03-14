@@ -5,6 +5,7 @@ import exception.VisitorException;
 import symbol.SymbolTable;
 import token.*;
 import type.hierarchy.HierarchyGraph;
+import type.hierarchy.HierarchyGraphNode;
 
 import java.util.Stack;
 
@@ -14,10 +15,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
   private final SymbolTable symbolTable;
   private final HierarchyGraph hierarchyGraph;
   public Stack<TypeCheckToken> tokenStack;
+  private HierarchyGraphNode node;
 
-  public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph) {
+  public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph, HierarchyGraphNode n) {
     this.symbolTable = symbolTable;
     this.hierarchyGraph = hierarchyGraph;
+    this.node = n;
     tokenStack = new Stack<TypeCheckToken>();
   }
 
@@ -265,6 +268,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(ConstructorDeclarator token) throws VisitorException {
+    if (token.getIdentifier().equals(node.identifier)) {
+      throw new VisitorException("Constructor name " + token.getIdentifier() + " does not match class name " + node.identifier, token);
+    }
+  }
+
   public void visit(LeftHandSide token) throws VisitorException {
     super.visit(token);
     if(token.children.get(0).getTokenType() == TokenType.Name) {
@@ -335,5 +344,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if (type.isArray) {
       throw new VisitorException("Arrays are not allowed to be used with the " + operator + " operator.  The " + side.toString().toLowerCase() + " hand operator is an array of type " + type.tokenType, token);
     }
+  }
+
+  private boolean ensureExtendParentHasDefaultConstructor() {
+    if (node.extendsList.size() == 0) return true;
+    return node.extendsList.get(0).isDefaultConstructorVisibleToChildren();
   }
 }

@@ -7,6 +7,7 @@ import token.Token;
 import type.hierarchy.CompilationUnitsToHierarchyGraphConverter;
 import type.hierarchy.HierarchyChecker;
 import type.hierarchy.HierarchyGraph;
+import type.hierarchy.HierarchyGraphNode;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
 import visitor.TypeCheckingVisitor;
@@ -54,8 +55,13 @@ public class Main {
       HierarchyChecker.verifyHierarchyGraph(graph);
 
       for (CompilationUnit compilationUnit : compilationUnits) {
-        //TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table);
-        //compilationUnit.accept(typeCheckingVisitor);
+        if (compilationUnit.typeDeclaration.classDeclaration == null) {
+          // we don't need to type check interfaces
+          continue;
+        }
+        HierarchyGraphNode node = converter.compilationUnitToNode.get(compilationUnit);
+        TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, node);
+        compilationUnit.accept(typeCheckingVisitor);
       }
     } catch (CompilerException e) {
       System.err.println(e.getMessage());

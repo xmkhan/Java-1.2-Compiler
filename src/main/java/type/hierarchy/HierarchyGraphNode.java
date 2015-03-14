@@ -133,4 +133,11 @@ public class HierarchyGraphNode {
     allMethods.addAll(currentNode.methods);
     return allMethods;
   }
+
+  public boolean isDefaultConstructorVisibleToChildren() {
+    for (Method constructor : constructors) {
+      if (constructor.parameterTypes.size() == 0) return true;
+    }
+    return false;
+  }
 }
