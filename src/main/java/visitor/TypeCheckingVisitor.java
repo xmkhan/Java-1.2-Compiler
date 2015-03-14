@@ -329,6 +329,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
   }
 
+  @Override
   public void visit(Primary token) throws VisitorException {
     super.visit(token);
     if (token.children.get(0).getTokenType() != TokenType.THIS) return;
