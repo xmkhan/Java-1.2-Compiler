@@ -29,7 +29,7 @@ public class HierarchyGraphNode {
   // List of constructors
   public List<Method> constructors;
   // List of class fields
-  public List<FieldDeclaration> fields;
+  public List<FieldDeclaration> fields = new ArrayList<FieldDeclaration>();
   public String packageName;
   private ImportDeclarations importDeclarations;
 
@@ -100,15 +100,12 @@ public class HierarchyGraphNode {
    * Traverse the graph and fetch all the fields extended by this class
    * @return this node's fields + all the extended fields
    */
-  public List<FieldDeclaration> getAllFields() {
-    return getAllFields(this);
-  }
 
-  private List<FieldDeclaration> getAllFields(HierarchyGraphNode hierarchyGraphNode) {
+  public List<FieldDeclaration> getAllFields() {
     List<FieldDeclaration> allFields = new ArrayList<FieldDeclaration>();
     allFields.addAll(fields);
-    for (HierarchyGraphNode node : hierarchyGraphNode.extendsList) {
-      allFields.addAll(getAllFields(node));
+    for (HierarchyGraphNode node : extendsList) {
+      allFields.addAll(node.getAllFields());
     }
     return allFields;
   }
@@ -117,20 +114,17 @@ public class HierarchyGraphNode {
    * Traverse the graph and return this class/interface's methods, the methods it extends,
    * and the methods it is supposed to implement
    */
-  public List<BaseMethodDeclaration> getAllMethods() {
-    return getAllMethods(this);
-  }
 
-  private List<BaseMethodDeclaration> getAllMethods(HierarchyGraphNode currentNode) {
+  public List<BaseMethodDeclaration> getAllMethods() {
     List<BaseMethodDeclaration> allMethods = new ArrayList<BaseMethodDeclaration>();
 
-    allMethods.addAll(currentNode.baseMethodDeclarations);
+    allMethods.addAll(baseMethodDeclarations);
 
-    for (HierarchyGraphNode node : currentNode.extendsList) {
-      allMethods.addAll(getAllMethods(node));
+    for (HierarchyGraphNode node : extendsList) {
+      allMethods.addAll(node.getAllMethods());
     }
-    for (HierarchyGraphNode node : currentNode.implementsList) {
-      allMethods.addAll(getAllMethods(node));
+    for (HierarchyGraphNode node : implementsList) {
+      allMethods.addAll(node.getAllMethods());
     }
     return allMethods;
   }
