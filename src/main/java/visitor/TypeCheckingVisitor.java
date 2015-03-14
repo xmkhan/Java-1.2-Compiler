@@ -35,7 +35,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       TypeCheckToken stringType = new TypeCheckToken(TokenType.OBJECT);
       stringType.isArray = false;
       stringType.absolutePath = "java.lang.String";
-      //literalToken = new TypeCheckToken();
+      literalToken = stringType;
     } else if(literal instanceof IntLiteral) {
       literalToken = new TypeCheckToken(TokenType.INT);
     } else if(literal instanceof BooleanLiteral) {
