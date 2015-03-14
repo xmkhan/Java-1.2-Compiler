@@ -283,6 +283,26 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
   }
 
+  @Override
+  public void visit(ClassInstanceCreationExpression token) throws VisitorException {
+    // call shah's function on token.classType....
+    if (false) {
+      // ClassType was abstract
+      throw new VisitorException("Abstract class " + " cannot be instantiated", token);
+    }
+  }
+
+  @Override
+  public void visit(ArrayCreationExpression token) throws VisitorException {
+    if (token.isPrimitiveType()) return;
+    // call shah's function on token.classType....
+    if (false) {
+      // ClassType was abstract
+      throw new VisitorException("Abstract class " + " cannot be instantiated", token);
+    }
+  }
+
+  @Override
   public void visit(LeftHandSide token) throws VisitorException {
     super.visit(token);
     if(token.children.get(0).getTokenType() == TokenType.Name) {
@@ -338,6 +358,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
   }
 
+  @Override
   public void visit(Primary token) throws VisitorException {
     super.visit(token);
     if (token.children.get(0).getTokenType() != TokenType.THIS) return;
