@@ -71,4 +71,85 @@ public class DisambiguityVisitorTest {
     visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
     visitor.disambiguateUnits(bundle.units);
   }
+
+  @Test
+  public void test1() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/J1_5_AmbiguousName_DefaultPackageNotVisible/Main.java",
+        "src/test/resources/disambiguity/J1_5_AmbiguousName_DefaultPackageNotVisible/Bar.java",
+        "src/test/resources/disambiguity/J1_5_AmbiguousName_DefaultPackageNotVisible/Main/Bar.java",
+        "src/test/resources/disambiguity/J1_5_AmbiguousName_DefaultPackageNotVisible/foo/Bar.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test
+  public void test2() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/J1_5_ForwardReference_EqualInfix.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test
+  public void test3() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/J1_6_ProtectedAccess_InstanceField_SubVar/Main.java",
+        "src/test/resources/disambiguity/J1_6_ProtectedAccess_InstanceField_SubVar/A.java",
+        "src/test/resources/disambiguity/J1_6_ProtectedAccess_InstanceField_SubVar/B.java",
+        "src/test/resources/disambiguity/J1_6_ProtectedAccess_InstanceField_SubVar/C.java",
+        "src/test/resources/disambiguity/J1_6_ProtectedAccess_InstanceField_SubVar/D.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test
+  public void test4() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/J1_accessstaticfield/Main.java",
+        "src/test/resources/disambiguity/J1_accessstaticfield/java/util/Calendar.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test
+  public void test5() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/J1_supermethod_override1/Main.java",
+        "src/test/resources/disambiguity/J1_supermethod_override1/CompA.java",
+        "src/test/resources/disambiguity/J1_supermethod_override1/CompB.java",
+        "src/test/resources/disambiguity/J1_supermethod_override1/java/lang/Comparable.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test
+  public void test6() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/J1_supermethod_override11/Main.java",
+        "src/test/resources/disambiguity/J1_supermethod_override11/CompA.java",
+        "src/test/resources/disambiguity/J1_supermethod_override11/CompB.java",
+        "src/test/resources/disambiguity/J1_supermethod_override11/CompC.java",
+        "src/test/resources/disambiguity/J1_supermethod_override11/java/lang/Comparable.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
 }
