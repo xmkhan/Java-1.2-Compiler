@@ -27,6 +27,10 @@ public class ArgumentList extends Token {
     return argumentList;
   }
 
+  public int numArguments() {
+    return argumentList.size();
+  }
+
   public void accept(Visitor v) throws VisitorException {
     for (Expression expression : argumentList) {
       expression.accept(v);

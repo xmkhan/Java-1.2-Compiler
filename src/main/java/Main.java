@@ -65,7 +65,7 @@ public class Main {
           continue;
         }
         HierarchyGraphNode node = converter.compilationUnitToNode.get(compilationUnit);
-        TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, node);
+        TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, node, unit);
         compilationUnit.accept(typeCheckingVisitor);
       }
 

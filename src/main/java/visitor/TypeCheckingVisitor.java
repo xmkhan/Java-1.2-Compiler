@@ -7,6 +7,7 @@ import token.*;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
@@ -17,11 +18,13 @@ public class TypeCheckingVisitor extends BaseVisitor {
   private final HierarchyGraph hierarchyGraph;
   public Stack<TypeCheckToken> tokenStack;
   private HierarchyGraphNode node;
+  private CompilationUnit unit;
 
-  public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph, HierarchyGraphNode n) {
+  public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph, HierarchyGraphNode n, CompilationUnit unit) {
     this.symbolTable = symbolTable;
     this.hierarchyGraph = hierarchyGraph;
     this.node = n;
+    this.unit = unit;
     tokenStack = new Stack<TypeCheckToken>();
   }
 
@@ -285,10 +288,24 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
   @Override
   public void visit(ClassInstanceCreationExpression token) throws VisitorException {
-    // call shah's function on token.classType....
-    if (false) {
+    List<TypeCheckToken> arguments = new ArrayList<TypeCheckToken>();
+    for (int i = 0; i < token.argumentList.numArguments(); i++) {
+      arguments.add(tokenStack.pop());
+    }
+
+    Name name = (Name) token.classType.children.get(0).children.get(0);
+    if (hierarchyGraph.get(name.getAbsolutePath()).isAbstract()) {
       // ClassType was abstract
       throw new VisitorException("Abstract class " + " cannot be instantiated", token);
+    }
+
+    Class[] classes = new Class[1];
+    classes[0] = ConstructorDeclaration.class;
+    String constructor = name.getAbsolutePath() + "." + name.getLexeme();
+    List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, classes);
+
+    for (Token declaration : matchingDeclarations) {
+      
     }
   }
 
@@ -361,9 +378,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(Primary token) throws VisitorException {
     super.visit(token);
-    if (token.children.get(0).getTokenType() != TokenType.THIS) return;
 
-
+    if (token.children.get(0).getTokenType() == TokenType.THIS) {
+      tokenStack.push(new TypeCheckToken((unit.typeDeclaration.getDeclaration())));
+    }
   }
 
   private boolean isWideningPrimitiveConversion(TokenType from, TokenType to) {
