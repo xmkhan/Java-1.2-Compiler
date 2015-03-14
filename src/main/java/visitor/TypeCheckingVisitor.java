@@ -52,12 +52,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if(token.children.size() == 1) return;
 
-    TokenType type1 = tokenStack.pop().tokenType;
-    TokenType type2 = tokenStack.pop().tokenType;
-    if(type1 == TokenType.BOOLEAN && type2 == TokenType.BOOLEAN) {
+    TypeCheckToken type1 = tokenStack.pop();
+    TypeCheckToken type2 = tokenStack.pop();
+    if(type1.tokenType == TokenType.BOOLEAN && type2.tokenType == TokenType.BOOLEAN && !type1.isArray && !type2.isArray) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean OR expression expected boolean || boolean but found " + type1.toString() + " || " + type2.toString(), token);
+      throw new VisitorException("Boolean OR expression expected boolean || boolean but found " + type1.tokenType.toString() + " || " + type2.tokenType.toString(), token);
     }
   }
 
@@ -66,12 +66,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if(token.children.size() == 1) return;
 
-    TokenType type1 = tokenStack.pop().tokenType;
-    TokenType type2 = tokenStack.pop().tokenType;
-    if(type1 == TokenType.BOOLEAN && type2 == TokenType.BOOLEAN) {
+    TypeCheckToken type1 = tokenStack.pop();
+    TypeCheckToken type2 = tokenStack.pop();
+    if(type1.tokenType == TokenType.BOOLEAN && type2.tokenType == TokenType.BOOLEAN && !type1.isArray && !type2.isArray) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean AND expression expected boolean && boolean but found " + type1.toString() + " && " + type2.toString(), token);
+      throw new VisitorException("Boolean AND expression expected boolean && boolean but found " + type1.tokenType.toString() + " && " + type2.tokenType.toString(), token);
     }
   }
 
@@ -80,12 +80,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if(token.children.size() == 1) return;
 
-    TokenType type1 = tokenStack.pop().tokenType;
-    TokenType type2 = tokenStack.pop().tokenType;
-    if(type1 == TokenType.BOOLEAN && type2 == TokenType.BOOLEAN) {
+    TypeCheckToken type1 = tokenStack.pop();
+    TypeCheckToken type2 = tokenStack.pop();
+    if(type1.tokenType == TokenType.BOOLEAN && type2.tokenType == TokenType.BOOLEAN && !type1.isArray && !type2.isArray) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean OR expression expected boolean | boolean but found " + type1.toString() + " | " + type2.toString(), token);
+      throw new VisitorException("Boolean OR expression expected boolean | boolean but found " + type1.tokenType.toString() + " | " + type2.tokenType.toString(), token);
     }
   }
 
