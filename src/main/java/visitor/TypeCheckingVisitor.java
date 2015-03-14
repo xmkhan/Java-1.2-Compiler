@@ -32,6 +32,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     TypeCheckToken literalToken = null;
     if(literal instanceof StringLiteral) {
+      TypeCheckToken stringType = new TypeCheckToken(TokenType.OBJECT);
+      stringType.isArray = false;
+      stringType.absolutePath = "java.lang.String";
       //literalToken = new TypeCheckToken();
     } else if(literal instanceof IntLiteral) {
       literalToken = new TypeCheckToken(TokenType.INT);
@@ -116,7 +119,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       if(rightSide.isArray == leftSide.isArray && validType(rightSide.tokenType, validTypes) && rightSide.tokenType == leftSide.tokenType) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
       }  else if(rightSide.isArray == leftSide.isArray && rightSide.tokenType == TokenType.OBJECT && leftSide.tokenType == TokenType.OBJECT &&
-              hierarchyGraph.areNodesConnected(rightSide.declaration.getAbsolutePath(), leftSide.declaration.getAbsolutePath())) {
+              hierarchyGraph.areNodesConnected(rightSide.getAbsolutePath(), leftSide.getAbsolutePath())) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
       } else if (leftSide.tokenType == TokenType.OBJECT && rightSide.tokenType == TokenType.NULL) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
@@ -238,8 +241,13 @@ public class TypeCheckingVisitor extends BaseVisitor {
     try {
       if (typeLeftSide.isArray == typeRightSide.isArray && validType(typeLeftSide.tokenType, validTypes) && typeLeftSide.tokenType == typeRightSide.tokenType) {
         tokenStack.push(typeLeftSide);
-      } else if (typeLeftSide.isArray == typeRightSide.isArray && typeLeftSide.tokenType == TokenType.OBJECT && typeRightSide.tokenType == TokenType.OBJECT &&
-              hierarchyGraph.areNodesConnectedOneWay(typeRightSide.declaration.getAbsolutePath(), typeLeftSide.declaration.getAbsolutePath())) {
+      } else if(typeLeftSide.isArray == false && typeRightSide.isArray == false &&
+              typeLeftSide.isPrimitiveType() && typeRightSide.isPrimitiveType() &&
+              isWideningPrimitiveConversion(typeRightSide.tokenType, typeLeftSide.tokenType)) {
+        tokenStack.push(typeLeftSide);
+      }
+      else if (typeLeftSide.isArray == typeRightSide.isArray && typeLeftSide.tokenType == TokenType.OBJECT && typeRightSide.tokenType == TokenType.OBJECT &&
+              hierarchyGraph.areNodesConnectedOneWay(typeRightSide.getAbsolutePath(), typeLeftSide.getAbsolutePath())) {
         tokenStack.push(typeLeftSide);
       } else if (typeLeftSide.tokenType == TokenType.OBJECT && typeRightSide.tokenType == TokenType.NULL) {
         tokenStack.push(typeLeftSide);
@@ -278,7 +286,22 @@ public class TypeCheckingVisitor extends BaseVisitor {
   public void visit(LeftHandSide token) throws VisitorException {
     super.visit(token);
     if(token.children.get(0).getTokenType() == TokenType.Name) {
-      // call shahs code and push
+      Name name = (Name) token.children.get(0);
+      Declaration determinedDecalaration = null;
+      for (Declaration declaration : name.getDeclarationTypes()) {
+        if(declaration instanceof LocalVariableDeclaration ||
+                declaration instanceof  FieldDeclaration ||
+                declaration instanceof FormalParameter) {
+          determinedDecalaration = declaration;
+          break;
+        }
+      }
+
+      if(determinedDecalaration != null) {
+        tokenStack.push(new TypeCheckToken(determinedDecalaration));
+      } else {
+        throw new VisitorException("Failed to find declaration to assign to", token);
+      }
     }
   }
 
@@ -291,17 +314,23 @@ public class TypeCheckingVisitor extends BaseVisitor {
       throw new VisitorException("Expected both to be array or not array but found type is array: " + tokenToCast.isArray + " and type is array: " + token.isArrayCast(), token);
     }
 
+    // TODO: handle edge cases for casts
     try {
       // Handle boolean case
       if (tokenToCast.isPrimitiveType() && token.isPrimitiveType() && tokenToCast.tokenType == token.primitiveType.getType().getTokenType()) {
         tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
       } else if (tokenToCast.isPrimitiveType() && token.isPrimitiveType() &&
-              isWideningPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType())) {
+              (isWideningPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType()) ||
+               isNarrowingPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType()))) {
         tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
-      } //else if(tokenToCast.tokenType == TokenType.OBJECT && token.isName() && tokenToCast.declaration.getAbsolutePath() == token.name.getName())
-      else if (tokenToCast.tokenType == TokenType.OBJECT && token.isName() && hierarchyGraph.areNodesConnected(/*token.name*/ null, tokenToCast.declaration.getAbsolutePath())) {
+      } else if(tokenToCast.tokenType == TokenType.OBJECT && token.isName() && tokenToCast.getAbsolutePath().equals(token.name.getAbsolutePath())) {
+          tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
+      } else if (tokenToCast.tokenType == TokenType.OBJECT && token.isName() && hierarchyGraph.areNodesConnected(token.name.getAbsolutePath(), tokenToCast.getAbsolutePath())) {
         tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
-      } else {
+      } else if(token.isName() && tokenToCast.tokenType == TokenType.NULL) {
+        tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
+      }
+      else {
         throw new VisitorException("Not castable types: "  + token.toString() + " and " + tokenToCast.toString(), token);
       }
     } catch(TypeHierarchyException e) {
@@ -329,6 +358,21 @@ public class TypeCheckingVisitor extends BaseVisitor {
       return false;
     }
   }
+
+  private boolean isNarrowingPrimitiveConversion(TokenType from, TokenType to) {
+    if(from == TokenType.BYTE) {
+      return to == TokenType.CHAR;
+    } else if(from == TokenType.SHORT) {
+      return to == TokenType.BYTE || to == TokenType.CHAR;
+    } else if(from == TokenType.CHAR) {
+      return to == TokenType.BYTE || to == TokenType.SHORT;
+    } else if(from == TokenType.INT) {
+      return to == TokenType.BYTE || to == TokenType.SHORT || to == TokenType.CHAR;
+    } else {
+      return false;
+    }
+  }
+
 
   private boolean validTypes(TokenType type1, TokenType type2, TokenType[] types) {
     return validType(type1, types) && validType(type2, types);
