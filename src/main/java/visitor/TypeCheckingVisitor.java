@@ -12,6 +12,7 @@ import java.util.Stack;
 
 public class TypeCheckingVisitor extends BaseVisitor {
   private enum OperandSide {LEFT, RIGHT};
+  private final String STRING_CLASS_PATH = "java.lang.String";
 
   private final SymbolTable symbolTable;
   private final HierarchyGraph hierarchyGraph;
@@ -32,10 +33,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     TypeCheckToken literalToken = null;
     if(literal instanceof StringLiteral) {
-      TypeCheckToken stringType = new TypeCheckToken(TokenType.OBJECT);
-      stringType.isArray = false;
-      stringType.absolutePath = "java.lang.String";
-      literalToken = stringType;
+      literalToken = createStringToken();
     } else if(literal instanceof IntLiteral) {
       literalToken = new TypeCheckToken(TokenType.INT);
     } else if(literal instanceof BooleanLiteral) {
@@ -181,10 +179,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     } else if (token.children.get(1).getTokenType() == TokenType.PLUS_OP) {
       // TODO: Fix string
-      TokenType[] validStringConcatTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN, TokenType.STR_LITERAL};
-      if (leftSide.tokenType == TokenType.STR_LITERAL && validType(rightSide.tokenType, validStringConcatTypes) ||
-        rightSide.tokenType == TokenType.STR_LITERAL && validType(leftSide.tokenType, validStringConcatTypes)) {
-        tokenStack.push(new TypeCheckToken(TokenType.STR_LITERAL));
+      TokenType[] validStringConcatTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN};
+      if (leftSide.tokenType == TokenType.OBJECT && leftSide.absolutePath.equals(STRING_CLASS_PATH) && validType(rightSide.tokenType, validStringConcatTypes) ||
+        rightSide.tokenType == TokenType.OBJECT && leftSide.absolutePath.equals(STRING_CLASS_PATH) && validType(leftSide.tokenType, validStringConcatTypes)) {
+        tokenStack.push(createStringToken());
       } else if (validTypes(leftSide.tokenType, rightSide.tokenType, validMinusPlusTypes)) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
       } else {
@@ -365,6 +363,15 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
 
   }
+
+  private TypeCheckToken createStringToken() {
+    TypeCheckToken stringType = new TypeCheckToken(TokenType.OBJECT);
+    stringType.isArray = false;
+    stringType.absolutePath = "java.lang.String";
+    return stringType;
+  }
+
+
 
   private boolean isWideningPrimitiveConversion(TokenType from, TokenType to) {
     if(from == TokenType.BYTE) {
