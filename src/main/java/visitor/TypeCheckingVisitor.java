@@ -279,6 +279,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
   @Override
   public void visit(ConstructorDeclarator token) throws VisitorException {
+    super.visit(token);
     if (token.getIdentifier().equals(node.identifier)) {
       throw new VisitorException("Constructor name " + token.getIdentifier() + " does not match class name " + node.identifier, token);
     }
@@ -303,7 +304,39 @@ public class TypeCheckingVisitor extends BaseVisitor {
     List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, classes);
 
     for (Token declaration : matchingDeclarations) {
-      
+
+    }
+  }
+
+  @Override
+  public void visit(ArrayAccess token) throws VisitorException {
+    TypeCheckToken expressionType = tokenStack.pop();
+    if (expressionType.tokenType != TokenType.INT) {
+      throw new VisitorException("ArrayAccess requires an integer but found " + expressionType.tokenType.toString(), token);
+    }
+
+    if (token.children.get(0) instanceof Name) {
+      Name name = token.name;
+      name.getDeclarationTypes();
+
+      Declaration determinedDecalaration = null;
+      for (Declaration declaration : name.getDeclarationTypes()) {
+        if(declaration instanceof FormalParameter ||
+          declaration instanceof  FieldDeclaration ||
+          declaration instanceof ClassDeclaration) {
+          determinedDecalaration = declaration;
+          break;
+        }
+      }
+
+      if(determinedDecalaration != null) {
+        tokenStack.push(new TypeCheckToken(determinedDecalaration));
+      } else {
+        throw new VisitorException("Failed to find declaration to for array type: " + name.getLexeme(), token);
+      }
+    } else {
+      // Primary case: No need to do anything as Primary type is on top of the stack.
+      // We check to make sure Expression is of type int at the top
     }
   }
 
