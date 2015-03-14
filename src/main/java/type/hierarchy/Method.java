@@ -1,9 +1,6 @@
 package type.hierarchy;
 
-import token.ImportDeclaration;
-import token.ImportDeclarations;
-import token.Modifier;
-import token.TokenType;
+import token.*;
 
 import java.util.ArrayList;
 import java.util.List;

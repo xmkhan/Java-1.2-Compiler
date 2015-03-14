@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class MethodDeclaration extends Declaration {
+public class MethodDeclaration extends BaseMethodDeclaration {
 
   public MethodHeader methodHeader;
   public MethodBody methodBody;
@@ -18,6 +18,7 @@ public class MethodDeclaration extends Declaration {
     methodHeader = (MethodHeader) children.get(0);
     methodBody = (MethodBody) children.get(1);
     identifier = methodHeader.identifier;
+    type = methodHeader.type;
     // To handle implicit scopes, we explicitly add the scope.
     newScope = new Token("{", TokenType.LEFT_BRACE);
     closeScope = new Token("}", TokenType.RIGHT_BRACE);

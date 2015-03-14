@@ -11,19 +11,13 @@ import token.Token;
  * Keeps track of the { variableName -> Type } mapping w.r.t to scopes
  */
 public class VariableScopeVisitor extends BaseVisitor {
-  private final SymbolTable symbolTable;
   private SymbolTable variableTable;
 
-  public VariableScopeVisitor(SymbolTable symbolTable) {
-    this.symbolTable = symbolTable;
+  public VariableScopeVisitor() {
     variableTable = new SymbolTable();
   }
 
   protected SymbolTable getVariableTable() {
-    return variableTable;
-  }
-
-  protected SymbolTable getSymbolTable() {
     return variableTable;
   }
 
