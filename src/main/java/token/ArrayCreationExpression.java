@@ -6,9 +6,25 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class ArrayCreationExpression extends Token {
+  public Expression expression;
+  public PrimitiveType primitiveType;
+  public Name name;
 
   public ArrayCreationExpression(ArrayList<Token> children) {
     super("", TokenType.ArrayCreationExpression, children);
+    for (Token token : children) {
+      assignType(token);
+    }
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof Expression) {
+      expression = (Expression) token;
+    } else if (token instanceof PrimitiveType) {
+      primitiveType = (PrimitiveType) token;
+    } else if (token instanceof Name) {
+      name = (Name) token;
+    }
   }
 
   public void accept(Visitor v) throws VisitorException {
@@ -24,5 +40,13 @@ public class ArrayCreationExpression extends Token {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  public boolean isPrimitiveType() {
+    return primitiveType != null;
+  }
+
+  public boolean isObjectType() {
+    return name != null;
   }
 }
