@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import java.util.List;
 
 /**
@@ -73,6 +74,8 @@ public class Main {
       e.printStackTrace();
       System.err.println(e.getMessage());
       System.exit(42);
+    } catch (EmptyStackException e) {
+
     }
     System.exit(0);
   }
