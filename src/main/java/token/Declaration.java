@@ -16,7 +16,7 @@ public class Declaration extends Token {
   }
 
   public void setAbsolutePath(String absolutePath) {
-    this.absolutePath = absolutePath;
+    if (this.absolutePath == null) this.absolutePath = absolutePath;
   }
 
   public Declaration(String lexeme, TokenType tokenType, ArrayList<Token> children) {
