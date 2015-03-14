@@ -285,6 +285,21 @@ public class TypeCheckingVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(Expression token) throws VisitorException {
+    tokenStack.pop();
+  }
+
+  @Override
+  public void visit(ForInit token) throws VisitorException {
+    tokenStack.pop();
+  }
+
+  @Override
+  public void visit(ForUpdate token) throws VisitorException {
+    tokenStack.pop();
+  }
+
+  @Override
   public void visit(ClassInstanceCreationExpression token) throws VisitorException {
     super.visit(token);
 
@@ -346,6 +361,11 @@ public class TypeCheckingVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(LocalVariableDeclaration token) throws VisitorException {
+    tokenStack.pop();
+  }
+
+    @Override
   public void visit(ArrayCreationExpression token) throws VisitorException {
     if(token.isPrimitiveType()) {
       TypeCheckToken expression = tokenStack.pop();
@@ -446,6 +466,23 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     if (token.children.get(0).getTokenType() == TokenType.THIS) {
       tokenStack.push(new TypeCheckToken((unit.typeDeclaration.getDeclaration())));
+    }
+  }
+
+  @Override
+  public void visit(MethodInvocation token) throws VisitorException {
+    super.visit(token);
+
+    List<TypeCheckToken> arguments = new ArrayList<TypeCheckToken>();
+    for (int i = 0; i < token.argumentList.numArguments(); i++) {
+      arguments.add(tokenStack.pop());
+    }
+
+    if(token.isOnPrimary()) {
+
+    } else if(token.name != null) {
+      Name name = (Name) token.name;
+
     }
   }
 
