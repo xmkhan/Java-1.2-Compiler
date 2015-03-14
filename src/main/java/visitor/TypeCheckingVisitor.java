@@ -286,6 +286,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
   @Override
   public void visit(ClassInstanceCreationExpression token) throws VisitorException {
+    super.visit(token);
+
     List<TypeCheckToken> arguments = new ArrayList<TypeCheckToken>();
     for (int i = 0; i < token.argumentList.numArguments(); i++) {
       arguments.add(tokenStack.pop());
@@ -302,13 +304,57 @@ public class TypeCheckingVisitor extends BaseVisitor {
     String constructor = name.getAbsolutePath() + "." + name.getLexeme();
     List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, classes);
 
+    boolean found = false;
     for (Token declaration : matchingDeclarations) {
-      
+      if(declaration instanceof ConstructorDeclaration) {
+        ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) declaration;
+        List<FormalParameter> parameters = constructorDeclaration.declarator.getParameterList().getFormalParameters();
+        if(parameters.size() == arguments.size()) {
+          boolean allParametersMatch = true;
+          for(int i = 0; i < parameters.size(); i++) {
+            FormalParameter constructorParameter = parameters.get(i);
+            TypeCheckToken calledParameter = arguments.get(parameters.size() - i);
+            if(constructorParameter.isPrimitive() && calledParameter.isPrimitiveType()
+                    && constructorParameter.isArray() == calledParameter.isArray) {
+            } else if(constructorParameter.isReferenceType() && calledParameter.tokenType == TokenType.OBJECT
+                    && constructorParameter.isArray() == calledParameter.isArray &&
+                    constructorParameter.getAbsolutePath().equals(calledParameter.getAbsolutePath())) {
+            } else {
+              allParametersMatch = false;
+              break;
+            }
+          }
+
+          if(allParametersMatch) {
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if(found) {
+      for(Declaration declaration : name.getDeclarationTypes()) {
+        if(declaration instanceof ClassDeclaration) {
+          tokenStack.push(new TypeCheckToken(declaration));
+          break;
+        }
+      }
+    } else {
+      throw new VisitorException("Couldn't find any constructors for " + name.getAbsolutePath(), token);
     }
   }
 
   @Override
   public void visit(ArrayCreationExpression token) throws VisitorException {
+    if(token.isPrimitiveType()) {
+      TypeCheckToken expression = tokenStack.pop();
+      TypeCheckToken primitive = tokenStack.pop();
+      
+    } else {
+
+    }
+
     if (token.isPrimitiveType()) return;
     // call shah's function on token.classType....
     if (false) {
