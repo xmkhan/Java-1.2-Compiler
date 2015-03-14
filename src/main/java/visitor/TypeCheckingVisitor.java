@@ -318,6 +318,27 @@ public class TypeCheckingVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(FieldAccess token) throws VisitorException {
+    super.visit(token);
+    TypeCheckToken firstIdentifier = tokenStack.pop();
+    if (firstIdentifier.isArray) {
+      if (token.identifier.equals("length")) {
+        tokenStack.push(new TypeCheckToken(TokenType.INT));
+        return;
+      } else {
+        throw new VisitorException("Invalid array field access for field: " + token.identifier.getLexeme(), token);
+      }
+    }
+
+    List<Token> potentialFields = symbolTable.findWithPrefixOfAnyType(
+        firstIdentifier.getAbsolutePath() + '.' + token.identifier.getLexeme(), new Class[] {FieldDeclaration.class});
+    if (potentialFields == null || potentialFields.isEmpty()) {
+      throw new VisitorException("No field could be resolved for field: " + token.identifier.getLexeme(), token);
+    }
+    tokenStack.push(new TypeCheckToken((Declaration)potentialFields.get(0)));
+  }
+
+  @Override
   public void visit(LeftHandSide token) throws VisitorException {
     super.visit(token);
     if(token.children.get(0).getTokenType() == TokenType.Name) {
