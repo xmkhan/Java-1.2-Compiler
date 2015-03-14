@@ -10,6 +10,7 @@ import token.FieldDeclaration;
 import token.ImportDeclaration;
 import token.InterfaceDeclaration;
 import token.Name;
+import token.PackageDeclaration;
 import token.Token;
 import token.Type;
 import type.hierarchy.HierarchyGraph;
@@ -119,8 +120,9 @@ public class VariableNameResolutionAlgorithm {
     currentType.append(identifiers[0]);
     Declaration lastMatchedDecl = resolveInitialQualified(unit, name, mostRecentField, currentType, identifiers);
     if (lastMatchedDecl == null) {
-      throw new VariableNameResolutionException("No type found for identifiers[0] of: " + name.getLexeme(), name);
+      throw new VariableNameResolutionException("Nothing qualified for 0th of name: " + name.getLexeme(), name);
     }
+
     // 2.1. Check the object hierarchy, specifically for fields
     for (int i = 1; i < identifiers.length - 1; ++i) {
       boolean match = false;
@@ -131,7 +133,7 @@ public class VariableNameResolutionAlgorithm {
           if (field.getIdentifier().equals(identifiers[i])) {
             currentType.setLength(0);
             currentType.append(getTypePath(field.type));
-            currentType.append('.');
+            lastMatchedDecl = field;
             match = true;
             break;
           }
@@ -139,7 +141,13 @@ public class VariableNameResolutionAlgorithm {
         }
       }
       if (!match) {
-        throw new VariableNameResolutionException("Failed to disambiguate type: " + name.getLexeme(), name);
+        currentType.append('.');
+        currentType.append(identifiers[i]);
+        Declaration pkgDecl = (Declaration) symbolTable.findWithType(
+            currentType.toString(), new Class[] {PackageDeclaration.class});
+        if (pkgDecl == null) {
+          throw new VariableNameResolutionException("Failed to disambiguate type: " + name.getLexeme(), name);
+        }
       }
     }
     List<Declaration> declarations = new ArrayList<Declaration>();
@@ -156,18 +164,30 @@ public class VariableNameResolutionAlgorithm {
 
     // Fill in all matching declarations.
     HierarchyGraphNode node = hierarchyGraph.get(currentType.toString());
-    List<BaseMethodDeclaration> classMethods = node.getAllMethods();
-    for (BaseMethodDeclaration method : classMethods) {
-      if (method.getIdentifier().equals(identifiers[identifiers.length - 1])) {
-        declarations.add(method);
+    if (node != null) {
+      List<BaseMethodDeclaration> classMethods = node.getAllMethods();
+      for (BaseMethodDeclaration method : classMethods) {
+        if (method.getIdentifier().equals(identifiers[identifiers.length - 1])) {
+          declarations.add(method);
 
+        }
       }
-    }
-    List<FieldDeclaration> classFields = node.getAllFields();
-    for (FieldDeclaration field : classFields) {
-      if (field.getIdentifier().equals(identifiers[identifiers.length - 1])) {
-        declarations.add(field);
+      List<FieldDeclaration> classFields = node.getAllFields();
+      for (FieldDeclaration field : classFields) {
+        if (field.getIdentifier().equals(identifiers[identifiers.length - 1])) {
+          declarations.add(field);
+        }
       }
+    } else {
+      currentType.append('.');
+      currentType.append(identifiers[identifiers.length - 1]);
+      Declaration decl = (Declaration) symbolTable.findWithType(
+          currentType.toString(), NameResolutionAlgorithm.CLASS_TYPES);
+      if (decl == null) {
+        throw new VariableNameResolutionException(
+            "Could not disambiguate the last suffix of name: " + name.getLexeme(), name);
+      }
+      declarations.add(decl);
     }
     name.setDeclarationTypes(declarations);
   }
@@ -234,8 +254,12 @@ public class VariableNameResolutionAlgorithm {
         lastMatchedDecl = (Declaration) type;
         currentType.setLength(0);
         currentType.append(lastMatchedDecl.getAbsolutePath());
+        return lastMatchedDecl;
       }
     }
+
+    lastMatchedDecl = (Declaration) symbolTable.findWithType(currentType.toString(), new Class[] {PackageDeclaration.class});
+
     return lastMatchedDecl;
   }
 

@@ -23,7 +23,7 @@ public class HierarchyGraphNode {
   // All the information regarding methods of a class/interface
   public List<Method> methods;
   //pointer to BaseMethodDeclaration AST nodes
-  public List<BaseMethodDeclaration> baseMethodDeclarations;
+  public List<BaseMethodDeclaration> baseMethodDeclarations = new ArrayList<BaseMethodDeclaration>();
   // Class/interface identifier
   public String identifier;
   // List of constructors

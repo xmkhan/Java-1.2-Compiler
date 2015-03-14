@@ -35,6 +35,7 @@ public class FieldDeclaration extends Declaration {
   @Override
   public void accept(Visitor v) throws VisitorException {
     v.visit(modifiers);
+    if (type != null) type.accept(v);
     if (expr != null) expr.accept(v);
     v.visit(delimiter);
     v.visit(this);
@@ -44,6 +45,7 @@ public class FieldDeclaration extends Declaration {
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
     v.visit(modifiers);
+    if (type != null) type.acceptReverse(v);
     if (expr != null) expr.acceptReverse(v);
     v.visit(delimiter);
   }
