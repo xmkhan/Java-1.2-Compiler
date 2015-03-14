@@ -49,6 +49,18 @@ public class SymbolTable {
     return new ArrayList<Token>();
   }
 
+  public Token findWithType(String identifier, Class[] classes) {
+    Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
+    for (Scope<String, Token> scope : table) {
+      if (scope.contains(identifier)) {
+        for (Token token : scope.find(identifier)) {
+          if (classSet.contains(token.getClass())) return token;
+        }
+      }
+    }
+    return null;
+  }
+
   public List<Token> findAll(String identifier) {
     List<Token> results = new ArrayList<Token>();
     for (Scope<String, Token> scope : table) {
