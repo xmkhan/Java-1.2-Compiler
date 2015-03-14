@@ -8,6 +8,7 @@ import type.hierarchy.CompilationUnitsToHierarchyGraphConverter;
 import type.hierarchy.HierarchyChecker;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
+import visitor.DisambiguityVisitor;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
 import visitor.TypeCheckingVisitor;
@@ -54,6 +55,10 @@ public class Main {
       HierarchyGraph graph = converter.convert(compilationUnits);
       HierarchyChecker.verifyHierarchyGraph(graph);
 
+      // 3. Phase 3: Disambiguate types, and perform type checking.
+      DisambiguityVisitor disambiguityVisitor = new DisambiguityVisitor(table, graph);
+      disambiguityVisitor.disambiguateUnits(compilationUnits);
+
       for (CompilationUnit compilationUnit : compilationUnits) {
         if (compilationUnit.typeDeclaration.classDeclaration == null) {
           // we don't need to type check interfaces
@@ -63,7 +68,9 @@ public class Main {
         TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, node);
         compilationUnit.accept(typeCheckingVisitor);
       }
+
     } catch (CompilerException e) {
+      e.printStackTrace();
       System.err.println(e.getMessage());
       System.exit(42);
     }

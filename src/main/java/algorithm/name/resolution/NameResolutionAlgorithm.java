@@ -3,6 +3,7 @@ package algorithm.name.resolution;
 import exception.NameResolutionException;
 import symbol.SymbolTable;
 import token.ClassDeclaration;
+import token.Declaration;
 import token.ImportDeclaration;
 import token.ImportDeclarations;
 import token.InterfaceDeclaration;
@@ -46,16 +47,22 @@ public class NameResolutionAlgorithm {
 
     // 1. Try the enclosing class or interface.
     if (name.getLexeme().equals(typeDeclaration.getDeclaration().getIdentifier())) {
+      name.setAbsolutePath(typeDeclaration.getDeclaration().getAbsolutePath());
       return true;
     }
     // 2. Try any single-type import (A.B.C.D)
-    if (importDeclarations != null && !importDeclarations.getAllImportsWithSuffix(name.getLexeme()).isEmpty()) {
-      return true;
+    if (importDeclarations != null) {
+      List<ImportDeclaration> importDeclarationList = importDeclarations.getAllImportsWithSuffix(name.getLexeme());
+      if (!importDeclarationList.isEmpty()) {
+        name.setAbsolutePath(importDeclarationList.get(0).getLexeme());
+        return true;
+      }
     }
 
     // 3. Try the same package
     String packageName = packageDeclaration != null ? packageDeclaration.getIdentifier() + "." : "";
     if (table.containsAnyOfType(packageName + name.getLexeme(), CLASS_TYPES)) {
+      name.setAbsolutePath(packageName + name.getLexeme());
       return true;
     }
 
@@ -70,7 +77,10 @@ public class NameResolutionAlgorithm {
         uniqueOnDemands.add(decl.getLexeme());
         List<Token> types = table.findWithPrefixOfAnyType(decl.getLexeme(), CLASS_TYPES);
         for (Token type : types) {
-          if (type.getLexeme().equals(name.getLexeme())) matches++;
+          if (type.getLexeme().equals(name.getLexeme())) {
+            matches++;
+            name.setAbsolutePath(((Declaration) type).getAbsolutePath());
+          }
         }
       }
     }
@@ -78,7 +88,10 @@ public class NameResolutionAlgorithm {
     // 4.1 Try java.lang.* implicit on-demand package
     List<Token> javaLangDecls = table.find(JAVA_LANG_PREFIX + name.getLexeme());
     for (Token type : javaLangDecls) {
-      if (type instanceof ClassDeclaration || type instanceof InterfaceDeclaration) matches++;
+      if (type instanceof ClassDeclaration || type instanceof InterfaceDeclaration) {
+        name.setAbsolutePath(((Declaration) type).getAbsolutePath());
+        matches++;
+      }
     }
 
 
@@ -119,6 +132,7 @@ public class NameResolutionAlgorithm {
     if (!table.containsAnyOfType(sb.toString(), CLASS_TYPES)) {
       throw new NameResolutionException("No type could be resolved for Type: " + name.getLexeme());
     }
+    name.setAbsolutePath(sb.toString());
     return true;
   }
 

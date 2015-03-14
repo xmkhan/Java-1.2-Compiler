@@ -7,6 +7,7 @@ import token.*;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 
+import java.util.List;
 import java.util.Stack;
 
 public class TypeCheckingVisitor extends BaseVisitor {

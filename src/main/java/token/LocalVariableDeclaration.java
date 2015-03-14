@@ -9,6 +9,7 @@ public class LocalVariableDeclaration extends Declaration {
 
   public LocalVariableDeclaration(ArrayList<Token> children) {
     super("", TokenType.LocalVariableDeclaration, children);
+    type = (Type) children.get(0);
     identifier = children.get(1);
   }
 

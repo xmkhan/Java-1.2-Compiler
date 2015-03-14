@@ -7,6 +7,7 @@ import java.util.ArrayList;
  */
 public class Declaration extends Token {
   public Token identifier;
+  public Type type;
 
   private String absolutePath;
 

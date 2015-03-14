@@ -6,9 +6,9 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class Type extends Token {
-  PrimitiveType primitiveType;
-  ReferenceType referenceType;
-  Token identifier;
+  public PrimitiveType primitiveType;
+  public ReferenceType referenceType;
+  public Token identifier;
 
   public Type(ArrayList<Token> children) {
     super("", TokenType.Type, children);
