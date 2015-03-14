@@ -13,6 +13,7 @@ import java.util.Stack;
 
 public class TypeCheckingVisitor extends BaseVisitor {
   private enum OperandSide {LEFT, RIGHT};
+  private final String STRING_CLASS_PATH = "java.lang.String";
 
   private final SymbolTable symbolTable;
   private final HierarchyGraph hierarchyGraph;
@@ -35,10 +36,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     TypeCheckToken literalToken = null;
     if(literal instanceof StringLiteral) {
-      TypeCheckToken stringType = new TypeCheckToken(TokenType.OBJECT);
-      stringType.isArray = false;
-      stringType.absolutePath = "java.lang.String";
-      literalToken = stringType;
+      literalToken = createStringToken();
     } else if(literal instanceof IntLiteral) {
       literalToken = new TypeCheckToken(TokenType.INT);
     } else if(literal instanceof BooleanLiteral) {
@@ -57,12 +55,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if(token.children.size() == 1) return;
 
-    TokenType type1 = tokenStack.pop().tokenType;
-    TokenType type2 = tokenStack.pop().tokenType;
-    if(type1 == TokenType.BOOLEAN && type2 == TokenType.BOOLEAN) {
+    TypeCheckToken type1 = tokenStack.pop();
+    TypeCheckToken type2 = tokenStack.pop();
+    if(type1.tokenType == TokenType.BOOLEAN && type2.tokenType == TokenType.BOOLEAN && !type1.isArray && !type2.isArray) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean OR expression expected boolean || boolean but found " + type1.toString() + " || " + type2.toString(), token);
+      throw new VisitorException("Boolean OR expression expected boolean || boolean but found " + type1.tokenType.toString() + " || " + type2.tokenType.toString(), token);
     }
   }
 
@@ -71,12 +69,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if(token.children.size() == 1) return;
 
-    TokenType type1 = tokenStack.pop().tokenType;
-    TokenType type2 = tokenStack.pop().tokenType;
-    if(type1 == TokenType.BOOLEAN && type2 == TokenType.BOOLEAN) {
+    TypeCheckToken type1 = tokenStack.pop();
+    TypeCheckToken type2 = tokenStack.pop();
+    if(type1.tokenType == TokenType.BOOLEAN && type2.tokenType == TokenType.BOOLEAN && !type1.isArray && !type2.isArray) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean AND expression expected boolean && boolean but found " + type1.toString() + " && " + type2.toString(), token);
+      throw new VisitorException("Boolean AND expression expected boolean && boolean but found " + type1.tokenType.toString() + " && " + type2.tokenType.toString(), token);
     }
   }
 
@@ -85,12 +83,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if(token.children.size() == 1) return;
 
-    TokenType type1 = tokenStack.pop().tokenType;
-    TokenType type2 = tokenStack.pop().tokenType;
-    if(type1 == TokenType.BOOLEAN && type2 == TokenType.BOOLEAN) {
+    TypeCheckToken type1 = tokenStack.pop();
+    TypeCheckToken type2 = tokenStack.pop();
+    if(type1.tokenType == TokenType.BOOLEAN && type2.tokenType == TokenType.BOOLEAN && !type1.isArray && !type2.isArray) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean OR expression expected boolean | boolean but found " + type1.toString() + " | " + type2.toString(), token);
+      throw new VisitorException("Boolean OR expression expected boolean | boolean but found " + type1.tokenType.toString() + " | " + type2.tokenType.toString(), token);
     }
   }
 
@@ -184,10 +182,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     } else if (token.children.get(1).getTokenType() == TokenType.PLUS_OP) {
       // TODO: Fix string
-      TokenType[] validStringConcatTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN, TokenType.STR_LITERAL};
-      if (leftSide.tokenType == TokenType.STR_LITERAL && validType(rightSide.tokenType, validStringConcatTypes) ||
-        rightSide.tokenType == TokenType.STR_LITERAL && validType(leftSide.tokenType, validStringConcatTypes)) {
-        tokenStack.push(new TypeCheckToken(TokenType.STR_LITERAL));
+      TokenType[] validStringConcatTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN};
+      if (leftSide.tokenType == TokenType.OBJECT && leftSide.absolutePath.equals(STRING_CLASS_PATH) && validType(rightSide.tokenType, validStringConcatTypes) ||
+        rightSide.tokenType == TokenType.OBJECT && leftSide.absolutePath.equals(STRING_CLASS_PATH) && validType(leftSide.tokenType, validStringConcatTypes)) {
+        tokenStack.push(createStringToken());
       } else if (validTypes(leftSide.tokenType, rightSide.tokenType, validMinusPlusTypes)) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
       } else {
@@ -383,6 +381,15 @@ public class TypeCheckingVisitor extends BaseVisitor {
       tokenStack.push(new TypeCheckToken((unit.typeDeclaration.getDeclaration())));
     }
   }
+
+  private TypeCheckToken createStringToken() {
+    TypeCheckToken stringType = new TypeCheckToken(TokenType.OBJECT);
+    stringType.isArray = false;
+    stringType.absolutePath = "java.lang.String";
+    return stringType;
+  }
+
+
 
   private boolean isWideningPrimitiveConversion(TokenType from, TokenType to) {
     if(from == TokenType.BYTE) {
