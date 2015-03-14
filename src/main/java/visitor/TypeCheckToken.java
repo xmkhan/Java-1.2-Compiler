@@ -40,6 +40,14 @@ public class TypeCheckToken {
     this.declaration = token;
   }
 
+  public boolean isPrimitiveType() {
+    return tokenType == TokenType.BOOLEAN_LITERAL ||
+            tokenType == TokenType.INT_LITERAL ||
+            tokenType == TokenType.CHAR_LITERAL ||
+            tokenType == TokenType.BYTE ||
+            tokenType == TokenType.SHORT;
+  }
+
   @Override
   public String toString() {
     return tokenType.toString() + " isArray = " + isArray;

@@ -70,4 +70,13 @@ public class CastExpression extends Token {
   public boolean isArrayCast() {
     return isArray;
   }
+
+  @Override
+  public String toString() {
+    if(isName()) {
+      return name.getName().getLexeme() + (isArray ? "[]" : "");
+    } else {
+      return primitiveType.getType().getTokenType() +  (isArray ? "[]" : "");
+    }
+  }
 }
