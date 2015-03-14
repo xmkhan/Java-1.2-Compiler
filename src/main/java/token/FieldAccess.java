@@ -9,7 +9,13 @@ public class FieldAccess extends Token {
 
   public FieldAccess(ArrayList<Token> children) {
     super("", TokenType.FieldAccess, children);
+    for (Token token : children) {
+      assignType(token);
+    }
   }
+
+  public Primary primary;
+  public Token identifier;
 
   @Override
   public void accept(Visitor v) throws VisitorException {
@@ -17,6 +23,14 @@ public class FieldAccess extends Token {
       token.accept(v);
     }
     v.visit(this);
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof Primary) {
+      primary = (Primary) token;
+    } else if (token.getTokenType() == TokenType.IDENTIFIER) {
+      identifier = token;
+    }
   }
 
   @Override
