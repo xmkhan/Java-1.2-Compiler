@@ -6,7 +6,9 @@ import exception.VariableNameResolutionException;
 import exception.VisitorException;
 import symbol.SymbolTable;
 import token.CompilationUnit;
+import token.Declaration;
 import token.FieldDeclaration;
+import token.LeftHandSide;
 import token.Name;
 import token.Token;
 import type.hierarchy.HierarchyGraph;
@@ -23,6 +25,7 @@ public class DisambiguityVisitor extends VariableScopeVisitor {
   private final VariableNameResolutionAlgorithm resolutionAlgm;
   private CompilationUnit unit;
   private FieldDeclaration mostRecentField;
+  private boolean isLeftHandSide = false;
 
   public DisambiguityVisitor(SymbolTable symbolTable, HierarchyGraph graph) {
     super();
@@ -48,11 +51,18 @@ public class DisambiguityVisitor extends VariableScopeVisitor {
   @Override
   public void visit(Name token) throws VisitorException {
     super.visit(token);
+    if (isLeftHandSide) {
+      isLeftHandSide = false;
+      Declaration fieldToken = (Declaration) table.findWithType(
+          unit.typeDeclaration.getDeclaration().getAbsolutePath() + '.' + token.getLexeme(),
+          new Class[] {FieldDeclaration.class});
+      if (fieldToken != null) getVariableTable().addDecl(fieldToken.getIdentifier(), fieldToken);
+    }
     try {
       resolutionAlgm.resolveName(unit, token, mostRecentField);
     } catch (VariableNameResolutionException e) {
       e.printStackTrace();
-      throw new DisambiguityVisitorException("Failed to resolve name: " + token.getLexeme(), token);
+      throw new DisambiguityVisitorException(e.getMessage(), token);
     }
   }
 
@@ -60,6 +70,12 @@ public class DisambiguityVisitor extends VariableScopeVisitor {
   public void visit(FieldDeclaration token) throws VisitorException {
     super.visit(token);
     mostRecentField = token;
+  }
+
+  @Override
+  public void visit(LeftHandSide token) throws VisitorException {
+    super.visit(token);
+    isLeftHandSide = true;
   }
 
   @Override

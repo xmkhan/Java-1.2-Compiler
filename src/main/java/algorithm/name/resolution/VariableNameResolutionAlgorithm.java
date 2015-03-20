@@ -41,7 +41,8 @@ public class VariableNameResolutionAlgorithm {
     }
     if (name.getDeclarationTypes() == null || name.getDeclarationTypes().isEmpty()) {
       throw new VariableNameResolutionException(
-          "No Variable name resolution could be made for name:" + name.getLexeme(), name);
+          "No Variable name resolution could be made for name:" + name.getLexeme() + " in class: " +
+              unit.typeDeclaration.getDeclaration().getIdentifier(), name);
     }
   }
 
@@ -54,6 +55,8 @@ public class VariableNameResolutionAlgorithm {
     List<Token> variableSymbols = variableTable.find(name.getLexeme());
     if (!variableSymbols.isEmpty()) {
       declarations.add((Declaration) variableSymbols.get(0));
+      name.setDeclarationTypes(declarations);
+      return;
     }
 
     // 2. Check the object hierarchy
@@ -61,25 +64,30 @@ public class VariableNameResolutionAlgorithm {
     for (BaseMethodDeclaration method : classMethods) {
       if (method.getIdentifier().equals(name.getLexeme())) {
         declarations.add(method);
-
       }
     }
     List<FieldDeclaration> classFields = node.getAllFields();
     for (FieldDeclaration field : classFields) {
+      if (mostRecentField != null && field.equals(mostRecentField)) break;
       if (field.getIdentifier().equals(name.getLexeme())) {
         declarations.add(field);
       }
-      if (mostRecentField != null && field.equals(mostRecentField)) break;
+    }
+    if (!declarations.isEmpty()) {
+      name.setDeclarationTypes(declarations);
+      return;
     }
 
     // 3. Check single import
     if (unit.importDeclarations != null) {
       List<ImportDeclaration> importDeclarations = unit.importDeclarations.getAllImportsWithSuffix(name.getLexeme());
       if (!importDeclarations.isEmpty()) {
-        String absolutePathToType = importDeclarations.get(0).getLexeme() + '.' + name.getLexeme();
+        String absolutePathToType = importDeclarations.get(0).getLexeme();
         Declaration declaration = (Declaration) symbolTable.findWithType(absolutePathToType, NameResolutionAlgorithm.CLASS_TYPES);
         if (declaration != null) {
           declarations.add(declaration);
+          name.setDeclarationTypes(declarations);
+          return;
         }
       }
     }
@@ -87,9 +95,11 @@ public class VariableNameResolutionAlgorithm {
     // 4. Check the same package for a type declaration
     String packageNamePrefix = unit.packageDeclaration != null ? unit.packageDeclaration.getIdentifier() + "." : "";
     String packageClassName = packageNamePrefix + name.getLexeme();
-    Declaration packageClassType = (Declaration) symbolTable.findWithType(packageClassName, NameResolutionAlgorithm.CLASS_TYPES);
-    if (packageClassName != null) {
-      declarations.add(packageClassType);
+    Token packageClassType = symbolTable.findWithType(packageClassName, NameResolutionAlgorithm.CLASS_TYPES);
+    if (packageClassType != null) {
+      declarations.add((Declaration)packageClassType);
+      name.setDeclarationTypes(declarations);
+      return;
     }
 
     // 5. Check on-demand import
@@ -105,7 +115,20 @@ public class VariableNameResolutionAlgorithm {
         }
       }
     }
+
     if (matches > 1) throw new VariableNameResolutionException("Multiple on-demand imports found");
+    else if (matches == 1) {
+      name.setDeclarationTypes(declarations);
+      return;
+    }
+
+    // 6. Try java.lang.* implicit on-demand package
+    List<Token> javaLangDecls = symbolTable.find(NameResolutionAlgorithm.JAVA_LANG_PREFIX + name.getLexeme());
+    for (Token type : javaLangDecls) {
+      if (type instanceof ClassDeclaration || type instanceof InterfaceDeclaration) {
+        declarations.add((Declaration) type);
+      }
+    }
     name.setDeclarationTypes(declarations);
   }
 
@@ -130,6 +153,7 @@ public class VariableNameResolutionAlgorithm {
       if (node != null) {
         List<FieldDeclaration> classFields = node.getAllFields();
         for (FieldDeclaration field : classFields) {
+          // if (mostRecentField != null && field.equals(mostRecentField)) break;
           if (field.getIdentifier().equals(identifiers[i])) {
             currentType.setLength(0);
             currentType.append(getTypePath(field.type));
@@ -262,7 +286,7 @@ public class VariableNameResolutionAlgorithm {
     }
 
     List<Token> pkgs = symbolTable.findWithPrefixOfAnyType(currentType.toString(), new Class[] {PackageDeclaration.class});
-    if (pkgs != null) lastMatchedDecl = (Declaration) pkgs.get(0);
+    if (pkgs != null && !pkgs.isEmpty()) lastMatchedDecl = (Declaration) pkgs.get(0);
     return lastMatchedDecl;
   }
 

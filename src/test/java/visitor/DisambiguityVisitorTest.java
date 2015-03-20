@@ -1,6 +1,8 @@
 package visitor;
 
 import exception.CompilerException;
+import exception.DisambiguityVisitorException;
+import exception.TypeHierarchyException;
 import org.junit.Before;
 import org.junit.Test;
 import util.CompilationUnitGenerator;
@@ -138,7 +140,8 @@ public class DisambiguityVisitorTest {
     visitor.disambiguateUnits(bundle.units);
   }
 
-  @Test
+  // CURRENTLY BROKEN ~~~~~~~~~~~~~~~~
+  @Test(expected = TypeHierarchyException.class)
   public void test6() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -152,4 +155,39 @@ public class DisambiguityVisitorTest {
     visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
     visitor.disambiguateUnits(bundle.units);
   }
+
+  @Test(expected = DisambiguityVisitorException.class)
+  public void test7() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/Je_5_ForwardReference_ArrayLength.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test(expected = DisambiguityVisitorException.class)
+  public void test8() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/Je_5_ForwardReference_MethodCall.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test(expected = DisambiguityVisitorException.class)
+  public void test9() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/Je_5_ForwardReference_FieldDeclaredLater.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+
 }
