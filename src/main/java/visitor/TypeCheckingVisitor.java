@@ -280,7 +280,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(ConstructorDeclarator token) throws VisitorException {
     super.visit(token);
-    if (token.getIdentifier().equals(node.identifier)) {
+    if (!token.getIdentifier().equals(node.identifier)) {
       throw new VisitorException("Constructor name " + token.getIdentifier() + " does not match class name " + node.identifier, token);
     }
   }
@@ -375,13 +375,13 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     if (token.children.get(0) instanceof Name) {
       Name name = token.name;
-      name.getDeclarationTypes();
 
       Declaration determinedDecalaration = null;
       for (Declaration declaration : name.getDeclarationTypes()) {
         if(declaration instanceof FormalParameter ||
           declaration instanceof  FieldDeclaration ||
-          declaration instanceof ClassDeclaration) {
+          declaration instanceof ClassDeclaration ||
+          declaration instanceof LocalVariableDeclaration) {
           determinedDecalaration = declaration;
           break;
         }
@@ -410,10 +410,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     if (token.isPrimitiveType()) return;
     // call shah's function on token.classType....
-    if (false) {
+    /*if (false) {
       // ClassType was abstract
       throw new VisitorException("Abstract class " + " cannot be instantiated", token);
-    }
+    }*/
   }
 
   @Override

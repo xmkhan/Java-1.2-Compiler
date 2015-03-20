@@ -75,7 +75,7 @@ public class Main {
       System.err.println(e.getMessage());
       System.exit(42);
     } catch (EmptyStackException e) {
-
+      System.exit(0);
     }
     System.exit(0);
   }
