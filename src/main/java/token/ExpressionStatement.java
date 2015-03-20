@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class ExpressionStatement extends Token {
+public class ExpressionStatement extends BaseStatement {
 
   public ExpressionStatement(ArrayList<Token> children) {
     super("", TokenType.ExpressionStatement, children);
