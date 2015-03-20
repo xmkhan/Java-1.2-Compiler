@@ -10,6 +10,7 @@ public class ForStatement extends BaseStatement {
   public ForInit forInit;
   public ForUpdate forUpdate;
   public Statement statement;
+  public Expression expression;
 
   public ForStatement(ArrayList<Token> children) {
     super("", TokenType.ForStatement, children);
@@ -28,6 +29,8 @@ public class ForStatement extends BaseStatement {
       forUpdate = (ForUpdate) token;
     } else if (token instanceof Statement) {
       statement = (Statement) token;
+    } else if(token instanceof Expression) {
+      expression = (Expression) token;
     }
   }
 
