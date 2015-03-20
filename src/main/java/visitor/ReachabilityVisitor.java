@@ -32,12 +32,12 @@ public class ReachabilityVisitor extends BaseVisitor {
     switch (mode) {
       case MODE_IN:
         stmt2.in = stmt1.in;
+        assertStatementEnterable(stmt2);
         break;
       case MODE_OUT:
         stmt1.out = stmt1.in;
         break;
     }
-    assertStatementEnterable(stmt2);
   }
 
   @Override
@@ -47,14 +47,13 @@ public class ReachabilityVisitor extends BaseVisitor {
     BaseStatement stmt3 = (BaseStatement) stmt1.children.get(6);
     switch (mode) {
       case MODE_IN:
+        stmt2.in = stmt3.in = stmt1.in;
+        assertStatementEnterable(stmt2);
         break;
       case MODE_OUT:
+        stmt1.out = stmt2.out | stmt3.out;
         break;
     }
-    stmt2.in = stmt3.in = stmt1.in;
-    stmt1.out = stmt2.out | stmt3.out;
-
-    assertStatementEnterable(stmt2);
   }
 
   @Override
@@ -64,12 +63,13 @@ public class ReachabilityVisitor extends BaseVisitor {
     BaseStatement stmt3 = (BaseStatement) stmt1.children.get(6);
     switch (mode) {
       case MODE_IN:
+        stmt2.in = stmt3.in = stmt1.in;
+        assertStatementEnterable(stmt2);
         break;
       case MODE_OUT:
+        stmt1.out = stmt2.out | stmt3.out;
         break;
     }
-    stmt2.in = stmt3.in = stmt1.in;
-    assertStatementEnterable(stmt2);
   }
 
   @Override
@@ -96,24 +96,29 @@ public class ReachabilityVisitor extends BaseVisitor {
 
     switch (mode) {
       case MODE_IN:
+        token.blockStatements.get(0).in = token.in;
+        assertStatementEnterable(token.blockStatements.get(0));
         break;
       case MODE_OUT:
+        for(int a = 1; a < token.blockStatements.size(); a++) {
+          token.blockStatements.get(a).in = token.blockStatements.get(a - 1).out;
+          assertStatementEnterable(token.blockStatements.get(a));
+        }
+        token.out = token.blockStatements.get(token.blockStatements.size() - 1).out;
         break;
     }
-    token.blockStatements.get(0).in = token.in;
-    for(int a = 1; a < token.blockStatements.size(); a++) {
-      token.blockStatements.get(a).in = token.blockStatements.get(a - 1).out;
-      assertStatementEnterable(token.blockStatements.get(a));
-    }
-    token.out = token.blockStatements.get(token.blockStatements.size() - 1).out;
   }
 
   @Override
   public void visit(MethodBody token) throws VisitorException {
     super.visit(token);
     if(!token.isEmpty()) {
-      BaseStatement block = (BaseStatement) token.children.get(0);
-      block.in = true;
+      switch (mode) {
+        case MODE_IN:
+          BaseStatement block = (BaseStatement) token.children.get(0);
+          block.in = true;
+          break;
+      }
     }
   }
 
@@ -125,12 +130,13 @@ public class ReachabilityVisitor extends BaseVisitor {
     BlockStatements blockStatements = (BlockStatements) token.children.get(1);
     switch (mode) {
       case MODE_IN:
+        blockStatements.in = token.in;
+        assertStatementEnterable(blockStatements);
         break;
       case MODE_OUT:
+        token.out = blockStatements.out;
         break;
     }
-    blockStatements.in = token.in;
-    assertStatementEnterable(blockStatements);
   }
 
   @Override
@@ -140,9 +146,9 @@ public class ReachabilityVisitor extends BaseVisitor {
       case MODE_IN:
         break;
       case MODE_OUT:
+        stmt1.out = false;
         break;
     }
-    stmt1.out = false;
   }
 
   @Override
@@ -167,14 +173,13 @@ public class ReachabilityVisitor extends BaseVisitor {
     if(evaluation == null) {
       switch (mode) {
         case MODE_IN:
+          statementBeingEntered.in = currentStatement.in;
+          assertStatementEnterable(statementBeingEntered);
           break;
         case MODE_OUT:
+          currentStatement.out = currentStatement.in;
           break;
       }
-      statementBeingEntered.in = currentStatement.in;
-      currentStatement.out = currentStatement.in;
-
-      assertStatementEnterable(statementBeingEntered);
       return;
     }
 
@@ -185,31 +190,31 @@ public class ReachabilityVisitor extends BaseVisitor {
       if (evaluationVisitor.getLastValue()) {
         switch (mode) {
           case MODE_IN:
+            statementBeingEntered.in = currentStatement.in;
             break;
           case MODE_OUT:
+            currentStatement.out = false;
             break;
         }
-        statementBeingEntered.in = currentStatement.in;
-        currentStatement.out = false;
       } else {
         switch (mode) {
           case MODE_IN:
+            statementBeingEntered.in = false;
             break;
           case MODE_OUT:
+            currentStatement.out = currentStatement.in;
             break;
         }
-        statementBeingEntered.in = false;
-        currentStatement.out = currentStatement.in;
       }
     } catch(VisitorException e) {
      switch (mode) {
        case MODE_IN:
+         statementBeingEntered.in = currentStatement.in;
          break;
        case MODE_OUT:
+         currentStatement.out = currentStatement.in;
          break;
      }
-      statementBeingEntered.in = currentStatement.in;
-      currentStatement.out = currentStatement.in;
     }
 
     assertStatementEnterable(statementBeingEntered);
