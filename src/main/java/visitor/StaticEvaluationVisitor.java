@@ -217,12 +217,12 @@ public class StaticEvaluationVisitor extends BaseVisitor {
 
   private Literal constructLiteralResult(boolean resultBoolean) {
     Token token = new Token(resultBoolean + "", TokenType.BOOLEAN_LITERAL);
-    ArrayList<Token> intToken = new ArrayList<Token>();
-    intToken.add(token);
-    IntLiteral intLiteral = new IntLiteral(intToken);
+    ArrayList<Token> booleanToken = new ArrayList<Token>();
+    booleanToken.add(token);
+    BooleanLiteral booleanLiteral = new BooleanLiteral(booleanToken);
 
     ArrayList<Token> tokens = new ArrayList<Token>();
-    tokens.add(intLiteral);
+    tokens.add(booleanLiteral);
     return new Literal(tokens);
   }
 }
