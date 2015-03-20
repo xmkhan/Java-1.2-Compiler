@@ -3,18 +3,40 @@ package visitor;
 import exception.VisitorException;
 import token.*;
 
+import java.util.List;
+
 /**
  * Visits stmts to figure out if it can get in and out of stmts.
  */
 public class ReachabilityVisitor extends BaseVisitor {
 
+  private enum MODE { MODE_IN, MODE_OUT}
+
+  private MODE mode;
+
+  public void checkReachability(List<CompilationUnit> units) throws VisitorException{
+    mode = MODE.MODE_IN;
+    for (CompilationUnit unit : units) {
+      unit.acceptReverse(this);
+    }
+    mode = MODE.MODE_OUT;
+    for (CompilationUnit unit : units) {
+      unit.accept(this);
+    }
+  }
+
   @Override
   public void visit(IfThenStatement stmt1) throws VisitorException {
     super.visit(stmt1);
     BaseStatement stmt2 = (BaseStatement) stmt1.children.get(4);
-    stmt2.in = stmt1.in;
-    stmt1.out = stmt1.in;
-
+    switch (mode) {
+      case MODE_IN:
+        stmt2.in = stmt1.in;
+        break;
+      case MODE_OUT:
+        stmt1.out = stmt1.in;
+        break;
+    }
     assertStatementEnterable(stmt2);
   }
 
@@ -23,6 +45,12 @@ public class ReachabilityVisitor extends BaseVisitor {
     super.visit(stmt1);
     BaseStatement stmt2 = (BaseStatement) stmt1.children.get(4);
     BaseStatement stmt3 = (BaseStatement) stmt1.children.get(6);
+    switch (mode) {
+      case MODE_IN:
+        break;
+      case MODE_OUT:
+        break;
+    }
     stmt2.in = stmt3.in = stmt1.in;
     stmt1.out = stmt2.out | stmt3.out;
 
@@ -34,6 +62,12 @@ public class ReachabilityVisitor extends BaseVisitor {
     super.visit(stmt1);
     BaseStatement stmt2 = (BaseStatement) stmt1.children.get(4);
     BaseStatement stmt3 = (BaseStatement) stmt1.children.get(6);
+    switch (mode) {
+      case MODE_IN:
+        break;
+      case MODE_OUT:
+        break;
+    }
     stmt2.in = stmt3.in = stmt1.in;
     assertStatementEnterable(stmt2);
   }
@@ -44,7 +78,7 @@ public class ReachabilityVisitor extends BaseVisitor {
     BaseStatement stmt2 = (BaseStatement) stmt1.children.get(4);
     Token evaluatedToken = stmt1.children.get(2);
 
-    CheckLookReachable(evaluatedToken, stmt1, stmt2);
+    CheckLoopReachable(evaluatedToken, stmt1, stmt2);
   }
 
   @Override
@@ -53,13 +87,19 @@ public class ReachabilityVisitor extends BaseVisitor {
     BaseStatement stmt2 = (BaseStatement) stmt1.children.get(4);
     Token evaluatedToken = stmt1.children.get(2);
 
-    CheckLookReachable(evaluatedToken, stmt1, stmt2);
+    CheckLoopReachable(evaluatedToken, stmt1, stmt2);
   }
 
   @Override
   public void visit(BlockStatements token) throws VisitorException {
     super.visit(token);
 
+    switch (mode) {
+      case MODE_IN:
+        break;
+      case MODE_OUT:
+        break;
+    }
     token.blockStatements.get(0).in = token.in;
     for(int a = 1; a < token.blockStatements.size(); a++) {
       token.blockStatements.get(a).in = token.blockStatements.get(a - 1).out;
@@ -83,6 +123,12 @@ public class ReachabilityVisitor extends BaseVisitor {
     if(token.children.size() == 2) return;
 
     BlockStatements blockStatements = (BlockStatements) token.children.get(1);
+    switch (mode) {
+      case MODE_IN:
+        break;
+      case MODE_OUT:
+        break;
+    }
     blockStatements.in = token.in;
     assertStatementEnterable(blockStatements);
   }
@@ -90,6 +136,12 @@ public class ReachabilityVisitor extends BaseVisitor {
   @Override
   public void visit(ReturnStatement stmt1) throws VisitorException {
     super.visit(stmt1);
+    switch (mode) {
+      case MODE_IN:
+        break;
+      case MODE_OUT:
+        break;
+    }
     stmt1.out = false;
   }
 
@@ -99,7 +151,7 @@ public class ReachabilityVisitor extends BaseVisitor {
     BaseStatement stmt2 = stmt1.statement;
     Token evaluatedToken = stmt1.expression;
 
-    CheckLookReachable(evaluatedToken, stmt1, stmt2);
+    CheckLoopReachable(evaluatedToken, stmt1, stmt2);
   }
 
   @Override
@@ -108,11 +160,17 @@ public class ReachabilityVisitor extends BaseVisitor {
     BaseStatement stmt2 = stmt1.statement;
     Token evaluatedToken = stmt1.expression;
 
-    CheckLookReachable(evaluatedToken, stmt1, stmt2);
+    CheckLoopReachable(evaluatedToken, stmt1, stmt2);
   }
 
-  public void CheckLookReachable(Token evaluation, BaseStatement currentStatement, BaseStatement statementBeingEntered) throws VisitorException{
+  public void CheckLoopReachable(Token evaluation, BaseStatement currentStatement, BaseStatement statementBeingEntered) throws VisitorException{
     if(evaluation == null) {
+      switch (mode) {
+        case MODE_IN:
+          break;
+        case MODE_OUT:
+          break;
+      }
       statementBeingEntered.in = currentStatement.in;
       currentStatement.out = currentStatement.in;
 
@@ -125,13 +183,31 @@ public class ReachabilityVisitor extends BaseVisitor {
       evaluation.accept(evaluationVisitor);
 
       if (evaluationVisitor.getLastValue()) {
+        switch (mode) {
+          case MODE_IN:
+            break;
+          case MODE_OUT:
+            break;
+        }
         statementBeingEntered.in = currentStatement.in;
         currentStatement.out = false;
       } else {
+        switch (mode) {
+          case MODE_IN:
+            break;
+          case MODE_OUT:
+            break;
+        }
         statementBeingEntered.in = false;
         currentStatement.out = currentStatement.in;
       }
     } catch(VisitorException e) {
+     switch (mode) {
+       case MODE_IN:
+         break;
+       case MODE_OUT:
+         break;
+     }
       statementBeingEntered.in = currentStatement.in;
       currentStatement.out = currentStatement.in;
     }
