@@ -1,5 +1,6 @@
 package visitor;
 
+import exception.ReachabilityVisitorException;
 import exception.VisitorException;
 import token.*;
 
@@ -222,7 +223,7 @@ public class ReachabilityVisitor extends BaseVisitor {
 
   public void assertStatementEnterable(BaseStatement statement) throws VisitorException {
     if(statement.in == false) {
-      throw new VisitorException("Statement can not be reached", statement);
+      throw new ReachabilityVisitorException("Statement can not be reached", statement);
     }
   }
 }
