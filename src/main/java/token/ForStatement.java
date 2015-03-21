@@ -5,13 +5,33 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class ForStatement extends Token {
+public class ForStatement extends BaseStatement {
+
+  public ForInit forInit;
+  public ForUpdate forUpdate;
+  public Statement statement;
+  public Expression expression;
 
   public ForStatement(ArrayList<Token> children) {
     super("", TokenType.ForStatement, children);
+    for (Token token : children) {
+      assignType(token);
+    }
     // To handle implicit scopes, we explicitly add the scope.
     children.add(0, new Token("{", TokenType.LEFT_BRACE));
     children.add(new Token("}", TokenType.RIGHT_BRACE));
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof ForInit) {
+      forInit = (ForInit) token;
+    } else if (token instanceof ForUpdate) {
+      forUpdate = (ForUpdate) token;
+    } else if (token instanceof Statement) {
+      statement = (Statement) token;
+    } else if(token instanceof Expression) {
+      expression = (Expression) token;
+    }
   }
 
   @Override

@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class BlockStatement extends Token {
+public class BlockStatement extends BaseStatement {
 
   public BlockStatement(ArrayList<Token> children) {
     super("", TokenType.BlockStatement, children);

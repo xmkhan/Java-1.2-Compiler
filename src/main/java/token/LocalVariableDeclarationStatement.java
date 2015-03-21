@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class LocalVariableDeclarationStatement extends Token {
+public class LocalVariableDeclarationStatement extends BaseStatement {
 
   public LocalVariableDeclarationStatement(ArrayList<Token> children) {
     super("", TokenType.LocalVariableDeclarationStatement, children);

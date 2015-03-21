@@ -7,8 +7,13 @@ import java.util.ArrayList;
 
 public class MethodBody extends Token {
 
+  public Block block;
+
   public MethodBody(ArrayList<Token> children) {
     super("", TokenType.MethodBody, children);
+    for (Token token : children) {
+      assignType(token);
+    }
   }
 
   public boolean isEmpty() {
@@ -21,6 +26,12 @@ public class MethodBody extends Token {
       token.accept(v);
     }
     v.visit(this);
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof Block) {
+      block = ((Block) token);
+    }
   }
 
   @Override

@@ -12,6 +12,7 @@ import visitor.DisambiguityVisitor;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
 import visitor.TypeCheckingVisitor;
+import visitor.ReachabilityVisitor;
 import visitor.TypeLinkingVisitor;
 
 import java.io.File;
@@ -70,6 +71,9 @@ public class Main {
         compilationUnit.accept(typeCheckingVisitor);
       }
 
+      // 4. Phase 4: Static analysis
+//      ReachabilityVisitor reachabilityVisitor = new ReachabilityVisitor();
+//      reachabilityVisitor.checkReachability(compilationUnits);
     } catch (CompilerException e) {
       e.printStackTrace();
       System.err.println(e.getMessage());
