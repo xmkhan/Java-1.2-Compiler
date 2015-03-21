@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class StatementWithoutTrailingSubstatement extends Token {
+public class StatementWithoutTrailingSubstatement extends BaseStatement {
 
   public StatementWithoutTrailingSubstatement(ArrayList<Token> children) {
     super("", TokenType.StatementWithoutTrailingSubstatement, children);
