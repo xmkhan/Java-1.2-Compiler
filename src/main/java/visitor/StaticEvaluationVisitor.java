@@ -47,19 +47,14 @@ public class StaticEvaluationVisitor extends BaseVisitor {
     int secondValue = Integer.parseInt(second.getLexeme());
     int firstValue = Integer.parseInt(first.getLexeme());
 
-    switch (token.children.get(1).getLexeme()) {
-      case "<":
-        results.push(constructLiteralResult(firstValue < secondValue));
-        break;
-      case ">":
-        results.push(constructLiteralResult(firstValue > secondValue));
-        break;
-      case "<=":
-        results.push(constructLiteralResult(firstValue <= secondValue));
-        break;
-      case ">=":
-        results.push(constructLiteralResult(firstValue >= secondValue));
-        break;
+    if (token.children.get(1).getLexeme().equals("<")) {
+      results.push(constructLiteralResult(firstValue < secondValue));
+    } else if (token.children.get(1).getLexeme().equals(">")) {
+      results.push(constructLiteralResult(firstValue > secondValue));
+    } else if (token.children.get(1).getLexeme().equals("<=")) {
+      results.push(constructLiteralResult(firstValue <= secondValue));
+    } else if (token.children.get(1).getLexeme().equals(">=")) {
+      results.push(constructLiteralResult(firstValue >= secondValue));
     }
   }
 
