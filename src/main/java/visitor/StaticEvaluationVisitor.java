@@ -183,6 +183,8 @@ public class StaticEvaluationVisitor extends BaseVisitor {
   }
 
   public void visit(AdditiveExpression token) throws VisitorException {
+    if(token.children.size() == 1) return;
+
     Literal second = results.pop();
     Literal first = results.pop();
 

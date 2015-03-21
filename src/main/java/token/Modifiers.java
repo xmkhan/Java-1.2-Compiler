@@ -9,6 +9,13 @@ public class Modifiers extends Token {
 
   private ArrayList<Modifier> modifiers;
 
+  public boolean containsModifier(String modifier) {
+    for (Modifier m : modifiers) {
+      if (m.getLexeme().equals(modifier)) return true;
+    }
+    return false;
+  }
+
   /**
    * Gets the list of modifiers
    */

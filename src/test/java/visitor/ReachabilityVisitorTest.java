@@ -32,11 +32,41 @@ public class ReachabilityVisitorTest {
     visitor.checkReachability(bundle.units);
   }
 
+  @Test
+  public void testWhileTrue() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/reachability/J1_whiletrue1.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor.checkReachability(bundle.units);
+  }
+
+  @Test
+  public void testReachableReturn() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/reachability/J1_7_Reachability_IfAndWhile_Return.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor.checkReachability(bundle.units);
+  }
+
   @Test(expected = ReachabilityVisitorException.class)
   public void testInvalidReachability() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
         "src/test/resources/reachability/Je_7_Return_IfIfNot.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor.checkReachability(bundle.units);
+  }
+
+  @Test(expected = ReachabilityVisitorException.class)
+  public void testInitToItself() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/reachability/Je_8_DefiniteAssignment_InitToItself.java"
     ));
     bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
     visitor.checkReachability(bundle.units);

@@ -83,6 +83,42 @@ public class ReachabilityVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(BlockStatement stmt1) throws VisitorException {
+    super.visit(stmt1);
+    propagate(stmt1);
+  }
+
+  @Override
+  public void visit(StatementWithoutTrailingSubstatement stmt1) throws VisitorException {
+    super.visit(stmt1);
+    propagate(stmt1);
+  }
+
+  @Override
+  public void visit(Statement stmt1) throws VisitorException {
+    super.visit(stmt1);
+    propagate(stmt1);
+  }
+
+  @Override
+  public void visit(StatementNoShortIf stmt1) throws VisitorException {
+    super.visit(stmt1);
+    propagate(stmt1);
+  }
+
+  private void propagate(BaseStatement stmt1) {
+    BaseStatement stmt2 = (BaseStatement) stmt1.children.get(0);
+    switch (mode) {
+      case MODE_IN:
+        stmt2.in = stmt1.in;
+        break;
+      case MODE_OUT:
+        stmt1.out = stmt2.out;
+        break;
+    }
+  }
+
+  @Override
   public void visit(WhileStatementNoShortIf stmt1) throws VisitorException {
     super.visit(stmt1);
     BaseStatement stmt2 = (BaseStatement) stmt1.children.get(4);
@@ -114,12 +150,35 @@ public class ReachabilityVisitor extends BaseVisitor {
   public void visit(MethodBody token) throws VisitorException {
     super.visit(token);
     if(!token.isEmpty()) {
+      BaseStatement block = (BaseStatement) token.children.get(0);
       switch (mode) {
         case MODE_IN:
-          BaseStatement block = (BaseStatement) token.children.get(0);
           block.in = true;
           break;
       }
+    }
+  }
+
+  @Override
+  public void visit(MethodDeclaration token) throws VisitorException {
+    super.visit(token);
+
+    switch (mode) {
+      case MODE_IN:
+        boolean containsNative = token.methodHeader.modifiers != null &&
+            token.methodHeader.modifiers.containsModifier("native");
+        boolean containsAbstract = token.methodHeader.modifiers != null &&
+            token.methodHeader.modifiers.containsModifier("abstract");
+
+        if (!token.methodHeader.isVoid() && token.methodBody.isEmpty() && !containsNative && !containsAbstract) {
+          throw new ReachabilityVisitorException("Missing return statement", token);
+        }
+      break;
+      case MODE_OUT:
+        if (!token.methodHeader.isVoid() && !token.methodBody.isEmpty() && token.methodBody.block.out) {
+          throw new ReachabilityVisitorException("Non-executed return statement", token);
+        }
+      break;
     }
   }
 
@@ -169,6 +228,8 @@ public class ReachabilityVisitor extends BaseVisitor {
 
     CheckLoopReachable(evaluatedToken, stmt1, stmt2);
   }
+
+
 
   public void CheckLoopReachable(Token evaluation, BaseStatement currentStatement, BaseStatement statementBeingEntered) throws VisitorException{
     if(evaluation == null) {
