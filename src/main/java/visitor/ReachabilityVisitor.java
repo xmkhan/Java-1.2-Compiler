@@ -178,7 +178,7 @@ public class ReachabilityVisitor extends BaseVisitor {
           assertStatementEnterable(statementBeingEntered);
           break;
         case MODE_OUT:
-          currentStatement.out = currentStatement.in;
+          currentStatement.out = false;
           break;
       }
       return;
@@ -213,7 +213,7 @@ public class ReachabilityVisitor extends BaseVisitor {
          statementBeingEntered.in = currentStatement.in;
          break;
        case MODE_OUT:
-         currentStatement.out = currentStatement.in;
+         currentStatement.out = statementBeingEntered.out;
          break;
      }
     }
