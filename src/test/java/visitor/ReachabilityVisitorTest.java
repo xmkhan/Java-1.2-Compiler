@@ -72,4 +72,13 @@ public class ReachabilityVisitorTest {
     visitor.checkReachability(bundle.units);
   }
 
+  @Test(expected = ReachabilityVisitorException.class)
+  public void testWidening() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+            "src/test/resources/reachability/Je_Widening.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor.checkReachability(bundle.units);
+  }
 }

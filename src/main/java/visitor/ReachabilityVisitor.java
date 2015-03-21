@@ -1,6 +1,7 @@
 package visitor;
 
 import exception.ReachabilityVisitorException;
+import exception.StaticEvaluationVisitorException;
 import exception.VisitorException;
 import token.*;
 
@@ -268,13 +269,13 @@ public class ReachabilityVisitor extends BaseVisitor {
             break;
         }
       }
-    } catch(VisitorException e) {
+    } catch(StaticEvaluationVisitorException e) {
      switch (mode) {
        case MODE_IN:
          statementBeingEntered.in = currentStatement.in;
          break;
        case MODE_OUT:
-         currentStatement.out = statementBeingEntered.out;
+         currentStatement.out = currentStatement.in;
          break;
      }
     }

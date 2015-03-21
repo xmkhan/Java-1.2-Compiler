@@ -1,5 +1,7 @@
 package visitor;
 
+import exception.ReachabilityVisitorException;
+import exception.StaticEvaluationVisitorException;
 import exception.VisitorException;
 import token.*;
 
@@ -16,7 +18,7 @@ public class StaticEvaluationVisitor extends BaseVisitor {
 
   public boolean getLastValue() throws VisitorException {
     if(results.size() != 1) {
-      throw new VisitorException("Too many or too little elements in stack", null);
+      throw new StaticEvaluationVisitorException("Too many or too little elements in stack", null);
     }
 
     return Boolean.valueOf(results.pop().getLexeme());
@@ -27,7 +29,7 @@ public class StaticEvaluationVisitor extends BaseVisitor {
     super.visit(token);
 
     if(token.isStringLiteral()) {
-      throw new VisitorException("Can not evaluate", token);
+      throw new StaticEvaluationVisitorException("Can not evaluate", token);
     }
 
     results.push(token);
@@ -38,7 +40,7 @@ public class StaticEvaluationVisitor extends BaseVisitor {
 
     if(token.children.size() == 1) return;
     if(token.children.get(1).getLexeme().equals("instanceof")) {
-      throw new VisitorException("instance of not supported", token);
+      throw new StaticEvaluationVisitorException("instance of not supported", token);
     }
 
     Literal second = results.pop();
@@ -127,38 +129,38 @@ public class StaticEvaluationVisitor extends BaseVisitor {
 
   public void visit(MethodInvocation token) throws VisitorException {
     super.visit(token);
-    throw new VisitorException("Method invocation can not be analyzed", token);
+    throw new StaticEvaluationVisitorException("Method invocation can not be analyzed", token);
   }
 
   public void visit(ClassInstanceCreationExpression token) throws VisitorException {
     super.visit(token);
-    throw new VisitorException("ClassInstanceCreationExpression can not be analyzed", token);
+    throw new StaticEvaluationVisitorException("ClassInstanceCreationExpression can not be analyzed", token);
   }
 
   public void visit(ArrayCreationExpression token) throws VisitorException {
     super.visit(token);
-    throw new VisitorException("ArrayCreationExpression can not be analyzed", token);
+    throw new StaticEvaluationVisitorException("ArrayCreationExpression can not be analyzed", token);
   }
 
   public void visit(FieldAccess token) throws VisitorException {
     super.visit(token);
-    throw new VisitorException("FieldAccess can not be analyzed", token);
+    throw new StaticEvaluationVisitorException("FieldAccess can not be analyzed", token);
   }
 
   public void visit(ArrayAccess token) throws VisitorException {
     super.visit(token);
-    throw new VisitorException("ArrayAccess can not be analyzed", token);
+    throw new StaticEvaluationVisitorException("ArrayAccess can not be analyzed", token);
   }
 
   public void visit(Name token) throws VisitorException {
     super.visit(token);
-    throw new VisitorException("Name can not be analyzed", token);
+    throw new StaticEvaluationVisitorException("Name can not be analyzed", token);
   }
 
   public void visit(Primary token) throws VisitorException {
     super.visit(token);
     if(token.children.size() == 1 && token.children.get(0).equals("this")) {
-      throw new VisitorException("this can not be analyzed", token);
+      throw new StaticEvaluationVisitorException("this can not be analyzed", token);
     }
   }
 
