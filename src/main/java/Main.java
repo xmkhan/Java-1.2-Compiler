@@ -10,6 +10,7 @@ import type.hierarchy.HierarchyGraph;
 import visitor.DisambiguityVisitor;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
+import visitor.ReachabilityVisitor;
 import visitor.TypeLinkingVisitor;
 
 import java.io.File;
@@ -56,6 +57,10 @@ public class Main {
       // 3. Phase 3: Disambiguate types, and perform type checking.
       DisambiguityVisitor disambiguityVisitor = new DisambiguityVisitor(table, graph);
       disambiguityVisitor.disambiguateUnits(compilationUnits);
+
+      // 4. Phase 4: Static analysis
+      ReachabilityVisitor reachabilityVisitor = new ReachabilityVisitor();
+      reachabilityVisitor.checkReachability(compilationUnits);
 
     } catch (CompilerException e) {
       e.printStackTrace();

@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class IfThenElseStatement extends Token {
+public class IfThenElseStatement extends BaseStatement {
 
   public IfThenElseStatement(ArrayList<Token> children) {
     super("", TokenType.IfThenElseStatement, children);

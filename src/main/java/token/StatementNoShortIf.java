@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class StatementNoShortIf extends Token {
+public class StatementNoShortIf extends BaseStatement {
 
   public StatementNoShortIf(ArrayList<Token> children) {
     super("", TokenType.StatementNoShortIf, children);
