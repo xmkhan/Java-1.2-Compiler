@@ -110,6 +110,14 @@ public class HierarchyGraphNode {
     return allFields;
   }
 
+  public List<FieldDeclaration> getAllBaseFields() {
+    List<FieldDeclaration> baseFields = new ArrayList<FieldDeclaration>();
+    for (HierarchyGraphNode node : extendsList) {
+      baseFields.addAll(node.getAllFields());
+    }
+    return baseFields;
+  }
+
   /**
    * Traverse the graph and return this class/interface's methods, the methods it extends,
    * and the methods it is supposed to implement
@@ -127,6 +135,18 @@ public class HierarchyGraphNode {
       allMethods.addAll(node.getAllMethods());
     }
     return allMethods;
+  }
+
+  public List<BaseMethodDeclaration> getAllBaseMethods() {
+    List<BaseMethodDeclaration> baseMethods = new ArrayList<BaseMethodDeclaration>();
+
+    for (HierarchyGraphNode node : extendsList) {
+      baseMethods.addAll(node.getAllMethods());
+    }
+    for (HierarchyGraphNode node : implementsList) {
+      baseMethods.addAll(node.getAllMethods());
+    }
+    return baseMethods;
   }
 
   public void setBaseMethodDeclarations(List<BaseMethodDeclaration> baseMethodDeclarations) {

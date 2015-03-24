@@ -61,6 +61,17 @@ public class DisambiguityVisitorTest {
   }
 
   @Test
+  public void testForwardField() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/J1_forwardfield2.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test
   public void testInterfaceObject() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -183,6 +194,17 @@ public class DisambiguityVisitorTest {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
         "src/test/resources/disambiguity/Je_5_ForwardReference_FieldDeclaredLater.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test(expected = DisambiguityVisitorException.class)
+  public void test10() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/Je_5_ForwardReference_FieldInOwnInitializer_ReadAfterAssignment.java"
     ));
     bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
     visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);

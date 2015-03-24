@@ -33,11 +33,11 @@ public class VariableNameResolutionAlgorithm {
     this.hierarchyGraph = hierarchyGraph;
   }
 
-  public void resolveName(CompilationUnit unit, Name name, FieldDeclaration mostRecentField) throws VariableNameResolutionException {
+  public void resolveName(CompilationUnit unit, Name name) throws VariableNameResolutionException {
     if (name.isSimple()) {
-      resolveSingleNameDeclarations(unit, name, mostRecentField);
+      resolveSingleNameDeclarations(unit, name);
     } else {
-      resolveQualifiedNameDeclarations(unit, name, mostRecentField);
+      resolveQualifiedNameDeclarations(unit, name);
     }
     if (name.getDeclarationTypes() == null || name.getDeclarationTypes().isEmpty()) {
       throw new VariableNameResolutionException(
@@ -46,7 +46,7 @@ public class VariableNameResolutionAlgorithm {
     }
   }
 
-  private void resolveSingleNameDeclarations(CompilationUnit unit, Name name, FieldDeclaration mostRecentField)
+  private void resolveSingleNameDeclarations(CompilationUnit unit, Name name)
       throws VariableNameResolutionException {
     HierarchyGraphNode node = hierarchyGraph.get(unit.typeDeclaration.getDeclaration().getAbsolutePath());
     List<Declaration> declarations = new ArrayList<Declaration>();
@@ -60,17 +60,16 @@ public class VariableNameResolutionAlgorithm {
     }
 
     // 2. Check the object hierarchy
+    List<FieldDeclaration> classFields = node.getAllBaseFields();
+    for (FieldDeclaration field : classFields) {
+      if (field.getIdentifier().equals(name.getLexeme())) {
+        declarations.add(field);
+      }
+    }
     List<BaseMethodDeclaration> classMethods = node.getAllMethods();
     for (BaseMethodDeclaration method : classMethods) {
       if (method.getIdentifier().equals(name.getLexeme())) {
         declarations.add(method);
-      }
-    }
-    List<FieldDeclaration> classFields = node.getAllFields();
-    for (FieldDeclaration field : classFields) {
-      if (mostRecentField != null && field.equals(mostRecentField)) break;
-      if (field.getIdentifier().equals(name.getLexeme())) {
-        declarations.add(field);
       }
     }
     if (!declarations.isEmpty()) {
@@ -132,7 +131,7 @@ public class VariableNameResolutionAlgorithm {
     name.setDeclarationTypes(declarations);
   }
 
-  private void resolveQualifiedNameDeclarations(CompilationUnit unit, Name name, FieldDeclaration mostRecentField) throws VariableNameResolutionException {
+  private void resolveQualifiedNameDeclarations(CompilationUnit unit, Name name) throws VariableNameResolutionException {
     String[] identifiers = name.getLexeme().split("\\.");
 
     StringBuilder currentType = new StringBuilder();
@@ -141,7 +140,7 @@ public class VariableNameResolutionAlgorithm {
     // 2. For the resolution of b.c we simply use the hierarchy to keep nesting fields
     // 3. Finally for d resolution we get all potential declaration(field, method) matches.
     currentType.append(identifiers[0]);
-    Declaration lastMatchedDecl = resolveInitialQualified(unit, name, mostRecentField, currentType, identifiers);
+    Declaration lastMatchedDecl = resolveInitialQualified(unit, name, currentType, identifiers);
     if (lastMatchedDecl == null) {
       throw new VariableNameResolutionException("Nothing qualified for 0th of name: " + name.getLexeme(), name);
     }
@@ -153,7 +152,6 @@ public class VariableNameResolutionAlgorithm {
       if (node != null) {
         List<FieldDeclaration> classFields = node.getAllFields();
         for (FieldDeclaration field : classFields) {
-          // if (mostRecentField != null && field.equals(mostRecentField)) break;
           if (field.getIdentifier().equals(identifiers[i])) {
             currentType.setLength(0);
             currentType.append(getTypePath(field.type));
@@ -181,7 +179,7 @@ public class VariableNameResolutionAlgorithm {
 
     // Change edge case for array[] types.
     if (currentType.toString().contains("[]")) {
-      if (!identifiers[identifiers.length - 1].equals("length") || lastMatchedDecl == null) {
+      if (!identifiers[identifiers.length - 1].equals("length")) {
         throw new VariableNameResolutionException("No Array[] field found", name);
       }
       declarations.add(lastMatchedDecl);
@@ -219,7 +217,7 @@ public class VariableNameResolutionAlgorithm {
     name.setDeclarationTypes(declarations);
   }
 
-  private Declaration resolveInitialQualified(CompilationUnit unit, Name name, FieldDeclaration mostRecentField,
+  private Declaration resolveInitialQualified(CompilationUnit unit, Name name,
                                               StringBuilder currentType, String[] identifiers
   ) throws VariableNameResolutionException {
     // 1.1. Check variable table.
@@ -231,6 +229,29 @@ public class VariableNameResolutionAlgorithm {
       currentType.append(getTypePath(lastMatchedDecl.type));
       return lastMatchedDecl;
     }
+
+    HierarchyGraphNode node = hierarchyGraph.get(identifiers[0]);
+    if (node != null) {
+      List<FieldDeclaration> classFields = node.getAllBaseFields();
+      for (FieldDeclaration field : classFields) {
+        if (field.getIdentifier().equals(name.getLexeme())) {
+          lastMatchedDecl = field;
+          currentType.setLength(0);
+          currentType.append(getTypePath(lastMatchedDecl.type));
+          return lastMatchedDecl;
+        }
+      }
+      List<FieldDeclaration> selfFields = node.fields;
+      for (FieldDeclaration field : selfFields) {
+        if (field.getIdentifier().equals(identifiers[0])) throw new VariableNameResolutionException("Field name has not been initialized.");
+      }
+    }
+     if (unit.typeDeclaration.getDeclaration().getIdentifier().equals(identifiers[0])) {
+       lastMatchedDecl = unit.typeDeclaration.getDeclaration();
+       currentType.setLength(0);
+       currentType.append(lastMatchedDecl.getAbsolutePath());
+       return lastMatchedDecl;
+     }
 
     // 1.2. Check single import
     if (unit.importDeclarations != null) {

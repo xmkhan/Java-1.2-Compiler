@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class PackageDeclaration extends Declaration {
   public PackageDeclaration(ArrayList<Token> children) {
-    super(children.get(1).getLexeme(), TokenType.PackageDeclaration, children);
+    super(children.get(1).getLexeme() != null ? children.get(1).getLexeme() : "", TokenType.PackageDeclaration, children);
     identifier = children.get(1);
   }
 
