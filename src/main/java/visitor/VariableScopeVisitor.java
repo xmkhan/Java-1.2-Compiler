@@ -12,6 +12,7 @@ import token.Token;
  */
 public class VariableScopeVisitor extends BaseVisitor {
   private SymbolTable variableTable;
+  protected FieldDeclaration fieldDeclaration = null;
 
   public VariableScopeVisitor() {
     variableTable = new SymbolTable();
@@ -24,7 +25,7 @@ public class VariableScopeVisitor extends BaseVisitor {
   @Override
   public void visit(FieldDeclaration token) throws VisitorException {
     super.visit(token);
-    variableTable.addDecl(token.getIdentifier(), token);
+    fieldDeclaration = token;
   }
 
   @Override
@@ -46,6 +47,11 @@ public class VariableScopeVisitor extends BaseVisitor {
       variableTable.newScope();
     } else if (token.getLexeme().equals("}")) {
       variableTable.deleteScope();
+    } else if (token.getLexeme().equals(";") && fieldDeclaration != null) {
+      if (!variableTable.contains(fieldDeclaration.getAbsolutePath())) {
+        variableTable.addDecl(fieldDeclaration.getIdentifier(), fieldDeclaration);
+      }
+      fieldDeclaration = null;
     }
   }
 }

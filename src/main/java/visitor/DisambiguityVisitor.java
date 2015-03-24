@@ -6,11 +6,14 @@ import exception.VariableNameResolutionException;
 import exception.VisitorException;
 import symbol.SymbolTable;
 import token.CompilationUnit;
+import token.Declaration;
 import token.FieldDeclaration;
+import token.LeftHandSide;
 import token.Name;
 import token.Token;
 import type.hierarchy.HierarchyGraph;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,16 +21,14 @@ import java.util.List;
  */
 public class DisambiguityVisitor extends VariableScopeVisitor {
 
-  private final HierarchyGraph graph;
   private final SymbolTable table;
   private final VariableNameResolutionAlgorithm resolutionAlgm;
   private CompilationUnit unit;
-  private FieldDeclaration mostRecentField;
+  private boolean skipResolution = false;
 
   public DisambiguityVisitor(SymbolTable symbolTable, HierarchyGraph graph) {
     super();
     this.table = symbolTable;
-    this.graph = graph;
     resolutionAlgm = new VariableNameResolutionAlgorithm(symbolTable, getVariableTable(), graph);
   }
 
@@ -48,25 +49,37 @@ public class DisambiguityVisitor extends VariableScopeVisitor {
   @Override
   public void visit(Name token) throws VisitorException {
     super.visit(token);
+    if(skipResolution) {
+      skipResolution = false;
+      return;
+    }
     try {
-      resolutionAlgm.resolveName(unit, token, mostRecentField);
+      resolutionAlgm.resolveName(unit, token);
     } catch (VariableNameResolutionException e) {
       e.printStackTrace();
-      throw new DisambiguityVisitorException("Failed to resolve name: " + token.getLexeme(), token);
+      throw new DisambiguityVisitorException(e.getMessage(), token);
     }
   }
 
   @Override
-  public void visit(FieldDeclaration token) throws VisitorException {
+  public void visit(LeftHandSide token) throws VisitorException {
     super.visit(token);
-    mostRecentField = token;
+    if (token.children.get(0) instanceof Name) {
+      Name name = (Name) token.children.get(0);
+      String fullName = String.format("%s.%s", unit.typeDeclaration.getDeclaration().getAbsolutePath(), name.getLexeme());
+      List<Token> declarations = table.findWithPrefixOfAnyType(fullName, new Class[]{FieldDeclaration.class});
+      if (declarations != null && !declarations.isEmpty()) {
+        name.setDeclarationTypes(convertTokenToDeclaration(declarations));
+        skipResolution = true;
+      }
+    }
   }
 
-  @Override
-  public void visit(Token token) throws VisitorException {
-    super.visit(token);
-    if (token.getLexeme().equals(";")) {
-      mostRecentField = null;
+  private List<Declaration> convertTokenToDeclaration(List<Token> tokens) {
+    List<Declaration> decls = new ArrayList<Declaration>();
+    for (Token token : tokens) {
+      decls.add(((Declaration) token));
     }
+    return decls;
   }
 }
