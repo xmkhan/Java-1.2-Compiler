@@ -24,6 +24,10 @@ public class ClassInstanceCreationExpression extends Token {
     }
   }
 
+  public Name getClassType() {
+    return classType.classOrInterfaceType.name;
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {

@@ -34,11 +34,11 @@ public class FormalParameter extends Declaration {
   }
 
   public boolean isPrimitive() {
-    return children.get(0).children.get(0).getTokenType().equals(TokenType.PrimitiveType);
+    return type.isPrimitiveType();
   }
 
   public boolean isReferenceType() {
-    return children.get(0).getTokenType().equals(TokenType.ReferenceType);
+    return type.isReferenceType();
   }
 
   public boolean isArray() {

@@ -7,32 +7,43 @@ import token.*;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class TypeCheckingVisitor extends BaseVisitor {
   private enum OperandSide {LEFT, RIGHT};
   private final String STRING_CLASS_PATH = "java.lang.String";
 
   private final SymbolTable symbolTable;
+  private final Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode;
   private final HierarchyGraph hierarchyGraph;
   public Stack<TypeCheckToken> tokenStack;
   private HierarchyGraphNode node;
   private CompilationUnit unit;
 
-  public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph, HierarchyGraphNode n, CompilationUnit unit) {
+  public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph, Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode) {
     this.symbolTable = symbolTable;
+    this.compilationUnitToNode = compilationUnitToNode;
     this.hierarchyGraph = hierarchyGraph;
-    this.node = n;
-    this.unit = unit;
-    tokenStack = new Stack<TypeCheckToken>();
+  }
+
+  public void typeCheckUnits(List<CompilationUnit> units) throws VisitorException {
+    for(CompilationUnit unit : units) {
+      // we don't need to type check interfaces
+      if (unit.typeDeclaration.classDeclaration == null) {
+        continue;
+      }
+
+      tokenStack = new Stack<TypeCheckToken>();
+      this.unit = unit;
+      this.node = compilationUnitToNode.get(unit);
+      unit.accept(this);
+    }
   }
 
   @Override
   public void visit(Literal token) throws VisitorException {
     super.visit(token);
-    Token literal = token.children.get(0);
+    Token literal = token.getLiteral();
 
     TypeCheckToken literalToken = null;
     if(literal instanceof StringLiteral) {
@@ -264,12 +275,18 @@ public class TypeCheckingVisitor extends BaseVisitor {
   public void visit(UnaryExpressionNotMinus token) throws VisitorException {
     super.visit(token);
     if (token.children.get(0).getTokenType() == TokenType.Primary ||
-      token.children.get(0).getTokenType() == TokenType.Name) return;
+      token.children.get(0).getTokenType() == TokenType.CastExpression) return;
 
-    // No need to pop since if the type is valid we would've to push it back on the stack anyways
-    TokenType type = tokenStack.peek().tokenType;
+    if(token.children.get(0).getTokenType() == TokenType.Name) {
+      Name name = (Name) token.children.get(0);
+      Declaration determinedDecl = determineDeclaration(name, new Class[] {FormalParameter.class,
+                                                                           FieldDeclaration.class,
+                                                                           LocalVariableDeclaration.class});
+      tokenStack.push(new TypeCheckToken(determinedDecl));
+    } else if(token.children.size() == 2) {
+      // No need to pop since if the type is valid we would've to push it back on the stack anyways
+      TokenType type = tokenStack.peek().tokenType;
 
-    if (token.children.size() == 2) {
       assertNotArray(token, tokenStack.peek(), OperandSide.RIGHT, token.children.get(0).getLexeme());
       if (type != TokenType.BOOLEAN) {
         throw new VisitorException("Unary operator '! UnaryExpression' was expecting UnaryExpression to be boolean but found " + type, token);
@@ -280,24 +297,13 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(ConstructorDeclarator token) throws VisitorException {
     super.visit(token);
-    if (!token.getIdentifier().equals(node.identifier)) {
+    if (!token.getIdentifier().getLexeme().equals(node.identifier)) {
       throw new VisitorException("Constructor name " + token.getIdentifier() + " does not match class name " + node.identifier, token);
     }
   }
 
   @Override
   public void visit(Expression token) throws VisitorException {
-    tokenStack.pop();
-  }
-
-  @Override
-  public void visit(ForInit token) throws VisitorException {
-    tokenStack.pop();
-  }
-
-  @Override
-  public void visit(ForUpdate token) throws VisitorException {
-    tokenStack.pop();
   }
 
   @Override
@@ -309,89 +315,61 @@ public class TypeCheckingVisitor extends BaseVisitor {
       arguments.add(tokenStack.pop());
     }
 
-    Name name = (Name) token.classType.children.get(0).children.get(0);
+    Name name = token.getClassType();
     if (hierarchyGraph.get(name.getAbsolutePath()).isAbstract()) {
       // ClassType was abstract
       throw new VisitorException("Abstract class " + " cannot be instantiated", token);
     }
 
-    Class[] classes = new Class[1];
-    classes[0] = ConstructorDeclaration.class;
     String constructor = name.getAbsolutePath() + "." + name.getLexeme();
-    List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, classes);
+    Declaration constructorDeclaration = matchCall(constructor, false, arguments, name);
 
-    boolean found = false;
-    for (Token declaration : matchingDeclarations) {
-      if(declaration instanceof ConstructorDeclaration) {
-        ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) declaration;
-        List<FormalParameter> parameters = constructorDeclaration.declarator.getParameterList().getFormalParameters();
-        if(parameters.size() == arguments.size()) {
-          boolean allParametersMatch = true;
-          for(int i = 0; i < parameters.size(); i++) {
-            FormalParameter constructorParameter = parameters.get(i);
-            TypeCheckToken calledParameter = arguments.get(parameters.size() - i);
-            if(constructorParameter.isPrimitive() && calledParameter.isPrimitiveType()
-              && constructorParameter.isArray() == calledParameter.isArray) {
-            } else if(constructorParameter.isReferenceType() && calledParameter.tokenType == TokenType.OBJECT
-              && constructorParameter.isArray() == calledParameter.isArray &&
-              constructorParameter.getAbsolutePath().equals(calledParameter.getAbsolutePath())) {
-            } else {
-              allParametersMatch = false;
-              break;
-            }
-          }
+    Declaration classDecl = determineDeclaration(name, new Class [] {ClassDeclaration.class});
+    tokenStack.push(new TypeCheckToken(classDecl));
+  }
 
-          if(allParametersMatch) {
-            found = true;
-            break;
-          }
-        }
-      }
+  @Override
+  public void visit(LocalVariableDeclaration decl) throws VisitorException {
+    TypeCheckToken assignedType = tokenStack.pop();
+    TokenType declType = decl.type.getType().getTokenType();
+
+    if(decl.type.isArray() != assignedType.isArray) {
+      throw new VisitorException("Expected both to be array or not array, but found " + decl.type.isArray() +
+              " and " + assignedType.isArray, decl);
     }
 
-    if(found) {
-      for(Declaration declaration : name.getDeclarationTypes()) {
-        if(declaration instanceof ClassDeclaration) {
-          tokenStack.push(new TypeCheckToken(declaration));
-          break;
-        }
+    TokenType [] validTypes = {TokenType.BOOLEAN, TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
+
+    try {
+      if (validType(declType, validTypes) && declType == assignedType.tokenType) {
+      } else if(decl.type.isPrimitiveType() && assignedType.isPrimitiveType() &&
+              isWideningPrimitiveConversion(assignedType.tokenType, declType)) {
       }
-    } else {
-      throw new VisitorException("Couldn't find any constructors for " + name.getAbsolutePath(), token);
+      else if (decl.type.isReferenceType() && assignedType.tokenType == TokenType.OBJECT &&
+              hierarchyGraph.areNodesConnectedOneWay(assignedType.getAbsolutePath(), decl.getAbsolutePath())) {
+      } else if (decl.type.isReferenceType() && assignedType.tokenType == TokenType.NULL) {
+      } else {
+        throw new VisitorException("Assignment should be of same type or from parent to subclass.  Found: " + assignedType.toString() + " being assigned to "  + declType.toString(), decl);
+      }
+    } catch (TypeHierarchyException e) {
+      throw new VisitorException(e.getMessage(), decl);
     }
   }
 
   @Override
-  public void visit(LocalVariableDeclaration token) throws VisitorException {
-    tokenStack.pop();
-  }
-
-    @Override
   public void visit(ArrayAccess token) throws VisitorException {
     TypeCheckToken expressionType = tokenStack.pop();
     if (expressionType.tokenType != TokenType.INT) {
       throw new VisitorException("ArrayAccess requires an integer but found " + expressionType.tokenType.toString(), token);
     }
 
-    if (token.children.get(0) instanceof Name) {
+    if (token.name != null) {
       Name name = token.name;
 
-      Declaration determinedDecalaration = null;
-      for (Declaration declaration : name.getDeclarationTypes()) {
-        if(declaration instanceof FormalParameter ||
-          declaration instanceof  FieldDeclaration ||
-          declaration instanceof ClassDeclaration ||
-          declaration instanceof LocalVariableDeclaration) {
-          determinedDecalaration = declaration;
-          break;
-        }
-      }
-
-      if(determinedDecalaration != null) {
-        tokenStack.push(new TypeCheckToken(determinedDecalaration));
-      } else {
-        throw new VisitorException("Failed to find declaration to for array type: " + name.getLexeme(), token);
-      }
+      Declaration determinedDecalaration = determineDeclaration(name, new Class[] {FormalParameter.class,
+                                                                                   FieldDeclaration.class,
+                                                                                   LocalVariableDeclaration.class});
+      tokenStack.push(new TypeCheckToken(determinedDecalaration));
     } else {
       // Primary case: No need to do anything as Primary type is on top of the stack.
       // We check to make sure Expression is of type int at the top
@@ -400,15 +378,19 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
   @Override
   public void visit(ArrayCreationExpression token) throws VisitorException {
-    if(token.isPrimitiveType()) {
-      TypeCheckToken expression = tokenStack.pop();
-      TypeCheckToken primitive = tokenStack.pop();
-      
-    } else {
-
+    TypeCheckToken expressionType = tokenStack.pop();
+    if (expressionType.tokenType != TokenType.INT) {
+      throw new VisitorException("ArrayAccess requires an integer but found " + expressionType.tokenType.toString(), token);
     }
 
-    if (token.isPrimitiveType()) return;
+    if(token.isPrimitiveType()) {
+      tokenStack.push(new TypeCheckToken(token.primitiveType.getType().getTokenType(), true));
+    } else {
+      Declaration determined = determineDeclaration(token.name, new Class[] {ClassDeclaration.class});
+      tokenStack.push(new TypeCheckToken(determined, true));
+    }
+
+    //? Cant it be initiated
     // call shah's function on token.classType....
     /*if (false) {
       // ClassType was abstract
@@ -429,8 +411,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     }
 
-    List<Token> potentialFields = symbolTable.findWithPrefixOfAnyType(
-        firstIdentifier.getAbsolutePath() + '.' + token.identifier.getLexeme(), new Class[] {FieldDeclaration.class});
+    String absoluteFieldAccess = firstIdentifier.getAbsolutePath() + '.' + token.identifier.getLexeme();
+    List<Token> potentialFields = symbolTable.findWithPrefixOfAnyType(absoluteFieldAccess, new Class[] {FieldDeclaration.class});
     if (potentialFields == null || potentialFields.isEmpty()) {
       throw new VisitorException("No field could be resolved for field: " + token.identifier.getLexeme(), token);
     }
@@ -442,21 +424,11 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if(token.children.get(0).getTokenType() == TokenType.Name) {
       Name name = (Name) token.children.get(0);
-      Declaration determinedDecalaration = null;
-      for (Declaration declaration : name.getDeclarationTypes()) {
-        if(declaration instanceof LocalVariableDeclaration ||
-                declaration instanceof  FieldDeclaration ||
-                declaration instanceof FormalParameter) {
-          determinedDecalaration = declaration;
-          break;
-        }
-      }
 
-      if(determinedDecalaration != null) {
-        tokenStack.push(new TypeCheckToken(determinedDecalaration));
-      } else {
-        throw new VisitorException("Failed to find declaration to assign to", token);
-      }
+      Declaration determinedDecl = determineDeclaration(name, new Class[] {LocalVariableDeclaration.class,
+                                                                           FieldDeclaration.class,
+                                                                           FormalParameter.class});
+      tokenStack.push(new TypeCheckToken(determinedDecl));
     }
   }
 
@@ -478,6 +450,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
               (isWideningPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType()) ||
                isNarrowingPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType()))) {
         tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
+        //TODO: Might need to change name.getAbsolutePath to name.getDeclaration and determine the declaration and use path from that
       } else if(tokenToCast.tokenType == TokenType.OBJECT && token.isName() && tokenToCast.getAbsolutePath().equals(token.name.getAbsolutePath())) {
           tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
       } else if (tokenToCast.tokenType == TokenType.OBJECT && token.isName() && hierarchyGraph.areNodesConnected(token.name.getAbsolutePath(), tokenToCast.getAbsolutePath())) {
@@ -511,11 +484,22 @@ public class TypeCheckingVisitor extends BaseVisitor {
       arguments.add(tokenStack.pop());
     }
 
+    String methodToCall;
     if(token.isOnPrimary()) {
-
-    } else if(token.name != null) {
+      TypeCheckToken primary = tokenStack.pop();
+      methodToCall = primary.getAbsolutePath() + "." + token.identifier.getLexeme();
+    } else {
+      //TODO: might need to append method name
       Name name = (Name) token.name;
+      methodToCall = name.getAbsolutePath();
+    }
 
+    Declaration methodDeclaration = matchCall(methodToCall, true, arguments, token);
+    if(methodDeclaration.type.isPrimitiveType()) {
+      tokenStack.push(new TypeCheckToken(methodDeclaration.type.getType().getTokenType(), methodDeclaration.type.isArray()));
+    } else {
+      Declaration determinedDecl = determineDeclaration(methodDeclaration.type.getReferenceName(), new Class[] {ClassDeclaration.class});
+      tokenStack.push(new TypeCheckToken(determinedDecl, methodDeclaration.type.isArray()));
     }
   }
 
@@ -525,8 +509,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
     stringType.absolutePath = "java.lang.String";
     return stringType;
   }
-
-
 
   private boolean isWideningPrimitiveConversion(TokenType from, TokenType to) {
     if(from == TokenType.BYTE) {
@@ -577,5 +559,54 @@ public class TypeCheckingVisitor extends BaseVisitor {
   private boolean ensureExtendParentHasDefaultConstructor() {
     if (node.extendsList.size() == 0) return true;
     return node.extendsList.get(0).isDefaultConstructorVisibleToChildren();
+  }
+
+  private Declaration determineDeclaration(Name name, Class [] classes) throws VisitorException {
+    Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
+
+    for(Declaration declaration : name.getDeclarationTypes()) {
+      if(classSet.contains(declaration.getClass())) {
+        return declaration;
+      }
+    }
+
+    throw new VisitorException("Can not determine declaration " + name.getLexeme(), name);
+  }
+
+  private Declaration matchCall(String method, boolean isMethod, List<TypeCheckToken> argumentsToMethod, Token context) throws VisitorException {
+    Class matchingClass = isMethod ? MethodDeclaration.class : ConstructorDeclaration.class;
+    List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(method, new Class [] {matchingClass});
+
+    for (Token declaration : matchingDeclarations) {
+      if(declaration.getClass().equals(matchingClass)) {
+        List<FormalParameter> parameters =
+                isMethod ? ((MethodDeclaration) declaration).methodHeader.paramList.getFormalParameters()
+                    : ((ConstructorDeclaration) declaration).declarator.getParameterList().getFormalParameters();
+
+        if(parameters.size() == argumentsToMethod.size()) {
+          boolean allParametersMatch = true;
+          for(int i = 0; i < parameters.size(); i++) {
+            FormalParameter callParameter = parameters.get(i);
+            TypeCheckToken argumentParameter = argumentsToMethod.get(parameters.size() - i);
+            if(callParameter.isPrimitive() && argumentParameter.isPrimitiveType()
+                    && callParameter.isArray() == argumentParameter.isArray
+                    && callParameter.getType().getTokenType() == argumentParameter.tokenType) {
+            } else if(callParameter.isReferenceType() && argumentParameter.tokenType == TokenType.OBJECT
+                    && callParameter.isArray() == argumentParameter.isArray &&
+                    callParameter.getAbsolutePath().equals(argumentParameter.getAbsolutePath())) {
+            } else {
+              allParametersMatch = false;
+              break;
+            }
+          }
+
+          if(allParametersMatch) {
+            return (Declaration) declaration;
+          }
+        }
+      }
+    }
+
+    throw new VisitorException("Can not find any " + (isMethod ? "Method" : "Constructor") + " declaration for " + method, context);
   }
 }

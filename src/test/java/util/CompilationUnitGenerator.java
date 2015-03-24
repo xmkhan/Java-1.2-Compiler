@@ -9,6 +9,8 @@ import token.Token;
 import type.hierarchy.CompilationUnitsToHierarchyGraphConverter;
 import type.hierarchy.HierarchyChecker;
 import type.hierarchy.HierarchyGraph;
+import type.hierarchy.HierarchyGraphNode;
+import visitor.DisambiguityVisitor;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.TypeLinkingVisitor;
 
@@ -18,6 +20,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Abstracts the part of Main.java that reads in a list of files and produces the CompilationUnits.
@@ -62,6 +65,17 @@ public class CompilationUnitGenerator {
     bundle.graph = converter.convert(bundle.units);
     HierarchyChecker.verifyHierarchyGraph(bundle.graph);
 
+    bundle.compilationUnitToNode = converter.compilationUnitToNode;
+
+    return bundle;
+  }
+
+  public static Bundle makeUpToDisambiguity(List<String> filePaths) throws IOException, CompilerException {
+    Bundle bundle = makeUpToTypeChecking(filePaths);
+
+    DisambiguityVisitor disambiguityVisitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    disambiguityVisitor.disambiguateUnits(bundle.units);
+
     return bundle;
   }
 
@@ -89,5 +103,6 @@ public class CompilationUnitGenerator {
     public List<CompilationUnit> units;
     public SymbolTable symbolTable;
     public HierarchyGraph graph;
+    public Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode;
   }
 }

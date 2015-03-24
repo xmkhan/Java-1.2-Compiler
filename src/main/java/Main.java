@@ -61,15 +61,8 @@ public class Main {
       DisambiguityVisitor disambiguityVisitor = new DisambiguityVisitor(table, graph);
       disambiguityVisitor.disambiguateUnits(compilationUnits);
 
-      for (CompilationUnit compilationUnit : compilationUnits) {
-        if (compilationUnit.typeDeclaration.classDeclaration == null) {
-          // we don't need to type check interfaces
-          continue;
-        }
-        HierarchyGraphNode node = converter.compilationUnitToNode.get(compilationUnit);
-        TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, node, compilationUnit);
-        compilationUnit.accept(typeCheckingVisitor);
-      }
+      TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, converter.compilationUnitToNode);
+      typeCheckingVisitor.typeCheckUnits(compilationUnits);
 
       // 4. Phase 4: Static analysis
 //      ReachabilityVisitor reachabilityVisitor = new ReachabilityVisitor();

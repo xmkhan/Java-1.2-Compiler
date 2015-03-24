@@ -6,7 +6,7 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class ClassType extends Token {
-  private ClassOrInterfaceType classOrInterfaceType;
+  public ClassOrInterfaceType classOrInterfaceType;
 
   public ClassType(ArrayList<Token> children) {
     super("", TokenType.ClassType, children);

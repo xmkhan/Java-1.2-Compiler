@@ -38,6 +38,10 @@ public class Literal extends Token {
     return valueType == TokenType.NULL;
   }
 
+  public Token getLiteral() {
+    return children.get(0);
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     v.visit(this);

@@ -26,19 +26,20 @@ public class TypeCheckToken {
       tokenType = TokenType.OBJECT;
     } else {
       isArray = token.type.isArray();
-      if(token.type.primitiveType != null) {
+      if(token.type.isPrimitiveType()) {
         tokenType = token.type.getType().getTokenType();
-      } else if(token.type.referenceType != null) {
-        if (token.type.referenceType.classOrInterfaceType != null || token.type.referenceType.arrayType.name != null) {
-          tokenType = TokenType.OBJECT;
-        } else if(token.type.referenceType.arrayType.primitiveType != null) {
-          tokenType = token.type.getType().getTokenType();
-        }
+      } else if(token.type.isReferenceType()) {
+        tokenType = TokenType.OBJECT;
       }
     }
   }
 
-  public String getAbsolutePath() {
+  public TypeCheckToken (Declaration token, boolean isArray) {
+    this(token);
+    this.isArray = isArray;
+  }
+
+    public String getAbsolutePath() {
     if(absolutePath == null || absolutePath.isEmpty()) {
       return declaration.getAbsolutePath();
     } else {
@@ -47,9 +48,9 @@ public class TypeCheckToken {
   }
 
   public boolean isPrimitiveType() {
-    return tokenType == TokenType.BOOLEAN_LITERAL ||
-            tokenType == TokenType.INT_LITERAL ||
-            tokenType == TokenType.CHAR_LITERAL ||
+    return tokenType == TokenType.BOOLEAN ||
+            tokenType == TokenType.INT ||
+            tokenType == TokenType.CHAR ||
             tokenType == TokenType.BYTE ||
             tokenType == TokenType.SHORT;
   }
