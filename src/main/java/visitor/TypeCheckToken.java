@@ -40,10 +40,16 @@ public class TypeCheckToken {
   }
 
     public String getAbsolutePath() {
-    if(absolutePath == null || absolutePath.isEmpty()) {
+      if(isPrimitiveType()) {
+        return null;
+      }
+
+    if(absolutePath != null && !absolutePath.isEmpty()) {
+      return absolutePath;
+    } else if(declaration != null) {
       return declaration.type.getReferenceName().getAbsolutePath();
     } else {
-      return absolutePath;
+      return null;
     }
   }
 

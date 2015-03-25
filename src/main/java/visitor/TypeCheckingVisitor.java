@@ -12,6 +12,8 @@ import java.util.*;
 public class TypeCheckingVisitor extends BaseVisitor {
   private enum OperandSide {LEFT, RIGHT};
   private final String STRING_CLASS_PATH = "java.lang.String";
+  private final String SERIALIZABLE_CLASS_PATH = "java.io.Serializable";
+  private final String OBJECT_CLASS_PATH = "java.lang.Object";
 
   private final SymbolTable symbolTable;
   private final Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode;
@@ -261,11 +263,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
               typeLeftSide.isPrimitiveType() && typeRightSide.isPrimitiveType() &&
               isWideningPrimitiveConversion(typeRightSide.tokenType, typeLeftSide.tokenType)) {
         tokenStack.push(typeLeftSide);
-      }
-      else if (typeLeftSide.isArray == typeRightSide.isArray && typeLeftSide.tokenType == TokenType.OBJECT && typeRightSide.tokenType == TokenType.OBJECT &&
-              hierarchyGraph.areNodesConnectedOneWay(typeRightSide.getAbsolutePath(), typeLeftSide.getAbsolutePath())) {
-        tokenStack.push(typeLeftSide);
-      } else if (typeLeftSide.tokenType == TokenType.OBJECT && typeRightSide.tokenType == TokenType.NULL) {
+      } else if(isWideningReferenceConversion(typeRightSide.tokenType, typeRightSide.getAbsolutePath(), typeRightSide.isArray,
+                                              typeLeftSide.tokenType, typeLeftSide.getAbsolutePath(), typeLeftSide.isArray)) {
         tokenStack.push(typeLeftSide);
       } else {
         throw new VisitorException("Assignment should be of same type or from parent to subclass.  Found: " + typeRightSide.toString() + " being assigned to "  + typeLeftSide.toString(), token);
@@ -338,23 +337,20 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(LocalVariableDeclaration decl) throws VisitorException {
     TypeCheckToken assignedType = tokenStack.pop();
-    TokenType declType = decl.type.getType().getTokenType();
 
-    if(decl.type.isArray() != assignedType.isArray) {
-      throw new VisitorException("Expected both to be array or not array, but found " + decl.type.isArray() +
-              " and " + assignedType.isArray, decl);
-    }
+    TokenType declType = decl.type.isPrimitiveType() ? decl.type.getType().getTokenType() : TokenType.OBJECT;
+    String declAbsolutePath = !decl.type.isReferenceType() ? null : decl.type.getReferenceName().getAbsolutePath();
+    boolean declIsArray = decl.type.isArray();
 
     TokenType [] validTypes = {TokenType.BOOLEAN, TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
 
     try {
-      if (validType(declType, validTypes) && declType == assignedType.tokenType) {
-      } else if(decl.type.isPrimitiveType() && assignedType.isPrimitiveType() &&
+      if (declIsArray == assignedType.isArray && validType(declType, validTypes) && declType == assignedType.tokenType) {
+      } else if(declIsArray == false && assignedType.isArray == false &&
+              decl.type.isPrimitiveType() && assignedType.isPrimitiveType() &&
               isWideningPrimitiveConversion(assignedType.tokenType, declType)) {
-      }
-      else if (decl.type.isReferenceType() && assignedType.tokenType == TokenType.OBJECT &&
-              hierarchyGraph.areNodesConnectedOneWay(assignedType.getAbsolutePath(), decl.getAbsolutePath())) {
-      } else if (decl.type.isReferenceType() && assignedType.tokenType == TokenType.NULL) {
+      } else if (isWideningReferenceConversion(assignedType.tokenType, assignedType.getAbsolutePath(), assignedType.isArray,
+                                               declType, declAbsolutePath, declIsArray)) {
       } else {
         throw new VisitorException("Assignment should be of same type or from parent to subclass.  Found: " + assignedType.toString() + " being assigned to "  + declType.toString(), decl);
       }
@@ -502,7 +498,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       Name name = (Name) token.name;
       matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class});
     }
-int a = (a = 4);
+
     Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name);
     if(methodDeclaration.type == null) {
       tokenStack.push(new TypeCheckToken(TokenType.VOID, false));
@@ -560,6 +556,23 @@ int a = (a = 4);
     }
   }
 
+  private boolean isWideningReferenceConversion(TokenType fromType, String fromAbsolutePath, boolean fromIsArray,
+                                                TokenType toType, String toAbsolutePath, boolean toIsArray) throws TypeHierarchyException {
+      if (toIsArray == fromIsArray && toType == TokenType.OBJECT && fromType == TokenType.OBJECT &&
+              hierarchyGraph.areNodesConnectedOneWay(fromAbsolutePath, toAbsolutePath)) {
+        return true;
+      } else if (toType == TokenType.OBJECT && fromType == TokenType.NULL) {
+        return true;
+      } else if(toIsArray && fromType == TokenType.NULL) {
+        return true;
+      } else if(toType == TokenType.OBJECT && fromIsArray && toAbsolutePath.equals(SERIALIZABLE_CLASS_PATH)) {
+        return true;
+      } else if(toType == TokenType.OBJECT && fromIsArray && toAbsolutePath.equals(OBJECT_CLASS_PATH)) {
+        return true;
+      } else {
+        return false;
+      }
+  }
 
   private boolean validTypes(TokenType type1, TokenType type2, TokenType[] types) {
     return validType(type1, types) && validType(type2, types);
