@@ -40,6 +40,7 @@ public class MethodHeader extends Token {
   @Override
   public void accept(Visitor v) throws VisitorException {
     v.visit(modifiers);
+    if (type != null) type.accept(v);
     if (paramList != null) paramList.accept(v);
     v.visit(this);
   }
@@ -48,6 +49,7 @@ public class MethodHeader extends Token {
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
     v.visit(modifiers);
+    if (type != null) type.acceptReverse(v);
     if (paramList != null) paramList.acceptReverse(v);
   }
 }

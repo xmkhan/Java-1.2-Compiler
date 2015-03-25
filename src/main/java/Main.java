@@ -13,6 +13,7 @@ import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
 import visitor.TypeCheckingVisitor;
 import visitor.ReachabilityVisitor;
+import visitor.SelfAssignmentVisitor;
 import visitor.TypeLinkingVisitor;
 
 import java.io.File;
@@ -67,6 +68,9 @@ public class Main {
       // 4. Phase 4: Static analysis
 //      ReachabilityVisitor reachabilityVisitor = new ReachabilityVisitor();
 //      reachabilityVisitor.checkReachability(compilationUnits);
+//      SelfAssignmentVisitor selfAssignmentVisitor = new SelfAssignmentVisitor(table);
+//      selfAssignmentVisitor.checkSelfAssignment(compilationUnits);
+
     } catch (CompilerException e) {
       e.printStackTrace();
       System.err.println(e.getMessage());

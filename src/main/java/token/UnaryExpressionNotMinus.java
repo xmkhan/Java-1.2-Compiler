@@ -9,11 +9,14 @@ public class UnaryExpressionNotMinus extends Token {
 
 
   public Literal literal;
+  public Name name;
 
   public UnaryExpressionNotMinus(ArrayList<Token> children) {
     super("", TokenType.UnaryExpressionNotMinus, children);
     if (isLiteral()) {
       literal = (Literal) ((Primary) children.get(0)).children.get(0);
+    } else if (children.get(0) instanceof Name) {
+      name = (Name) children.get(0);
     }
   }
 
