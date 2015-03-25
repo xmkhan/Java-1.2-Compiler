@@ -60,6 +60,9 @@ public class VariableNameResolutionAlgorithm {
     }
 
     // 2. Check the object hierarchy
+    if (unit.typeDeclaration.getDeclaration().getIdentifier().equals(name.getLexeme())) {
+      declarations.add(unit.typeDeclaration.getDeclaration());
+    }
     List<FieldDeclaration> classFields = node.getAllBaseFields();
     for (FieldDeclaration field : classFields) {
       if (field.getIdentifier().equals(name.getLexeme())) {
