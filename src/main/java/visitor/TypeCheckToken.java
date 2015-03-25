@@ -41,7 +41,7 @@ public class TypeCheckToken {
 
     public String getAbsolutePath() {
     if(absolutePath == null || absolutePath.isEmpty()) {
-      return declaration.getAbsolutePath();
+      return declaration.type.getReferenceName().getAbsolutePath();
     } else {
       return absolutePath;
     }

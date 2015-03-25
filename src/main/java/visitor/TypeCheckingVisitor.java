@@ -46,18 +46,22 @@ public class TypeCheckingVisitor extends BaseVisitor {
     Token literal = token.getLiteral();
 
     TypeCheckToken literalToken = null;
-    if(literal instanceof StringLiteral) {
-      literalToken = createStringToken();
-    } else if(literal instanceof IntLiteral) {
-      literalToken = new TypeCheckToken(TokenType.INT);
-    } else if(literal instanceof BooleanLiteral) {
-      literalToken = new TypeCheckToken(TokenType.BOOLEAN);
-    } else if(literal instanceof CharLiteral) {
-      literalToken = new TypeCheckToken(TokenType.CHAR);
-    } else {
-      throw new VisitorException("Unexpected literal: " + token.getLexeme() + " of type " + token.getTokenType(), token);
+    switch (literal.getTokenType()) {
+      case STR_LITERAL:
+        literalToken = createStringToken();
+        break;
+      case INT_LITERAL:
+        literalToken = new TypeCheckToken(TokenType.INT);
+        break;
+      case BOOLEAN_LITERAL:
+        literalToken = new TypeCheckToken(TokenType.BOOLEAN);
+        break;
+      case CHAR_LITERAL:
+        literalToken = new TypeCheckToken(TokenType.CHAR);
+        break;
+      default:
+        throw new VisitorException("Unexpected literal: " + token.getLexeme() + " of type " + token.getTokenType(), token);
     }
-
     tokenStack.push(literalToken);
   }
 
@@ -311,8 +315,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
 
     List<TypeCheckToken> arguments = new ArrayList<TypeCheckToken>();
-    for (int i = 0; i < token.argumentList.numArguments(); i++) {
-      arguments.add(tokenStack.pop());
+    if(token.argumentList != null) {
+      for (int i = 0; i < token.argumentList.numArguments(); i++) {
+        arguments.add(tokenStack.pop());
+      }
     }
 
     Name name = token.getClassType();
@@ -322,7 +328,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
 
     String constructor = name.getAbsolutePath() + "." + name.getLexeme();
-    Declaration constructorDeclaration = matchCall(constructor, false, arguments, name);
+    List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, new Class [] {ConstructorDeclaration.class});
+    Declaration constructorDeclaration = matchCall(matchingDeclarations, false, arguments, name);
 
     Declaration classDecl = determineDeclaration(name, new Class [] {ClassDeclaration.class});
     tokenStack.push(new TypeCheckToken(classDecl));
@@ -445,11 +452,11 @@ public class TypeCheckingVisitor extends BaseVisitor {
     try {
       // Handle boolean case
       if (tokenToCast.isPrimitiveType() && token.isPrimitiveType() && tokenToCast.tokenType == token.primitiveType.getType().getTokenType()) {
-        tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
+        tokenStack.push(new TypeCheckToken(token.primitiveType.getType().getTokenType(), token.isArrayCast()));
       } else if (tokenToCast.isPrimitiveType() && token.isPrimitiveType() &&
               (isWideningPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType()) ||
                isNarrowingPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType()))) {
-        tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
+        tokenStack.push(new TypeCheckToken(token.primitiveType.getType().getTokenType(), token.isArrayCast()));
         //TODO: Might need to change name.getAbsolutePath to name.getDeclaration and determine the declaration and use path from that
       } else if(tokenToCast.tokenType == TokenType.OBJECT && token.isName() && tokenToCast.getAbsolutePath().equals(token.name.getAbsolutePath())) {
           tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
@@ -480,28 +487,43 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
 
     List<TypeCheckToken> arguments = new ArrayList<TypeCheckToken>();
-    for (int i = 0; i < token.argumentList.numArguments(); i++) {
-      arguments.add(tokenStack.pop());
+    if(token.argumentList != null) {
+      for (int i = 0; i < token.argumentList.numArguments(); i++) {
+        arguments.add(tokenStack.pop());
+      }
     }
 
-    String methodToCall;
+    List<Token> matchingDeclarations;
     if(token.isOnPrimary()) {
       TypeCheckToken primary = tokenStack.pop();
-      methodToCall = primary.getAbsolutePath() + "." + token.identifier.getLexeme();
+      String methodToCall = primary.getAbsolutePath() + "." + token.identifier.getLexeme();
+      matchingDeclarations = symbolTable.findWithPrefixOfAnyType(methodToCall, new Class [] {MethodDeclaration.class});
     } else {
-      //TODO: might need to append method name
       Name name = (Name) token.name;
-      methodToCall = name.getAbsolutePath();
+      matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class});
     }
-
-    Declaration methodDeclaration = matchCall(methodToCall, true, arguments, token);
-    if(methodDeclaration.type.isPrimitiveType()) {
+int a = (a = 4);
+    Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name);
+    if(methodDeclaration.type == null) {
+      tokenStack.push(new TypeCheckToken(TokenType.VOID, false));
+    } else if(methodDeclaration.type.isPrimitiveType()) {
       tokenStack.push(new TypeCheckToken(methodDeclaration.type.getType().getTokenType(), methodDeclaration.type.isArray()));
     } else {
       Declaration determinedDecl = determineDeclaration(methodDeclaration.type.getReferenceName(), new Class[] {ClassDeclaration.class});
       tokenStack.push(new TypeCheckToken(determinedDecl, methodDeclaration.type.isArray()));
     }
   }
+
+  @Override
+  public void visit(StatementExpression token) throws VisitorException {
+    super.visit(token);
+    if(tokenStack.size() == 0) {
+      throw new VisitorException("Expected an value on stack, but found none", token);
+    }
+
+    tokenStack.pop();
+  }
+
 
   private TypeCheckToken createStringToken() {
     TypeCheckToken stringType = new TypeCheckToken(TokenType.OBJECT);
@@ -563,6 +585,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
   private Declaration determineDeclaration(Name name, Class [] classes) throws VisitorException {
     Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
+    if(name.getDeclarationTypes() == null) {
+      throw new VisitorException("Found no declarations for " + name.getLexeme(), name);
+    }
 
     for(Declaration declaration : name.getDeclarationTypes()) {
       if(classSet.contains(declaration.getClass())) {
@@ -573,40 +598,61 @@ public class TypeCheckingVisitor extends BaseVisitor {
     throw new VisitorException("Can not determine declaration " + name.getLexeme(), name);
   }
 
-  private Declaration matchCall(String method, boolean isMethod, List<TypeCheckToken> argumentsToMethod, Token context) throws VisitorException {
-    Class matchingClass = isMethod ? MethodDeclaration.class : ConstructorDeclaration.class;
-    List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(method, new Class [] {matchingClass});
+  private List<Token> getAllMatchinDeclarations(Name name, Class [] classes) throws VisitorException {
+    Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
 
+    ArrayList<Token> declarations = new ArrayList<Token>();
+    for(Declaration declaration : name.getDeclarationTypes()) {
+      if(classSet.contains(declaration.getClass())) {
+        declarations.add(declaration);
+      }
+    }
+
+    if(declarations.size() == 0) {
+      throw new VisitorException("Can not determine declaration " + name.getLexeme(), name);
+    }
+
+    return declarations;
+  }
+
+  private Declaration matchCall(List<Token> matchingDeclarations, boolean isMethod, List<TypeCheckToken> argumentsToMethod, Token context) throws VisitorException {
     for (Token declaration : matchingDeclarations) {
-      if(declaration.getClass().equals(matchingClass)) {
-        List<FormalParameter> parameters =
-                isMethod ? ((MethodDeclaration) declaration).methodHeader.paramList.getFormalParameters()
-                    : ((ConstructorDeclaration) declaration).declarator.getParameterList().getFormalParameters();
+      FormalParameterList parameterList =
+              isMethod ? ((MethodDeclaration) declaration).methodHeader.paramList
+                  : ((ConstructorDeclaration) declaration).declarator.getParameterList();
 
-        if(parameters.size() == argumentsToMethod.size()) {
-          boolean allParametersMatch = true;
-          for(int i = 0; i < parameters.size(); i++) {
-            FormalParameter callParameter = parameters.get(i);
-            TypeCheckToken argumentParameter = argumentsToMethod.get(parameters.size() - i);
-            if(callParameter.isPrimitive() && argumentParameter.isPrimitiveType()
-                    && callParameter.isArray() == argumentParameter.isArray
-                    && callParameter.getType().getTokenType() == argumentParameter.tokenType) {
-            } else if(callParameter.isReferenceType() && argumentParameter.tokenType == TokenType.OBJECT
-                    && callParameter.isArray() == argumentParameter.isArray &&
-                    callParameter.getAbsolutePath().equals(argumentParameter.getAbsolutePath())) {
-            } else {
-              allParametersMatch = false;
-              break;
-            }
-          }
+      if(parameterList == null) {
+        if(argumentsToMethod.size() == 0) {
+          return (Declaration) declaration;
+        } else {
+          continue;
+        }
+      }
 
-          if(allParametersMatch) {
-            return (Declaration) declaration;
+      List<FormalParameter> parameters = parameterList.getFormalParameters();
+      if(parameters.size() == argumentsToMethod.size()) {
+        boolean allParametersMatch = true;
+        for(int i = 0; i < parameters.size(); i++) {
+          FormalParameter callParameter = parameters.get(i);
+          TypeCheckToken argumentParameter = argumentsToMethod.get(parameters.size() - i - 1);
+          if(callParameter.isPrimitive() && argumentParameter.isPrimitiveType()
+                  && callParameter.isArray() == argumentParameter.isArray
+                  && callParameter.getType().getTokenType() == argumentParameter.tokenType) {
+          } else if(callParameter.isReferenceType() && argumentParameter.tokenType == TokenType.OBJECT
+                  && callParameter.isArray() == argumentParameter.isArray &&
+                  callParameter.type.getReferenceName().getAbsolutePath().equals(argumentParameter.getAbsolutePath())) {
+          } else {
+            allParametersMatch = false;
+            break;
           }
+        }
+
+        if(allParametersMatch) {
+          return (Declaration) declaration;
         }
       }
     }
 
-    throw new VisitorException("Can not find any " + (isMethod ? "Method" : "Constructor") + " declaration for " + method, context);
+    throw new VisitorException("Can not find any " + (isMethod ? "Method" : "Constructor") + " declaration for " + context.getLexeme(), context);
   }
 }
