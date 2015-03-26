@@ -51,6 +51,9 @@ public class VariableNameResolutionAlgorithm {
     HierarchyGraphNode node = hierarchyGraph.get(unit.typeDeclaration.getDeclaration().getAbsolutePath());
     List<Declaration> declarations = new ArrayList<Declaration>();
 
+    if (unit.typeDeclaration.getDeclaration().getIdentifier().equals(name.getLexeme())) {
+      declarations.add(unit.typeDeclaration.getDeclaration());
+    }
     // 1. Check if it is a local variable, method param.
     List<Token> variableSymbols = variableTable.find(name.getLexeme());
     if (!variableSymbols.isEmpty()) {
@@ -60,9 +63,6 @@ public class VariableNameResolutionAlgorithm {
     }
 
     // 2. Check the object hierarchy
-    if (unit.typeDeclaration.getDeclaration().getIdentifier().equals(name.getLexeme())) {
-      declarations.add(unit.typeDeclaration.getDeclaration());
-    }
     List<FieldDeclaration> classFields = node.getAllBaseFields();
     for (FieldDeclaration field : classFields) {
       if (field.getIdentifier().equals(name.getLexeme())) {
@@ -249,12 +249,12 @@ public class VariableNameResolutionAlgorithm {
         if (field.getIdentifier().equals(identifiers[0])) throw new VariableNameResolutionException("Field name has not been initialized.");
       }
     }
-     if (unit.typeDeclaration.getDeclaration().getIdentifier().equals(identifiers[0])) {
-       lastMatchedDecl = unit.typeDeclaration.getDeclaration();
-       currentType.setLength(0);
-       currentType.append(lastMatchedDecl.getAbsolutePath());
-       return lastMatchedDecl;
-     }
+    if (unit.typeDeclaration.getDeclaration().getIdentifier().equals(identifiers[0])) {
+      lastMatchedDecl = unit.typeDeclaration.getDeclaration();
+      currentType.setLength(0);
+      currentType.append(lastMatchedDecl.getAbsolutePath());
+      return lastMatchedDecl;
+    }
 
     // 1.2. Check single import
     if (unit.importDeclarations != null) {
