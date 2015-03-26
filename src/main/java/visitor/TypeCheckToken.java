@@ -47,7 +47,12 @@ public class TypeCheckToken {
     if(absolutePath != null && !absolutePath.isEmpty()) {
       return absolutePath;
     } else if(declaration != null) {
-      return declaration.type.getReferenceName().getAbsolutePath();
+      //TODO: Change to based on declaration instance (use later if ClassDeclaration)
+      if(declaration.type != null) {
+        return declaration.type.getReferenceName().getAbsolutePath();
+      } else {
+        return declaration.getAbsolutePath();
+      }
     } else {
       return null;
     }

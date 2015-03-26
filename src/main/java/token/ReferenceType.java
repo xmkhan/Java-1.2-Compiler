@@ -46,6 +46,27 @@ public class ReferenceType extends Token {
     else return null;
   }
 
+  public boolean isReferenceType() {
+    return classOrInterfaceType != null ||
+           arrayType != null && arrayType.name != null;
+  }
+
+  public boolean isPrimitiveType() {
+    return arrayType != null && arrayType.primitiveType != null;
+  }
+
+  public Name getReferenceName() {
+    if(!isReferenceType()) {
+      return null;
+    }
+
+    if(classOrInterfaceType != null) {
+      return classOrInterfaceType.name;
+    } else {
+      return arrayType.name;
+    }
+  }
+
   public boolean isArray() {
     return arrayType != null;
   }

@@ -56,20 +56,15 @@ public class Type extends Token {
       return null;
     }
 
-    if(referenceType.classOrInterfaceType != null) {
-      return referenceType.classOrInterfaceType.name;
-    } else {
-      return referenceType.arrayType.name;
-    }
+    return referenceType.getReferenceName();
   }
 
   public boolean isReferenceType() {
-    return referenceType != null && (referenceType.classOrInterfaceType != null ||
-            referenceType.arrayType != null && referenceType.arrayType.name != null);
+    return referenceType != null && referenceType.isReferenceType();
   }
 
   public boolean isPrimitiveType() {
-    return primitiveType != null || (referenceType.arrayType != null && referenceType.arrayType.primitiveType != null);
+    return primitiveType != null || referenceType.isPrimitiveType();
   }
 
   public boolean isArray() {

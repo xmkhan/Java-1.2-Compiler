@@ -55,11 +55,14 @@ public class TypeCheckingVisitor extends BaseVisitor {
       case INT_LITERAL:
         literalToken = new TypeCheckToken(TokenType.INT);
         break;
-      case BOOLEAN_LITERAL:
+      case BooleanLiteral:
         literalToken = new TypeCheckToken(TokenType.BOOLEAN);
         break;
       case CHAR_LITERAL:
         literalToken = new TypeCheckToken(TokenType.CHAR);
+        break;
+      case NULL:
+        literalToken = new TypeCheckToken(TokenType.NULL);
         break;
       default:
         throw new VisitorException("Unexpected literal: " + token.getLexeme() + " of type " + token.getTokenType(), token);
@@ -137,7 +140,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       if(rightSide.isArray == leftSide.isArray && validType(rightSide.tokenType, validTypes) && rightSide.tokenType == leftSide.tokenType) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
       }  else if(rightSide.isArray == leftSide.isArray && rightSide.tokenType == TokenType.OBJECT && leftSide.tokenType == TokenType.OBJECT &&
-              hierarchyGraph.areNodesConnected(rightSide.getAbsolutePath(), leftSide.getAbsolutePath())) {
+              (leftSide.getAbsolutePath().equals(rightSide.getAbsolutePath()) || hierarchyGraph.areNodesConnected(rightSide.getAbsolutePath(), leftSide.getAbsolutePath()))) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
       } else if (leftSide.tokenType == TokenType.OBJECT && rightSide.tokenType == TokenType.NULL) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
@@ -155,14 +158,36 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if (token.children.size() == 1) return;
 
     if (token.children.get(1).getTokenType() == TokenType.INSTANCEOF) {
-      TypeCheckToken typeRightSide = tokenStack.pop();
+      ReferenceType reference = (ReferenceType) token.children.get(2);
       TypeCheckToken typeLeftSide = tokenStack.pop();
 
+      TokenType referenceType = reference.isPrimitiveType() ? reference.getType().getTokenType() : TokenType.OBJECT;
+      String referenceAbsolutePath = !reference.isReferenceType() ? null : reference.getReferenceName().getAbsolutePath();
+      boolean referenceIsArray = reference.isArray();
+
       if((!typeLeftSide.isArray && typeLeftSide.tokenType != TokenType.OBJECT)) {
-        throw new VisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object but found " + typeLeftSide + " instanceOf " + typeRightSide, token);
+        throw new VisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object but found " +
+                typeLeftSide + " instanceOf " + referenceType + " " + referenceAbsolutePath + " " + referenceIsArray , token);
       }
-      //TODO: Check object hierarchy
-      tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
+
+      TokenType [] validTypes = {TokenType.BOOLEAN, TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
+
+      try {
+        if (typeLeftSide.isArray == referenceIsArray && validType(typeLeftSide.tokenType, validTypes) && typeLeftSide.tokenType == referenceType) {
+          tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
+        } else if(isWideningReferenceConversion(referenceType, referenceAbsolutePath, referenceIsArray,
+                typeLeftSide.tokenType, typeLeftSide.getAbsolutePath(), typeLeftSide.isArray)) {
+          tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
+        } else if(isWideningReferenceConversion(typeLeftSide.tokenType, typeLeftSide.getAbsolutePath(), typeLeftSide.isArray,
+                referenceType, referenceAbsolutePath, referenceIsArray)) {
+          tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
+        } else {
+          throw new VisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object of subtypes but found of " +
+                  typeLeftSide + " instanceOf " + referenceType + " " + referenceAbsolutePath + " " + referenceIsArray , token);
+        }
+      } catch (TypeHierarchyException e) {
+        throw new VisitorException(e.getMessage(), token);
+      }
     } else {
       TypeCheckToken rightType = tokenStack.pop();
       TypeCheckToken leftType = tokenStack.pop();
@@ -282,10 +307,38 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     if(token.children.get(0).getTokenType() == TokenType.Name) {
       Name name = (Name) token.children.get(0);
+      if(name.isUsedInCast()) {
+        return;
+      }
+
+      // Only determine declarations on fields and not Classes which only occur in casts
+      // The latter scenario will be handled in the cast
       Declaration determinedDecl = determineDeclaration(name, new Class[] {FormalParameter.class,
                                                                            FieldDeclaration.class,
                                                                            LocalVariableDeclaration.class});
-      tokenStack.push(new TypeCheckToken(determinedDecl));
+      String determinedAbsolutePath = determinedDecl.getAbsolutePath();
+      String originalPath = name.getLexeme();
+      String [] determinedAbsolutePathArr = determinedAbsolutePath.split("\\.");
+      String [] originalPathArr = originalPath.split("\\.");
+
+      if(determinedAbsolutePathArr.length == 0 || originalPathArr.length == 0) {
+        throw new VisitorException("variable needs to be defined: " + determinedAbsolutePath + " but had " + originalPath, token);
+      }
+
+      if(!determinedAbsolutePathArr[determinedAbsolutePathArr.length - 1].equals(originalPathArr[originalPathArr.length - 1])) {
+        if(originalPathArr.length < 2) {
+          throw new VisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);
+        }
+
+        if(determinedDecl.type.isArray() && originalPathArr[originalPathArr.length - 1].equals("length") &&
+                originalPathArr[originalPathArr.length - 2].equals(determinedAbsolutePathArr[determinedAbsolutePathArr.length - 1])) {
+          tokenStack.push(new TypeCheckToken(TokenType.INT));
+        } else  {
+          throw new VisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);
+        }
+      } else {
+        tokenStack.push(new TypeCheckToken(determinedDecl));
+      }
     } else if(token.children.size() == 2) {
       // No need to pop since if the type is valid we would've to push it back on the stack anyways
       TokenType type = tokenStack.peek().tokenType;
@@ -360,6 +413,36 @@ public class TypeCheckingVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(FieldDeclaration decl) throws VisitorException {
+    // If variable isn't initialized, no need to check
+    if(decl.expr == null) {
+      return;
+    }
+
+    TypeCheckToken assignedType = tokenStack.pop();
+
+    TokenType declType = decl.type.isPrimitiveType() ? decl.type.getType().getTokenType() : TokenType.OBJECT;
+    String declAbsolutePath = !decl.type.isReferenceType() ? null : decl.type.getReferenceName().getAbsolutePath();
+    boolean declIsArray = decl.type.isArray();
+
+    TokenType [] validTypes = {TokenType.BOOLEAN, TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
+
+    try {
+      if (declIsArray == assignedType.isArray && validType(declType, validTypes) && declType == assignedType.tokenType) {
+      } else if(declIsArray == false && assignedType.isArray == false &&
+              decl.type.isPrimitiveType() && assignedType.isPrimitiveType() &&
+              isWideningPrimitiveConversion(assignedType.tokenType, declType)) {
+      } else if (isWideningReferenceConversion(assignedType.tokenType, assignedType.getAbsolutePath(), assignedType.isArray,
+              declType, declAbsolutePath, declIsArray)) {
+      } else {
+        throw new VisitorException("Assignment should be of same type or from parent to subclass.  Found: " + assignedType.toString() + " being assigned to "  + declType.toString(), decl);
+      }
+    } catch (TypeHierarchyException e) {
+      throw new VisitorException(e.getMessage(), decl);
+    }
+  }
+
+  @Override
   public void visit(ArrayAccess token) throws VisitorException {
     TypeCheckToken expressionType = tokenStack.pop();
     if (expressionType.tokenType != TokenType.INT) {
@@ -372,10 +455,20 @@ public class TypeCheckingVisitor extends BaseVisitor {
       Declaration determinedDecalaration = determineDeclaration(name, new Class[] {FormalParameter.class,
                                                                                    FieldDeclaration.class,
                                                                                    LocalVariableDeclaration.class});
-      tokenStack.push(new TypeCheckToken(determinedDecalaration));
+      if(!determinedDecalaration.type.isArray()) {
+        throw new VisitorException("Trying to dereference an array with an index: name=" + name.getLexeme(), token);
+      }
+
+      tokenStack.push(new TypeCheckToken(determinedDecalaration, false));
     } else {
-      // Primary case: No need to do anything as Primary type is on top of the stack.
-      // We check to make sure Expression is of type int at the top
+      TypeCheckToken primaryAccess = tokenStack.pop();
+
+      if(!primaryAccess.isArray) {
+        throw new VisitorException("Trying to dereference an array with an index: name=" + primaryAccess.tokenType, token);
+      }
+
+      primaryAccess.isArray = false;
+      tokenStack.push(primaryAccess);
     }
   }
 
@@ -440,31 +533,30 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
 
     TypeCheckToken tokenToCast = tokenStack.pop();
-    if(tokenToCast.isArray != token.isArrayCast()) {
-      throw new VisitorException("Expected both to be array or not array but found type is array: " + tokenToCast.isArray + " and type is array: " + token.isArrayCast(), token);
+
+    TypeCheckToken cast = null;
+    if(token.isName()) {
+      Declaration determinedNameDecl = determineDeclaration(token.name, new Class[]{ClassDeclaration.class});
+      cast = new TypeCheckToken(determinedNameDecl, token.isArrayCast());
     }
 
-    // TODO: handle edge cases for casts
     try {
-      // Handle boolean case
-      if (tokenToCast.isPrimitiveType() && token.isPrimitiveType() && tokenToCast.tokenType == token.primitiveType.getType().getTokenType()) {
+      if (tokenToCast.isArray == token.isArrayCast() && tokenToCast.isPrimitiveType() && token.isPrimitiveType() && tokenToCast.tokenType == token.primitiveType.getType().getTokenType()) {
         tokenStack.push(new TypeCheckToken(token.primitiveType.getType().getTokenType(), token.isArrayCast()));
-      } else if (tokenToCast.isPrimitiveType() && token.isPrimitiveType() &&
+      } else if (!tokenToCast.isArray && !token.isArrayCast() && tokenToCast.isPrimitiveType() && token.isPrimitiveType() &&
               (isWideningPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType()) ||
-               isNarrowingPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType()))) {
+                      isNarrowingPrimitiveConversion(tokenToCast.tokenType, token.primitiveType.getType().getTokenType()))) {
         tokenStack.push(new TypeCheckToken(token.primitiveType.getType().getTokenType(), token.isArrayCast()));
-        //TODO: Might need to change name.getAbsolutePath to name.getDeclaration and determine the declaration and use path from that
-      } else if(tokenToCast.tokenType == TokenType.OBJECT && token.isName() && tokenToCast.getAbsolutePath().equals(token.name.getAbsolutePath())) {
-          tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
-      } else if (tokenToCast.tokenType == TokenType.OBJECT && token.isName() && hierarchyGraph.areNodesConnected(token.name.getAbsolutePath(), tokenToCast.getAbsolutePath())) {
-        tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
-      } else if(token.isName() && tokenToCast.tokenType == TokenType.NULL) {
-        tokenStack.push(new TypeCheckToken(token.getTokenType(), token.isArrayCast()));
-      }
-      else {
+      } else if(cast != null && isWideningReferenceConversion(cast.tokenType, cast.getAbsolutePath(), cast.isArray,
+              tokenToCast.tokenType, tokenToCast.getAbsolutePath(), tokenToCast.isArray)) {
+        tokenStack.push(cast);
+      } else if(cast != null && isWideningReferenceConversion(tokenToCast.tokenType, tokenToCast.getAbsolutePath(), tokenToCast.isArray,
+              cast.tokenType, cast.getAbsolutePath(), cast.isArray)) {
+        tokenStack.push(cast);
+      } else {
         throw new VisitorException("Not castable types: "  + token.toString() + " and " + tokenToCast.toString(), token);
       }
-    } catch(TypeHierarchyException e) {
+    } catch (TypeHierarchyException e) {
       throw new VisitorException(e.getMessage(), token);
     }
   }
@@ -520,6 +612,18 @@ public class TypeCheckingVisitor extends BaseVisitor {
     tokenStack.pop();
   }
 
+  @Override
+  public void visit(ReturnStatement token) throws VisitorException {
+    super.visit(token);
+    if(token.children.get(1).getTokenType() == TokenType.Expression) {
+      //TODO: check if return is same as method header
+      if (tokenStack.size() == 0) {
+        throw new VisitorException("Expected an value on stack, but found none", token);
+      }
+
+      tokenStack.pop();
+    }
+  }
 
   private TypeCheckToken createStringToken() {
     TypeCheckToken stringType = new TypeCheckToken(TokenType.OBJECT);
@@ -558,20 +662,23 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
   private boolean isWideningReferenceConversion(TokenType fromType, String fromAbsolutePath, boolean fromIsArray,
                                                 TokenType toType, String toAbsolutePath, boolean toIsArray) throws TypeHierarchyException {
-      if (toIsArray == fromIsArray && toType == TokenType.OBJECT && fromType == TokenType.OBJECT &&
-              hierarchyGraph.areNodesConnectedOneWay(fromAbsolutePath, toAbsolutePath)) {
-        return true;
-      } else if (toType == TokenType.OBJECT && fromType == TokenType.NULL) {
-        return true;
-      } else if(toIsArray && fromType == TokenType.NULL) {
-        return true;
-      } else if(toType == TokenType.OBJECT && fromIsArray && toAbsolutePath.equals(SERIALIZABLE_CLASS_PATH)) {
-        return true;
-      } else if(toType == TokenType.OBJECT && fromIsArray && toAbsolutePath.equals(OBJECT_CLASS_PATH)) {
-        return true;
-      } else {
-        return false;
-      }
+    if (toIsArray == fromIsArray && toType == TokenType.OBJECT && fromType == TokenType.OBJECT &&
+          fromAbsolutePath.equals(toAbsolutePath)) {
+      return true;
+    } else if (toIsArray == fromIsArray && toType == TokenType.OBJECT && fromType == TokenType.OBJECT &&
+            hierarchyGraph.areNodesConnectedOneWay(fromAbsolutePath, toAbsolutePath)) {
+      return true;
+    } else if (toType == TokenType.OBJECT && fromType == TokenType.NULL) {
+      return true;
+    } else if(toIsArray && fromType == TokenType.NULL) {
+      return true;
+    } else if(toType == TokenType.OBJECT && fromIsArray && toAbsolutePath.equals(SERIALIZABLE_CLASS_PATH)) {
+      return true;
+    } else if(toType == TokenType.OBJECT && fromIsArray && toAbsolutePath.equals(OBJECT_CLASS_PATH)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   private boolean validTypes(TokenType type1, TokenType type2, TokenType[] types) {

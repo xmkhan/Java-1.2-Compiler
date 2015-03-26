@@ -31,4 +31,15 @@ public class TypeCheckingVisitorTest {
     visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
     visitor.typeCheckUnits(bundle.units);
   }
+
+  @Test
+  public void testReachable() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+            "src/test/resources/reachability/J1_Reachable1.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
+    visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
+    visitor.typeCheckUnits(bundle.units);
+  }
 }
