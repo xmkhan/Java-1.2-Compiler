@@ -59,7 +59,6 @@ public class VariableNameResolutionAlgorithm {
     if (!variableSymbols.isEmpty()) {
       declarations.add((Declaration) variableSymbols.get(0));
       name.setDeclarationTypes(declarations);
-      return;
     }
 
     // 2. Check the object hierarchy
@@ -77,7 +76,6 @@ public class VariableNameResolutionAlgorithm {
     }
     if (!declarations.isEmpty()) {
       name.setDeclarationTypes(declarations);
-      return;
     }
 
     // 3. Check single import
@@ -89,7 +87,6 @@ public class VariableNameResolutionAlgorithm {
         if (declaration != null) {
           declarations.add(declaration);
           name.setDeclarationTypes(declarations);
-          return;
         }
       }
     }
@@ -101,7 +98,6 @@ public class VariableNameResolutionAlgorithm {
     if (packageClassType != null) {
       declarations.add((Declaration)packageClassType);
       name.setDeclarationTypes(declarations);
-      return;
     }
 
     // 5. Check on-demand import
@@ -121,7 +117,6 @@ public class VariableNameResolutionAlgorithm {
     if (matches > 1) throw new VariableNameResolutionException("Multiple on-demand imports found");
     else if (matches == 1) {
       name.setDeclarationTypes(declarations);
-      return;
     }
 
     // 6. Try java.lang.* implicit on-demand package
