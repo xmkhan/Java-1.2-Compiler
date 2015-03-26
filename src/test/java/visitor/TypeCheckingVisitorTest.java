@@ -33,6 +33,17 @@ public class TypeCheckingVisitorTest {
   }
 
   @Test
+  public void testWrappedWithBrackets() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+            "src/test/resources/typechecking/J1_good_dot.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
+    visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
+    visitor.typeCheckUnits(bundle.units);
+  }
+
+  @Test
   public void testReachable() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(

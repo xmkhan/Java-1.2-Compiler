@@ -507,9 +507,16 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     }
 
-    String absoluteFieldAccess = firstIdentifier.getAbsolutePath() + '.' + token.identifier.getLexeme();
-    List<Token> potentialFields = symbolTable.findWithPrefixOfAnyType(absoluteFieldAccess, new Class[] {FieldDeclaration.class});
-    if (potentialFields == null || potentialFields.isEmpty()) {
+    List<Token> potentialFields = new ArrayList<Token>();
+    List<FieldDeclaration> allFields = hierarchyGraph.get(firstIdentifier.getAbsolutePath()).getAllFields();
+    for (Iterator<FieldDeclaration> it = allFields.listIterator(); it.hasNext(); ) {
+      FieldDeclaration field = it.next();
+      if(field.identifier.getLexeme().equals(token.identifier.getLexeme())) {
+        potentialFields.add(field);
+      }
+    }
+
+    if (potentialFields.isEmpty()) {
       throw new VisitorException("No field could be resolved for field: " + token.identifier.getLexeme(), token);
     }
     tokenStack.push(new TypeCheckToken((Declaration)potentialFields.get(0)));
@@ -584,8 +591,16 @@ public class TypeCheckingVisitor extends BaseVisitor {
     List<Token> matchingDeclarations;
     if(token.isOnPrimary()) {
       TypeCheckToken primary = tokenStack.pop();
-      String methodToCall = primary.getAbsolutePath() + "." + token.identifier.getLexeme();
-      matchingDeclarations = symbolTable.findWithPrefixOfAnyType(methodToCall, new Class [] {MethodDeclaration.class});
+
+      matchingDeclarations = new ArrayList<Token>();
+      List<BaseMethodDeclaration> allMethods = hierarchyGraph.get(primary.getAbsolutePath()).getAllMethods();
+      for (Iterator<BaseMethodDeclaration> it = allMethods.listIterator(); it.hasNext(); ) {
+        BaseMethodDeclaration method = it.next();
+        if(method instanceof MethodDeclaration && ((MethodDeclaration) method).methodHeader.identifier.getLexeme().equals(token.identifier.getLexeme())
+                || method instanceof AbstractMethodDeclaration && ((AbstractMethodDeclaration) method).methodHeader.identifier.getLexeme().equals(token.identifier.getLexeme())) {
+          matchingDeclarations.add(method);
+        }
+      }
     } else {
       Name name = (Name) token.name;
       matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class});
@@ -737,9 +752,16 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
   private Declaration matchCall(List<Token> matchingDeclarations, boolean isMethod, List<TypeCheckToken> argumentsToMethod, Token context) throws VisitorException {
     for (Token declaration : matchingDeclarations) {
-      FormalParameterList parameterList =
-              isMethod ? ((MethodDeclaration) declaration).methodHeader.paramList
-                  : ((ConstructorDeclaration) declaration).declarator.getParameterList();
+      FormalParameterList parameterList;
+      if(isMethod) {
+        if(declaration instanceof MethodDeclaration) {
+          parameterList = ((MethodDeclaration) declaration).methodHeader.paramList;
+        } else {
+          parameterList = ((AbstractMethodDeclaration) declaration).methodHeader.paramList;
+        }
+      } else {
+        parameterList = ((ConstructorDeclaration) declaration).declarator.getParameterList();
+      }
 
       if(parameterList == null) {
         if(argumentsToMethod.size() == 0) {
@@ -773,6 +795,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     }
 
-    throw new VisitorException("Can not find any " + (isMethod ? "Method" : "Constructor") + " declaration for " + context.getLexeme(), context);
+    throw new VisitorException("Can not find any " + (isMethod ? "Method" : "Constructor") + " declaration for " + context != null ? context.getLexeme() : "null", context);
   }
 }
