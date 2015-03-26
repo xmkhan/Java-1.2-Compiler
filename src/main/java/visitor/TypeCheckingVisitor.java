@@ -224,9 +224,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     } else if (token.children.get(1).getTokenType() == TokenType.PLUS_OP) {
       // TODO: Fix string
-      TokenType[] validStringConcatTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN};
-      if (leftSide.tokenType == TokenType.OBJECT && leftSide.absolutePath.equals(STRING_CLASS_PATH) && validType(rightSide.tokenType, validStringConcatTypes) ||
-        rightSide.tokenType == TokenType.OBJECT && leftSide.absolutePath.equals(STRING_CLASS_PATH) && validType(leftSide.tokenType, validStringConcatTypes)) {
+      TokenType[] validStringConcatTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN, TokenType.OBJECT};
+      if (leftSide.tokenType == TokenType.OBJECT && leftSide.getAbsolutePath().equals(STRING_CLASS_PATH) && validType(rightSide.tokenType, validStringConcatTypes) ||
+        rightSide.tokenType == TokenType.OBJECT && rightSide.getAbsolutePath().equals(STRING_CLASS_PATH) && validType(leftSide.tokenType, validStringConcatTypes)) {
         tokenStack.push(createStringToken());
       } else if (validTypes(leftSide.tokenType, rightSide.tokenType, validMinusPlusTypes)) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
@@ -507,6 +507,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     }
 
+    if(firstIdentifier.tokenType != TokenType.OBJECT) {
+      throw new VisitorException("Expected object when calling field " + token.identifier.getLexeme() + " but found " + firstIdentifier.tokenType, token);
+    }
+
     List<Token> potentialFields = new ArrayList<Token>();
     List<FieldDeclaration> allFields = hierarchyGraph.get(firstIdentifier.getAbsolutePath()).getAllFields();
     for (Iterator<FieldDeclaration> it = allFields.listIterator(); it.hasNext(); ) {
@@ -591,6 +595,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
     List<Token> matchingDeclarations;
     if(token.isOnPrimary()) {
       TypeCheckToken primary = tokenStack.pop();
+      if(primary.tokenType != TokenType.OBJECT) {
+        throw new VisitorException("Expected object when calling method " + token.identifier.getLexeme() + " but found " + primary.tokenType, token);
+      }
 
       matchingDeclarations = new ArrayList<Token>();
       List<BaseMethodDeclaration> allMethods = hierarchyGraph.get(primary.getAbsolutePath()).getAllMethods();
@@ -606,7 +613,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class});
     }
 
-    Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name);
+    Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name == null ? token.identifier : token.name);
     if(methodDeclaration.type == null) {
       tokenStack.push(new TypeCheckToken(TokenType.VOID, false));
     } else if(methodDeclaration.type.isPrimitiveType()) {
@@ -795,6 +802,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     }
 
-    throw new VisitorException("Can not find any " + (isMethod ? "Method" : "Constructor") + " declaration for " + context != null ? context.getLexeme() : "null", context);
+    throw new VisitorException("Can not find any " + (isMethod ? "Method" : "Constructor") + " declaration for " + (context != null ? context.getLexeme() : "null"), context);
   }
 }

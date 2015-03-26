@@ -1,8 +1,11 @@
 package visitor;
 
 import exception.CompilerException;
+import exception.TypeLinkingVisitorException;
+import exception.VisitorException;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import util.CompilationUnitGenerator;
 
 import java.io.IOException;
@@ -44,7 +47,51 @@ public class TypeCheckingVisitorTest {
   }
 
   @Test
-  public void testReachable() throws IOException, CompilerException {
+  public void testStringAddition() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+            "src/test/resources/typechecking/J1_intstringadd.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
+    visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
+    visitor.typeCheckUnits(bundle.units);
+  }
+
+  @Test
+  public void testAddition() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+            "src/test/resources/typechecking/J1_typecheck_plus.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
+    visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
+    visitor.typeCheckUnits(bundle.units);
+  }
+
+  @Test(expected = VisitorException.class)
+  public void testInvalidPrimary() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+            "src/test/resources/typechecking/Je_1_MethodInvocation_Primitive.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
+    visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
+    visitor.typeCheckUnits(bundle.units);
+  }
+
+  @Test(expected = VisitorException.class)
+  public void testInvalidMethodParameter() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+            "src/test/resources/typechecking/Je_6_MethodPresent_ArgumentTypeMismatch.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
+    visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
+    visitor.typeCheckUnits(bundle.units);
+  }
+
+  @Test
+  public void testRandom() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
             "src/test/resources/reachability/J1_Reachable1.java"
