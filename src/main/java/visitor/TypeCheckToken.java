@@ -39,10 +39,10 @@ public class TypeCheckToken {
     this.isArray = isArray;
   }
 
-    public String getAbsolutePath() {
-      if(isPrimitiveType()) {
-        return null;
-      }
+  public String getAbsolutePath() {
+    if(isPrimitiveType()) {
+      return null;
+    }
 
     if(absolutePath != null && !absolutePath.isEmpty()) {
       return absolutePath;
