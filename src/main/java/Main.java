@@ -63,7 +63,7 @@ public class Main {
       ReachabilityVisitor reachabilityVisitor = new ReachabilityVisitor();
       reachabilityVisitor.checkReachability(compilationUnits);
 
-      SelfAssignmentVisitor selfAssignmentVisitor = new SelfAssignmentVisitor(table);
+      SelfAssignmentVisitor selfAssignmentVisitor = new SelfAssignmentVisitor();
       selfAssignmentVisitor.checkSelfAssignment(compilationUnits);
 
     } catch (CompilerException e) {

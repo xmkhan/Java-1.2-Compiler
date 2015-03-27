@@ -1,10 +1,10 @@
 package visitor;
 
+import exception.SelfAssignmentVisitorException;
 import exception.VisitorException;
 import symbol.SymbolTable;
 import token.CompilationUnit;
 import token.LocalVariableDeclaration;
-import token.Name;
 import token.Token;
 import token.UnaryExpressionNotMinus;
 
@@ -14,13 +14,7 @@ import java.util.List;
  * Responsible for checking that local  declaration assignments do not use the LHS Name on the RHS.
  */
 public class SelfAssignmentVisitor extends BaseVisitor {
-  private SymbolTable table;
   private String lhs_identifier = null;
-  private CompilationUnit unit;
-
-  public SelfAssignmentVisitor(SymbolTable table) {
-    this.table = table;
-  }
 
   public void checkSelfAssignment(List<CompilationUnit> units) throws VisitorException {
     for (CompilationUnit unit : units) {
@@ -31,7 +25,6 @@ public class SelfAssignmentVisitor extends BaseVisitor {
   @Override
   public void visit(CompilationUnit token) throws VisitorException {
     super.visit(token);
-    unit = token;
   }
 
   @Override
@@ -44,7 +37,7 @@ public class SelfAssignmentVisitor extends BaseVisitor {
   public void visit(UnaryExpressionNotMinus token) throws VisitorException {
     super.visit(token);
     if (token.name != null && token.name.getLexeme().equals(lhs_identifier)) {
-      throw new VisitorException("Cannot use local variable before it is defined", token);
+      throw new SelfAssignmentVisitorException("Cannot use local variable before it is defined", token);
     }
   }
 
