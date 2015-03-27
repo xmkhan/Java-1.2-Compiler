@@ -2,6 +2,7 @@ package visitor;
 
 import exception.CompilerException;
 import exception.ReachabilityVisitorException;
+import exception.SelfAssignmentVisitorException;
 import org.junit.Before;
 import org.junit.Test;
 import util.CompilationUnitGenerator;
@@ -15,11 +16,13 @@ import java.util.List;
  */
 public class ReachabilityVisitorTest {
   private CompilationUnitGenerator.Bundle bundle;
-  private ReachabilityVisitor visitor;
+  private ReachabilityVisitor reachabilityVisitor;
+  private SelfAssignmentVisitor selfAssignmentVisitor;
 
   @Before
   public void setUp() {
-    visitor = new ReachabilityVisitor();
+    reachabilityVisitor = new ReachabilityVisitor();
+    selfAssignmentVisitor = new SelfAssignmentVisitor();
   }
 
   @Test
@@ -29,7 +32,7 @@ public class ReachabilityVisitorTest {
         "src/test/resources/reachability/J1_Reachable1.java"
     ));
     bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
-    visitor.checkReachability(bundle.units);
+    reachabilityVisitor.checkReachability(bundle.units);
   }
 
   @Test
@@ -39,7 +42,7 @@ public class ReachabilityVisitorTest {
         "src/test/resources/reachability/J1_whiletrue1.java"
     ));
     bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
-    visitor.checkReachability(bundle.units);
+    reachabilityVisitor.checkReachability(bundle.units);
   }
 
   @Test
@@ -49,7 +52,7 @@ public class ReachabilityVisitorTest {
         "src/test/resources/reachability/J1_7_Reachability_IfAndWhile_Return.java"
     ));
     bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
-    visitor.checkReachability(bundle.units);
+    reachabilityVisitor.checkReachability(bundle.units);
   }
 
   @Test(expected = ReachabilityVisitorException.class)
@@ -59,26 +62,16 @@ public class ReachabilityVisitorTest {
         "src/test/resources/reachability/Je_7_Return_IfIfNot.java"
     ));
     bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
-    visitor.checkReachability(bundle.units);
+    reachabilityVisitor.checkReachability(bundle.units);
   }
 
-  @Test(expected = ReachabilityVisitorException.class)
+  @Test(expected = SelfAssignmentVisitorException.class)
   public void testInitToItself() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
         "src/test/resources/reachability/Je_8_DefiniteAssignment_InitToItself.java"
     ));
     bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
-    visitor.checkReachability(bundle.units);
-  }
-
-  @Test(expected = ReachabilityVisitorException.class)
-  public void testWidening() throws IOException, CompilerException {
-    List<String> files = CompilationUnitGenerator.getStdlibFiles();
-    files.addAll(Arrays.asList(
-            "src/test/resources/reachability/Je_Widening.java"
-    ));
-    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
-    visitor.checkReachability(bundle.units);
+    selfAssignmentVisitor.checkSelfAssignment(bundle.units);
   }
 }
