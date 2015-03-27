@@ -21,7 +21,7 @@ public class TypeCheckToken {
   public TypeCheckToken (Declaration token) {
     this.declaration = token;
 
-    if(token instanceof ClassDeclaration) {
+    if(token instanceof ClassDeclaration || token instanceof InterfaceDeclaration) {
       isArray = false;
       tokenType = TokenType.OBJECT;
     } else {
@@ -68,7 +68,7 @@ public class TypeCheckToken {
 
   @Override
   public String toString() {
-    return tokenType.toString() + " isArray = " + isArray;
+    return tokenType.toString() + " isArray = " + isArray + " absolutepath = " + getAbsolutePath();
   }
 
 }

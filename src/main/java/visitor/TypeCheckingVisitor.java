@@ -6,6 +6,7 @@ import symbol.SymbolTable;
 import token.*;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
+import type.hierarchy.Method;
 
 import java.util.*;
 
@@ -13,12 +14,14 @@ public class TypeCheckingVisitor extends BaseVisitor {
   private enum OperandSide {LEFT, RIGHT};
   private final String STRING_CLASS_PATH = "java.lang.String";
   private final String SERIALIZABLE_CLASS_PATH = "java.io.Serializable";
+  private final String CLONEABLE_CLASS_PATH = "java.lang.Cloneable";
   private final String OBJECT_CLASS_PATH = "java.lang.Object";
 
   private final SymbolTable symbolTable;
   private final Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode;
   private final HierarchyGraph hierarchyGraph;
   public Stack<TypeCheckToken> tokenStack;
+  public Stack<TypeCheckToken> returnCallStack;
   private HierarchyGraphNode node;
   private CompilationUnit unit;
 
@@ -36,9 +39,18 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
 
       tokenStack = new Stack<TypeCheckToken>();
+      returnCallStack = new Stack<TypeCheckToken>();
       this.unit = unit;
       this.node = compilationUnitToNode.get(unit);
       unit.accept(this);
+    }
+  }
+
+  @Override
+  public void visit(CompilationUnit token) throws VisitorException {
+    super.visit(token);
+    if(!tokenStack.isEmpty()) {
+      throw new VisitorException("Stack should be empty", token);
     }
   }
 
@@ -165,7 +177,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       String referenceAbsolutePath = !reference.isReferenceType() ? null : reference.getReferenceName().getAbsolutePath();
       boolean referenceIsArray = reference.isArray();
 
-      if((!typeLeftSide.isArray && typeLeftSide.tokenType != TokenType.OBJECT)) {
+      if((!typeLeftSide.isArray && typeLeftSide.tokenType != TokenType.OBJECT && typeLeftSide.tokenType != TokenType.NULL)) {
         throw new VisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object but found " +
                 typeLeftSide + " instanceOf " + referenceType + " " + referenceAbsolutePath + " " + referenceIsArray , token);
       }
@@ -173,7 +185,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       TokenType [] validTypes = {TokenType.BOOLEAN, TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
 
       try {
-        if (typeLeftSide.isArray == referenceIsArray && validType(typeLeftSide.tokenType, validTypes) && typeLeftSide.tokenType == referenceType) {
+        if (typeLeftSide.isArray && referenceIsArray && validType(typeLeftSide.tokenType, validTypes) && typeLeftSide.tokenType == referenceType) {
           tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
         } else if(isWideningReferenceConversion(referenceType, referenceAbsolutePath, referenceIsArray,
                 typeLeftSide.tokenType, typeLeftSide.getAbsolutePath(), typeLeftSide.isArray)) {
@@ -210,25 +222,27 @@ public class TypeCheckingVisitor extends BaseVisitor {
     TypeCheckToken rightSide = tokenStack.pop();
     TypeCheckToken leftSide = tokenStack.pop();
 
-    assertNotArray(token, rightSide, OperandSide.RIGHT, token.children.get(1).getLexeme());
-    assertNotArray(token, leftSide, OperandSide.LEFT, token.children.get(1).getLexeme());
-
     // These types could be used with the '+' and '-' operators and the result is an int
     TokenType[]  validMinusPlusTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
 
     if (token.children.get(1).getTokenType() == TokenType.MINUS_OP) {
+      assertNotArray(token, rightSide, OperandSide.RIGHT, token.children.get(1).getLexeme());
+      assertNotArray(token, leftSide, OperandSide.LEFT, token.children.get(1).getLexeme());
+
       if (validTypes(leftSide.tokenType, rightSide.tokenType, validMinusPlusTypes)) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
       } else {
         throw new VisitorException("AdditiveExpression expected 'short|int|byte|char - short|int|byte|char but found " + leftSide + " - " + rightSide, token);
       }
     } else if (token.children.get(1).getTokenType() == TokenType.PLUS_OP) {
-      // TODO: Fix string
       TokenType[] validStringConcatTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN, TokenType.OBJECT};
-      if (leftSide.tokenType == TokenType.OBJECT && leftSide.getAbsolutePath().equals(STRING_CLASS_PATH) && validType(rightSide.tokenType, validStringConcatTypes) ||
-        rightSide.tokenType == TokenType.OBJECT && rightSide.getAbsolutePath().equals(STRING_CLASS_PATH) && validType(leftSide.tokenType, validStringConcatTypes)) {
+      if (!leftSide.isArray && leftSide.tokenType == TokenType.OBJECT && leftSide.getAbsolutePath().equals(STRING_CLASS_PATH) && validType(rightSide.tokenType, validStringConcatTypes) ||
+        !rightSide.isArray && rightSide.tokenType == TokenType.OBJECT && rightSide.getAbsolutePath().equals(STRING_CLASS_PATH) && validType(leftSide.tokenType, validStringConcatTypes)) {
         tokenStack.push(createStringToken());
       } else if (validTypes(leftSide.tokenType, rightSide.tokenType, validMinusPlusTypes)) {
+        assertNotArray(token, rightSide, OperandSide.RIGHT, token.children.get(1).getLexeme());
+        assertNotArray(token, leftSide, OperandSide.LEFT, token.children.get(1).getLexeme());
+
         tokenStack.push(new TypeCheckToken(TokenType.INT));
       } else {
         throw new VisitorException("String concatenation found invalid types " + leftSide + " + " + rightSide, token);
@@ -351,15 +365,74 @@ public class TypeCheckingVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(ConstructorDeclaration token) throws VisitorException {
+    super.visit(token);
+    while(!returnCallStack.isEmpty()) {
+      TypeCheckToken returnToken = returnCallStack.pop();
+      if(returnToken.tokenType != TokenType.VOID) {
+        throw new VisitorException("Can not return not void types in constructor: found " + returnToken.tokenType, token);
+      }
+    }
+  }
+
+  @Override
+  public void visit(MethodDeclaration token) throws VisitorException {
+    super.visit(token);
+    while(!returnCallStack.isEmpty()) {
+      TypeCheckToken returnToken = returnCallStack.pop();
+      if(token.methodHeader.voidType != null) {
+        if (returnToken.tokenType != TokenType.VOID) {
+          throw new VisitorException("Can not return not void types in constructor: found " + returnToken.tokenType, token);
+        }
+      } else {
+        TokenType expectedType = token.methodHeader.type.isPrimitiveType() ? token.methodHeader.type.getType().getTokenType() : TokenType.OBJECT;
+        String expectedAbsolutePath = !token.methodHeader.type.isReferenceType() ? null : token.methodHeader.type.getReferenceName().getAbsolutePath();
+        boolean expectedIsArray = token.methodHeader.type.isArray();
+
+        TokenType [] validTypes = {TokenType.BOOLEAN, TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
+
+        try {
+          if (expectedIsArray == returnToken.isArray && validType(expectedType, validTypes) && expectedType == returnToken.tokenType) {
+          } else if(expectedIsArray == false && returnToken.isArray == false &&
+                  token.methodHeader.type.isPrimitiveType() && returnToken.isPrimitiveType() &&
+                  isWideningPrimitiveConversion(returnToken.tokenType, expectedType)) {
+          } else if (isWideningReferenceConversion(returnToken.tokenType, returnToken.getAbsolutePath(), returnToken.isArray,
+                  expectedType, expectedAbsolutePath, expectedIsArray)) {
+          } else {
+            throw new VisitorException("Return should be of same type or from parent to subclass.  Found: " + returnToken.toString() + " when should be "  + expectedType.toString() + " " + expectedAbsolutePath, token);
+          }
+        } catch (TypeHierarchyException e) {
+          throw new VisitorException(e.getMessage(), token);
+        }
+      }
+    }
+  }
+
+  @Override
   public void visit(ConstructorDeclarator token) throws VisitorException {
     super.visit(token);
     if (!token.getIdentifier().getLexeme().equals(node.identifier)) {
       throw new VisitorException("Constructor name " + token.getIdentifier() + " does not match class name " + node.identifier, token);
     }
-  }
 
-  @Override
-  public void visit(Expression token) throws VisitorException {
+    if(node.extendsList != null && !node.extendsList.isEmpty()) {
+      // Should only be 1
+      HierarchyGraphNode parent = node.extendsList.get(0);
+      if(!parent.getFullname().equals(OBJECT_CLASS_PATH)) {
+        boolean hasDefaultConstructor = false;
+
+        for(Method constructor : parent.constructors) {
+          if(constructor.parameterTypes == null || constructor.parameterTypes.isEmpty()) {
+            hasDefaultConstructor = true;
+            break;
+          }
+        }
+
+        if(!hasDefaultConstructor) {
+          throw new VisitorException("Parent " + parent.getFullname() + " requires default constructor for implicit super call from " + node.identifier, token);
+        }
+      }
+    }
   }
 
   @Override
@@ -379,7 +452,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
       throw new VisitorException("Abstract class " + " cannot be instantiated", token);
     }
 
-    String constructor = name.getAbsolutePath() + "." + name.getLexeme();
+    String [] nameParts = name.getLexeme().split("\\.");
+    String constructor = name.getAbsolutePath() + "." + nameParts[nameParts.length - 1];
     List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, new Class [] {ConstructorDeclaration.class});
     Declaration constructorDeclaration = matchCall(matchingDeclarations, false, arguments, name);
 
@@ -445,7 +519,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(ArrayAccess token) throws VisitorException {
     TypeCheckToken expressionType = tokenStack.pop();
-    if (expressionType.tokenType != TokenType.INT) {
+
+    TokenType [] validTypes = {TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
+    if (!validType(expressionType.tokenType, validTypes)) {
       throw new VisitorException("ArrayAccess requires an integer but found " + expressionType.tokenType.toString(), token);
     }
 
@@ -475,7 +551,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(ArrayCreationExpression token) throws VisitorException {
     TypeCheckToken expressionType = tokenStack.pop();
-    if (expressionType.tokenType != TokenType.INT) {
+
+    TokenType [] validTypes = {TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
+    if (!validType(expressionType.tokenType, validTypes)) {
       throw new VisitorException("ArrayAccess requires an integer but found " + expressionType.tokenType.toString(), token);
     }
 
@@ -486,6 +564,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       tokenStack.push(new TypeCheckToken(determined, true));
     }
 
+    //TODO: Figure out what this was for
     //? Cant it be initiated
     // call shah's function on token.classType....
     /*if (false) {
@@ -499,7 +578,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     TypeCheckToken firstIdentifier = tokenStack.pop();
     if (firstIdentifier.isArray) {
-      if (token.identifier.equals("length")) {
+      if (token.identifier.getLexeme().equals("length")) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
         return;
       } else {
@@ -547,7 +626,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     TypeCheckToken cast = null;
     if(token.isName()) {
-      Declaration determinedNameDecl = determineDeclaration(token.name, new Class[]{ClassDeclaration.class});
+      Declaration determinedNameDecl = determineDeclaration(token.name, new Class[]{ClassDeclaration.class,
+                                                                                    InterfaceDeclaration.class});
       cast = new TypeCheckToken(determinedNameDecl, token.isArrayCast());
     }
 
@@ -619,7 +699,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
     } else if(methodDeclaration.type.isPrimitiveType()) {
       tokenStack.push(new TypeCheckToken(methodDeclaration.type.getType().getTokenType(), methodDeclaration.type.isArray()));
     } else {
-      Declaration determinedDecl = determineDeclaration(methodDeclaration.type.getReferenceName(), new Class[] {ClassDeclaration.class});
+      Declaration determinedDecl = determineDeclaration(methodDeclaration.type.getReferenceName(), new Class[] {ClassDeclaration.class,
+                                                                                                                InterfaceDeclaration.class});
       tokenStack.push(new TypeCheckToken(determinedDecl, methodDeclaration.type.isArray()));
     }
   }
@@ -638,12 +719,73 @@ public class TypeCheckingVisitor extends BaseVisitor {
   public void visit(ReturnStatement token) throws VisitorException {
     super.visit(token);
     if(token.children.get(1).getTokenType() == TokenType.Expression) {
-      //TODO: check if return is same as method header
+      // Check may not be necessary, but just keep it in case
       if (tokenStack.size() == 0) {
         throw new VisitorException("Expected an value on stack, but found none", token);
       }
 
-      tokenStack.pop();
+      TypeCheckToken expression = tokenStack.pop();
+      if(expression.tokenType == TokenType.VOID) {
+        throw new VisitorException("Can not return void values", token);
+      }
+
+      returnCallStack.push(expression);
+    } else {
+      // Push to indicate void return
+      returnCallStack.push(new TypeCheckToken(TokenType.VOID));
+    }
+  }
+
+  @Override
+  public void visit(IfThenStatement token) throws VisitorException {
+    super.visit(token);
+    ensureBooleanCondition(token, "if");
+  }
+
+  @Override
+  public void visit(IfThenElseStatement token) throws VisitorException {
+    super.visit(token);
+    ensureBooleanCondition(token, "if");
+  }
+
+  @Override
+  public void visit(IfThenElseStatementNoShortIf token) throws VisitorException {
+    super.visit(token);
+    ensureBooleanCondition(token, "if");
+  }
+
+  @Override
+  public void visit(WhileStatement token) throws VisitorException {
+    super.visit(token);
+    ensureBooleanCondition(token, "while");
+  }
+
+  @Override
+  public void visit(WhileStatementNoShortIf token) throws VisitorException {
+    super.visit(token);
+    ensureBooleanCondition(token, "while");
+  }
+
+  @Override
+  public void visit(ForStatement token) throws VisitorException {
+    super.visit(token);
+    if(token.expression != null) {
+      ensureBooleanCondition(token, "for");
+    }
+  }
+
+  @Override
+  public void visit(ForStatementNoShortIf token) throws VisitorException {
+    super.visit(token);
+    if(token.expression != null) {
+      ensureBooleanCondition(token, "for");
+    }
+  }
+
+  private void ensureBooleanCondition(Token context, String contextStr) throws VisitorException{
+    TypeCheckToken expression = tokenStack.pop();
+    if (expression.tokenType != TokenType.BOOLEAN) {
+      throw new VisitorException("Expected boolean expression in " + contextStr + " but found " + expression, context);
     }
   }
 
@@ -688,13 +830,15 @@ public class TypeCheckingVisitor extends BaseVisitor {
           fromAbsolutePath.equals(toAbsolutePath)) {
       return true;
     } else if (toIsArray == fromIsArray && toType == TokenType.OBJECT && fromType == TokenType.OBJECT &&
-            hierarchyGraph.areNodesConnectedOneWay(fromAbsolutePath, toAbsolutePath)) {
+            hierarchyGraph.areNodesConnectedOneWay(toAbsolutePath, fromAbsolutePath)) {
       return true;
     } else if (toType == TokenType.OBJECT && fromType == TokenType.NULL) {
       return true;
     } else if(toIsArray && fromType == TokenType.NULL) {
       return true;
     } else if(toType == TokenType.OBJECT && fromIsArray && toAbsolutePath.equals(SERIALIZABLE_CLASS_PATH)) {
+      return true;
+    } else if(toType == TokenType.OBJECT && fromIsArray && toAbsolutePath.equals(CLONEABLE_CLASS_PATH)) {
       return true;
     } else if(toType == TokenType.OBJECT && fromIsArray && toAbsolutePath.equals(OBJECT_CLASS_PATH)) {
       return true;
