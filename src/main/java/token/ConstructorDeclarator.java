@@ -6,8 +6,8 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class ConstructorDeclarator extends Token {
-  private SimpleName simpleName;
-  private FormalParameterList formalParameterList;
+  public SimpleName simpleName;
+  public FormalParameterList formalParameterList;
 
   public ConstructorDeclarator(ArrayList<Token> children) {
     super(children.get(0).getLexeme(), TokenType.ConstructorDeclarator, children);

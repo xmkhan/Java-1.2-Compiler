@@ -28,7 +28,7 @@ public class LiteralDFATest {
     dfa.consume('\n');
 
     Token result = dfa.getToken();
-    assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+    assertEquals(result.getTokenType(), TokenType.CHAR_LITERAL);
     assertEquals(result.getLexeme(), "''");
   }
 
@@ -57,7 +57,7 @@ public class LiteralDFATest {
     dfa.consume('\n');
 
     Token result = dfa.getToken();
-    assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+    assertEquals(result.getTokenType(), TokenType.CHAR_LITERAL);
     assertEquals(result.getLexeme(), "'\\''");
   }
 
@@ -92,14 +92,13 @@ public class LiteralDFATest {
   @Test
   public void testDoubleQuoteInSingleQuotes() {
     String literal = "'\\\"'";
-
     for (char c : literal.toCharArray()) {
       dfa.consume(c);
     }
     dfa.consume('\n');
 
     Token result = dfa.getToken();
-    assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+    assertEquals(result.getTokenType(), TokenType.CHAR_LITERAL);
     assertEquals(result.getLexeme(), "'\\\"'");
   }
 
@@ -163,7 +162,7 @@ public class LiteralDFATest {
     dfa.consume('\n');
 
     Token result = dfa.getToken();
-    assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+    assertEquals(result.getTokenType(), TokenType.CHAR_LITERAL);
     assertEquals(result.getLexeme(), "'\t'");
   }
 
@@ -177,7 +176,7 @@ public class LiteralDFATest {
     dfa.consume('\n');
 
     Token result = dfa.getToken();
-    assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
+    assertEquals(result.getTokenType(), TokenType.CHAR_LITERAL);
     assertEquals(result.getLexeme(), "'\\377'");
   }
 
@@ -221,5 +220,18 @@ public class LiteralDFATest {
     Token result = dfa.getToken();
     assertEquals(result.getTokenType(), TokenType.STR_LITERAL);
     assertEquals(result.getLexeme(), "\"\\\\b\"");
+  }
+
+  @Test
+  public void testInvalidChar() {
+    String literal = "\'abc\'";
+
+    for (char c : literal.toCharArray()) {
+      dfa.consume(c);
+    }
+    dfa.consume('\n');
+
+    Token result = dfa.getToken();
+    assertEquals(result, null);
   }
 }

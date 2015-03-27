@@ -43,4 +43,9 @@ public class ArrayType extends Token {
     if (primitiveType !=  null) return primitiveType.getType();
     return name;
   }
+
+  public String getAbsoluteType() {
+    if (primitiveType !=  null) return primitiveType.getType().getTokenType().toString();
+    return name.getAbsolutePath();
+  }
 }

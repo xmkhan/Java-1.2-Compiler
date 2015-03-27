@@ -202,6 +202,7 @@ public enum TokenType {
   ForStatementNoShortIf("ForStatementNoShortIf"),
   MethodBody("MethodBody"),
   ArgumentList("ArgumentList"),
+  OBJECT("object"),
   NOT_USED("not_used");
 
   private final String name;

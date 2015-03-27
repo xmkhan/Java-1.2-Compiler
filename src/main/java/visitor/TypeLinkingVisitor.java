@@ -5,14 +5,7 @@ import exception.NameResolutionException;
 import exception.TypeLinkingVisitorException;
 import exception.VisitorException;
 import symbol.SymbolTable;
-import token.ArrayType;
-import token.ClassOrInterfaceType;
-import token.CompilationUnit;
-import token.ImportDeclaration;
-import token.ImportDeclarations;
-import token.Name;
-import token.PackageDeclaration;
-import token.TypeDeclaration;
+import token.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -105,6 +98,14 @@ public class TypeLinkingVisitor extends BaseVisitor {
     super.visit(token);
     if (token.name != null && !resolveName(token.name)) {
       throw new TypeLinkingVisitorException("Could not resolve Type", token);
+    }
+  }
+
+  @Override
+  public void visit(CastExpression token) throws VisitorException {
+    super.visit(token);
+    if (token.isName()) {
+      token.name.setUsedInCast();
     }
   }
 

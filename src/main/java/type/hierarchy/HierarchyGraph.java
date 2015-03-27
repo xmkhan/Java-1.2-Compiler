@@ -93,6 +93,15 @@ public class HierarchyGraph {
       nodeAIsParentOfNodeB(get(nodeName2), get(nodeName1));
   }
 
+  public boolean areNodesConnectedOneWay(String nodeName1, String nodeName2) throws TypeHierarchyException {
+    if (!contains(nodeName1)) {
+      throw new TypeHierarchyException("Node named " + nodeName1 + " does not exist in the graph");
+    } else if (!contains(nodeName2)) {
+      throw new TypeHierarchyException("Node named " + nodeName2 + " does not exist in the graph");
+    }
+    return nodeAIsParentOfNodeB(get(nodeName1), get(nodeName2));
+  }
+
   public boolean areNodesConnected(HierarchyGraphNode node1, HierarchyGraphNode node2) throws TypeHierarchyException {
     return areNodesConnected(node1.getFullname(), node2.getFullname());
   }

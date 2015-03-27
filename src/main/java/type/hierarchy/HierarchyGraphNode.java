@@ -3,7 +3,6 @@ package type.hierarchy;
 import token.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -135,6 +134,13 @@ public class HierarchyGraphNode {
       allMethods.addAll(node.getAllMethods());
     }
     return allMethods;
+  }
+
+  public boolean isDefaultConstructorVisibleToChildren() {
+    for (Method constructor : constructors) {
+      if (constructor.parameterTypes.size() == 0) return true;
+    }
+    return false;
   }
 
   public List<BaseMethodDeclaration> getAllBaseMethods() {

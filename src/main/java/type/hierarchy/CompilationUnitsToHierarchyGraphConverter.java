@@ -11,6 +11,7 @@ import java.util.*;
  */
 public class CompilationUnitsToHierarchyGraphConverter {
   private HierarchyGraph graph;
+  public Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode = new HashMap<CompilationUnit, HierarchyGraphNode>();
 
   public CompilationUnitsToHierarchyGraphConverter() {}
 
@@ -21,7 +22,7 @@ public class CompilationUnitsToHierarchyGraphConverter {
    */
   public HierarchyGraph convert(List<CompilationUnit> compilationUnits) throws DeadCodeException, TypeHierarchyException {
     graph = new HierarchyGraph();
-    Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode = new HashMap<CompilationUnit, HierarchyGraphNode>();
+    compilationUnitToNode = new HashMap<CompilationUnit, HierarchyGraphNode>();
     // Construct the hierarchy graph with only the nodes representing the files
     for (CompilationUnit compilationUnit : compilationUnits) {
       compilationUnitToNode.put(compilationUnit, createNode(compilationUnit));

@@ -7,9 +7,11 @@ import token.Token;
 import type.hierarchy.CompilationUnitsToHierarchyGraphConverter;
 import type.hierarchy.HierarchyChecker;
 import type.hierarchy.HierarchyGraph;
+import type.hierarchy.HierarchyGraphNode;
 import visitor.DisambiguityVisitor;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
+import visitor.TypeCheckingVisitor;
 import visitor.ReachabilityVisitor;
 import visitor.SelfAssignmentVisitor;
 import visitor.TypeLinkingVisitor;
@@ -19,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import java.util.List;
 
 /**
@@ -58,6 +61,9 @@ public class Main {
       // 3. Phase 3: Disambiguate types, and perform type checking.
       DisambiguityVisitor disambiguityVisitor = new DisambiguityVisitor(table, graph);
       disambiguityVisitor.disambiguateUnits(compilationUnits);
+
+      TypeCheckingVisitor typeCheckingVisitor = new TypeCheckingVisitor(table, graph, converter.compilationUnitToNode);
+      typeCheckingVisitor.typeCheckUnits(compilationUnits);
 
       // 4. Phase 4: Static analysis
       ReachabilityVisitor reachabilityVisitor = new ReachabilityVisitor();

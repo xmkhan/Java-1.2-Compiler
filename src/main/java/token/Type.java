@@ -4,6 +4,7 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Type extends Token {
   public PrimitiveType primitiveType;
@@ -28,6 +29,7 @@ public class Type extends Token {
   @Override
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
+
     for (Token token : children) {
       token.acceptReverse(v);
     }
@@ -47,6 +49,22 @@ public class Type extends Token {
     if (primitiveType !=  null) return primitiveType.getType();
     else if (referenceType != null) return referenceType.getType();
     else return null;
+  }
+
+  public Name getReferenceName() {
+    if(!isReferenceType()) {
+      return null;
+    }
+
+    return referenceType.getReferenceName();
+  }
+
+  public boolean isReferenceType() {
+    return referenceType != null && referenceType.isReferenceType();
+  }
+
+  public boolean isPrimitiveType() {
+    return primitiveType != null || referenceType.isPrimitiveType();
   }
 
   public boolean isArray() {

@@ -13,6 +13,8 @@ public class Name extends Token {
   private List<Declaration> declarationTypes;
   private String absolutePath;
 
+  private boolean usedInCast;
+
   public String getAbsolutePath() {
     return absolutePath;
   }
@@ -29,8 +31,17 @@ public class Name extends Token {
     this.declarationTypes = declarationTypes;
   }
 
+  public void setUsedInCast() {
+    usedInCast = true;
+  }
+
+  public boolean isUsedInCast() {
+    return usedInCast;
+  }
+
   public Name(ArrayList<Token> children) {
     super(children.get(0).getLexeme(), TokenType.Name, children);
+    usedInCast = false;
   }
 
   @Override
