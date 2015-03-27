@@ -66,10 +66,10 @@ public class Main {
       typeCheckingVisitor.typeCheckUnits(compilationUnits);
 
       // 4. Phase 4: Static analysis
-//      ReachabilityVisitor reachabilityVisitor = new ReachabilityVisitor();
-//      reachabilityVisitor.checkReachability(compilationUnits);
-//      SelfAssignmentVisitor selfAssignmentVisitor = new SelfAssignmentVisitor();
- //     selfAssignmentVisitor.checkSelfAssignment(compilationUnits);
+      ReachabilityVisitor reachabilityVisitor = new ReachabilityVisitor();
+      reachabilityVisitor.checkReachability(compilationUnits);
+      SelfAssignmentVisitor selfAssignmentVisitor = new SelfAssignmentVisitor();
+      selfAssignmentVisitor.checkSelfAssignment(compilationUnits);
 
     } catch (CompilerException e) {
       e.printStackTrace();
