@@ -1,11 +1,9 @@
 package visitor;
 
 import exception.CompilerException;
-import exception.TypeLinkingVisitorException;
-import exception.VisitorException;
+import exception.TypeCheckingVisitorException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import util.CompilationUnitGenerator;
 
 import java.io.IOException;
@@ -153,7 +151,7 @@ public class TypeCheckingVisitorTest {
     visitor.typeCheckUnits(bundle.units);
   }
 
-  @Test(expected = VisitorException.class)
+  @Test(expected = TypeCheckingVisitorException.class)
   public void testInvalidPrimary() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -164,7 +162,7 @@ public class TypeCheckingVisitorTest {
     visitor.typeCheckUnits(bundle.units);
   }
 
-  @Test(expected = VisitorException.class)
+  @Test(expected = TypeCheckingVisitorException.class)
   public void testInvalidForCondition() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -175,7 +173,7 @@ public class TypeCheckingVisitorTest {
     visitor.typeCheckUnits(bundle.units);
   }
 
-  @Test(expected = VisitorException.class)
+  @Test(expected = TypeCheckingVisitorException.class)
   public void testInvalidReturn() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -186,7 +184,7 @@ public class TypeCheckingVisitorTest {
     visitor.typeCheckUnits(bundle.units);
   }
 
-  @Test(expected = VisitorException.class)
+  @Test(expected = TypeCheckingVisitorException.class)
   public void testInvalidReturnVoid() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -197,7 +195,7 @@ public class TypeCheckingVisitorTest {
     visitor.typeCheckUnits(bundle.units);
   }
 
-  @Test(expected = VisitorException.class)
+  @Test(expected = TypeCheckingVisitorException.class)
   public void testInvalidConstructorReturn() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -208,7 +206,7 @@ public class TypeCheckingVisitorTest {
     visitor.typeCheckUnits(bundle.units);
   }
 
-  @Test(expected = VisitorException.class)
+  @Test(expected = TypeCheckingVisitorException.class)
   public void testInvalidSuper() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -220,7 +218,7 @@ public class TypeCheckingVisitorTest {
     visitor.typeCheckUnits(bundle.units);
   }
 
-  @Test(expected = VisitorException.class)
+  @Test(expected = TypeCheckingVisitorException.class)
   public void testInvalidMethodParameter() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -231,7 +229,7 @@ public class TypeCheckingVisitorTest {
     visitor.typeCheckUnits(bundle.units);
   }
 
-  @Test(expected = VisitorException.class)
+  @Test(expected = TypeCheckingVisitorException.class)
   public void testIfBoolean() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(

@@ -1,5 +1,6 @@
 package visitor;
 
+import exception.TypeCheckingVisitorException;
 import exception.TypeHierarchyException;
 import exception.VisitorException;
 import symbol.SymbolTable;
@@ -47,14 +48,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(CompilationUnit token) throws VisitorException {
-    super.visit(token);
-    if(!tokenStack.isEmpty()) {
-      throw new VisitorException("Stack should be empty", token);
-    }
-  }
-
-  @Override
   public void visit(Literal token) throws VisitorException {
     super.visit(token);
     Token literal = token.getLiteral();
@@ -77,7 +70,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
         literalToken = new TypeCheckToken(TokenType.NULL);
         break;
       default:
-        throw new VisitorException("Unexpected literal: " + token.getLexeme() + " of type " + token.getTokenType(), token);
+        throw new TypeCheckingVisitorException("Unexpected literal: " + token.getLexeme() + " of type " + token.getTokenType(), token);
     }
     tokenStack.push(literalToken);
   }
@@ -92,7 +85,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if(type1.tokenType == TokenType.BOOLEAN && type2.tokenType == TokenType.BOOLEAN && !type1.isArray && !type2.isArray) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean OR expression expected boolean || boolean but found " + type1.tokenType.toString() + " || " + type2.tokenType.toString(), token);
+      throw new TypeCheckingVisitorException("Boolean OR expression expected boolean || boolean but found " + type1.tokenType.toString() + " || " + type2.tokenType.toString(), token);
     }
   }
 
@@ -106,7 +99,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if(type1.tokenType == TokenType.BOOLEAN && type2.tokenType == TokenType.BOOLEAN && !type1.isArray && !type2.isArray) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean AND expression expected boolean && boolean but found " + type1.tokenType.toString() + " && " + type2.tokenType.toString(), token);
+      throw new TypeCheckingVisitorException("Boolean AND expression expected boolean && boolean but found " + type1.tokenType.toString() + " && " + type2.tokenType.toString(), token);
     }
   }
 
@@ -120,7 +113,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if(type1.tokenType == TokenType.BOOLEAN && type2.tokenType == TokenType.BOOLEAN && !type1.isArray && !type2.isArray) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean OR expression expected boolean | boolean but found " + type1.tokenType.toString() + " | " + type2.tokenType.toString(), token);
+      throw new TypeCheckingVisitorException("Boolean OR expression expected boolean | boolean but found " + type1.tokenType.toString() + " | " + type2.tokenType.toString(), token);
     }
   }
 
@@ -134,7 +127,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if(type1 == TokenType.BOOLEAN && type2 == TokenType.BOOLEAN) {
       tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
     } else {
-      throw new VisitorException("Boolean OR expression expected boolean & boolean but found " + type1.toString() + " & " + type2.toString(), token);
+      throw new TypeCheckingVisitorException("Boolean OR expression expected boolean & boolean but found " + type1.toString() + " & " + type2.toString(), token);
     }
   }
 
@@ -157,10 +150,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
       } else if (leftSide.tokenType == TokenType.OBJECT && rightSide.tokenType == TokenType.NULL) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
       } else {
-        throw new VisitorException("Boolean Equality expression expected both of same inherited type but found " + rightSide.toString() + " & " + leftSide.toString(), token);
+        throw new TypeCheckingVisitorException("Boolean Equality expression expected both of same inherited type but found " + rightSide.toString() + " & " + leftSide.toString(), token);
       }
     } catch(TypeHierarchyException e) {
-      throw new VisitorException(e.getMessage(), token);
+      throw new TypeCheckingVisitorException(e.getMessage(), token);
     }
   }
 
@@ -178,7 +171,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       boolean referenceIsArray = reference.isArray();
 
       if((!typeLeftSide.isArray && typeLeftSide.tokenType != TokenType.OBJECT && typeLeftSide.tokenType != TokenType.NULL)) {
-        throw new VisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object but found " +
+        throw new TypeCheckingVisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object but found " +
                 typeLeftSide + " instanceOf " + referenceType + " " + referenceAbsolutePath + " " + referenceIsArray , token);
       }
 
@@ -194,11 +187,11 @@ public class TypeCheckingVisitor extends BaseVisitor {
                 referenceType, referenceAbsolutePath, referenceIsArray)) {
           tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
         } else {
-          throw new VisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object of subtypes but found of " +
+          throw new TypeCheckingVisitorException("InstanceOf expression expected Array|Object instanceOf Array|Object of subtypes but found of " +
                   typeLeftSide + " instanceOf " + referenceType + " " + referenceAbsolutePath + " " + referenceIsArray , token);
         }
       } catch (TypeHierarchyException e) {
-        throw new VisitorException(e.getMessage(), token);
+        throw new TypeCheckingVisitorException(e.getMessage(), token);
       }
     } else {
       TypeCheckToken rightType = tokenStack.pop();
@@ -206,7 +199,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       TokenType[] validTypes = {TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
 
       if (!validTypes(rightType.tokenType, leftType.tokenType, validTypes)) {
-        throw new VisitorException("Relational expression expected 'int|char|byte|short RelationalOperator int|char|byte|short' but found " + rightType + " RelationalOperator " + leftType, token);
+        throw new TypeCheckingVisitorException("Relational expression expected 'int|char|byte|short RelationalOperator int|char|byte|short' but found " + rightType + " RelationalOperator " + leftType, token);
       }
       assertNotArray(token, rightType, OperandSide.RIGHT, token.children.get(1).getLexeme());
       assertNotArray(token, leftType, OperandSide.LEFT, token.children.get(1).getLexeme());
@@ -232,7 +225,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       if (validTypes(leftSide.tokenType, rightSide.tokenType, validMinusPlusTypes)) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
       } else {
-        throw new VisitorException("AdditiveExpression expected 'short|int|byte|char - short|int|byte|char but found " + leftSide + " - " + rightSide, token);
+        throw new TypeCheckingVisitorException("AdditiveExpression expected 'short|int|byte|char - short|int|byte|char but found " + leftSide + " - " + rightSide, token);
       }
     } else if (token.children.get(1).getTokenType() == TokenType.PLUS_OP) {
       TokenType[] validStringConcatTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR, TokenType.NULL, TokenType.BOOLEAN, TokenType.OBJECT};
@@ -245,7 +238,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
         tokenStack.push(new TypeCheckToken(TokenType.INT));
       } else {
-        throw new VisitorException("String concatenation found invalid types " + leftSide + " + " + rightSide, token);
+        throw new TypeCheckingVisitorException("String concatenation found invalid types " + leftSide + " + " + rightSide, token);
       }
     }
   }
@@ -265,7 +258,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if (validTypes(leftSide.tokenType, rightSide.tokenType, validUnaryExpressionTypes)) {
       tokenStack.push(new TypeCheckToken(TokenType.INT));
     } else {
-      throw new VisitorException("Expected short|int|byte|char " + token.children.get(1).getLexeme() +
+      throw new TypeCheckingVisitorException("Expected short|int|byte|char " + token.children.get(1).getLexeme() +
         " short|int|byte|char' but found " + leftSide + " " + token.children.get(1).getLexeme() +
         " " + rightSide, token);
     }
@@ -281,7 +274,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     assertNotArray(token, tokenStack.peek(), OperandSide.RIGHT, token.children.get(0).getLexeme());
     if (!validType(type, validUnaryExpressionTypes)) {
-      throw new VisitorException("Unary operator '- UnaryExpression' was expecting UnaryExpression to be of type short|int|byte|char but found " + type, token);
+      throw new TypeCheckingVisitorException("Unary operator '- UnaryExpression' was expecting UnaryExpression to be of type short|int|byte|char but found " + type, token);
     } else {
       // we just peeked the stack so no need to push the type back on the stack again
     }
@@ -306,10 +299,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
                                               typeLeftSide.tokenType, typeLeftSide.getAbsolutePath(), typeLeftSide.isArray)) {
         tokenStack.push(typeLeftSide);
       } else {
-        throw new VisitorException("Assignment should be of same type or from parent to subclass.  Found: " + typeRightSide.toString() + " being assigned to "  + typeLeftSide.toString(), token);
+        throw new TypeCheckingVisitorException("Assignment should be of same type or from parent to subclass.  Found: " + typeRightSide.toString() + " being assigned to "  + typeLeftSide.toString(), token);
       }
     } catch (TypeHierarchyException e) {
-      throw new VisitorException(e.getMessage(), token);
+      throw new TypeCheckingVisitorException(e.getMessage(), token);
     }
   }
 
@@ -336,19 +329,19 @@ public class TypeCheckingVisitor extends BaseVisitor {
       String [] originalPathArr = originalPath.split("\\.");
 
       if(determinedAbsolutePathArr.length == 0 || originalPathArr.length == 0) {
-        throw new VisitorException("variable needs to be defined: " + determinedAbsolutePath + " but had " + originalPath, token);
+        throw new TypeCheckingVisitorException("variable needs to be defined: " + determinedAbsolutePath + " but had " + originalPath, token);
       }
 
       if(!determinedAbsolutePathArr[determinedAbsolutePathArr.length - 1].equals(originalPathArr[originalPathArr.length - 1])) {
         if(originalPathArr.length < 2) {
-          throw new VisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);
+          throw new TypeCheckingVisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);
         }
 
         if(determinedDecl.type.isArray() && originalPathArr[originalPathArr.length - 1].equals("length") &&
                 originalPathArr[originalPathArr.length - 2].equals(determinedAbsolutePathArr[determinedAbsolutePathArr.length - 1])) {
           tokenStack.push(new TypeCheckToken(TokenType.INT));
         } else  {
-          throw new VisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);
+          throw new TypeCheckingVisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);
         }
       } else {
         tokenStack.push(new TypeCheckToken(determinedDecl));
@@ -359,7 +352,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
       assertNotArray(token, tokenStack.peek(), OperandSide.RIGHT, token.children.get(0).getLexeme());
       if (type != TokenType.BOOLEAN) {
-        throw new VisitorException("Unary operator '! UnaryExpression' was expecting UnaryExpression to be boolean but found " + type, token);
+        throw new TypeCheckingVisitorException("Unary operator '! UnaryExpression' was expecting UnaryExpression to be boolean but found " + type, token);
       }
     }
   }
@@ -370,7 +363,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     while(!returnCallStack.isEmpty()) {
       TypeCheckToken returnToken = returnCallStack.pop();
       if(returnToken.tokenType != TokenType.VOID) {
-        throw new VisitorException("Can not return not void types in constructor: found " + returnToken.tokenType, token);
+        throw new TypeCheckingVisitorException("Can not return not void types in constructor: found " + returnToken.tokenType, token);
       }
     }
   }
@@ -382,7 +375,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       TypeCheckToken returnToken = returnCallStack.pop();
       if(token.methodHeader.voidType != null) {
         if (returnToken.tokenType != TokenType.VOID) {
-          throw new VisitorException("Can not return not void types in constructor: found " + returnToken.tokenType, token);
+          throw new TypeCheckingVisitorException("Can not return not void types in constructor: found " + returnToken.tokenType, token);
         }
       } else {
         TokenType expectedType = token.methodHeader.type.isPrimitiveType() ? token.methodHeader.type.getType().getTokenType() : TokenType.OBJECT;
@@ -399,10 +392,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
           } else if (isWideningReferenceConversion(returnToken.tokenType, returnToken.getAbsolutePath(), returnToken.isArray,
                   expectedType, expectedAbsolutePath, expectedIsArray)) {
           } else {
-            throw new VisitorException("Return should be of same type or from parent to subclass.  Found: " + returnToken.toString() + " when should be "  + expectedType.toString() + " " + expectedAbsolutePath, token);
+            throw new TypeCheckingVisitorException("Return should be of same type or from parent to subclass.  Found: " + returnToken.toString() + " when should be "  + expectedType.toString() + " " + expectedAbsolutePath, token);
           }
         } catch (TypeHierarchyException e) {
-          throw new VisitorException(e.getMessage(), token);
+          throw new TypeCheckingVisitorException(e.getMessage(), token);
         }
       }
     }
@@ -412,7 +405,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
   public void visit(ConstructorDeclarator token) throws VisitorException {
     super.visit(token);
     if (!token.getIdentifier().getLexeme().equals(node.identifier)) {
-      throw new VisitorException("Constructor name " + token.getIdentifier() + " does not match class name " + node.identifier, token);
+      throw new TypeCheckingVisitorException("Constructor name " + token.getIdentifier() + " does not match class name " + node.identifier, token);
     }
 
     if(node.extendsList != null && !node.extendsList.isEmpty()) {
@@ -429,7 +422,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
         }
 
         if(!hasDefaultConstructor) {
-          throw new VisitorException("Parent " + parent.getFullname() + " requires default constructor for implicit super call from " + node.identifier, token);
+          throw new TypeCheckingVisitorException("Parent " + parent.getFullname() + " requires default constructor for implicit super call from " + node.identifier, token);
         }
       }
     }
@@ -449,7 +442,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     Name name = token.getClassType();
     if (hierarchyGraph.get(name.getAbsolutePath()).isAbstract()) {
       // ClassType was abstract
-      throw new VisitorException("Abstract class " + " cannot be instantiated", token);
+      throw new TypeCheckingVisitorException("Abstract class " + " cannot be instantiated", token);
     }
 
     String [] nameParts = name.getLexeme().split("\\.");
@@ -479,10 +472,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
       } else if (isWideningReferenceConversion(assignedType.tokenType, assignedType.getAbsolutePath(), assignedType.isArray,
                                                declType, declAbsolutePath, declIsArray)) {
       } else {
-        throw new VisitorException("Assignment should be of same type or from parent to subclass.  Found: " + assignedType.toString() + " being assigned to "  + declType.toString(), decl);
+        throw new TypeCheckingVisitorException("Assignment should be of same type or from parent to subclass.  Found: " + assignedType.toString() + " being assigned to "  + declType.toString() + " " + declAbsolutePath, decl);
       }
     } catch (TypeHierarchyException e) {
-      throw new VisitorException(e.getMessage(), decl);
+      throw new TypeCheckingVisitorException(e.getMessage(), decl);
     }
   }
 
@@ -509,10 +502,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
       } else if (isWideningReferenceConversion(assignedType.tokenType, assignedType.getAbsolutePath(), assignedType.isArray,
               declType, declAbsolutePath, declIsArray)) {
       } else {
-        throw new VisitorException("Assignment should be of same type or from parent to subclass.  Found: " + assignedType.toString() + " being assigned to "  + declType.toString(), decl);
+        throw new TypeCheckingVisitorException("Assignment should be of same type or from parent to subclass.  Found: " + assignedType.toString() + " being assigned to "  + declType.toString() + " " + declAbsolutePath, decl);
       }
     } catch (TypeHierarchyException e) {
-      throw new VisitorException(e.getMessage(), decl);
+      throw new TypeCheckingVisitorException(e.getMessage(), decl);
     }
   }
 
@@ -522,7 +515,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     TokenType [] validTypes = {TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
     if (!validType(expressionType.tokenType, validTypes)) {
-      throw new VisitorException("ArrayAccess requires an integer but found " + expressionType.tokenType.toString(), token);
+      throw new TypeCheckingVisitorException("ArrayAccess requires an integer but found " + expressionType.tokenType.toString(), token);
     }
 
     if (token.name != null) {
@@ -532,7 +525,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
                                                                                    FieldDeclaration.class,
                                                                                    LocalVariableDeclaration.class});
       if(!determinedDecalaration.type.isArray()) {
-        throw new VisitorException("Trying to dereference an array with an index: name=" + name.getLexeme(), token);
+        throw new TypeCheckingVisitorException("Trying to dereference an array with an index: name=" + name.getLexeme(), token);
       }
 
       tokenStack.push(new TypeCheckToken(determinedDecalaration, false));
@@ -540,7 +533,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       TypeCheckToken primaryAccess = tokenStack.pop();
 
       if(!primaryAccess.isArray) {
-        throw new VisitorException("Trying to dereference an array with an index: name=" + primaryAccess.tokenType, token);
+        throw new TypeCheckingVisitorException("Trying to dereference an array with an index: name=" + primaryAccess.tokenType, token);
       }
 
       primaryAccess.isArray = false;
@@ -554,7 +547,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     TokenType [] validTypes = {TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
     if (!validType(expressionType.tokenType, validTypes)) {
-      throw new VisitorException("ArrayAccess requires an integer but found " + expressionType.tokenType.toString(), token);
+      throw new TypeCheckingVisitorException("ArrayAccess requires an integer but found " + expressionType.tokenType.toString(), token);
     }
 
     if(token.isPrimitiveType()) {
@@ -582,12 +575,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
         return;
       } else {
-        throw new VisitorException("Invalid array field access for field: " + token.identifier.getLexeme(), token);
+        throw new TypeCheckingVisitorException("Invalid array field access for field: " + token.identifier.getLexeme(), token);
       }
     }
 
     if(firstIdentifier.tokenType != TokenType.OBJECT) {
-      throw new VisitorException("Expected object when calling field " + token.identifier.getLexeme() + " but found " + firstIdentifier.tokenType, token);
+      throw new TypeCheckingVisitorException("Expected object when calling field " + token.identifier.getLexeme() + " but found " + firstIdentifier.tokenType, token);
     }
 
     List<Token> potentialFields = new ArrayList<Token>();
@@ -600,7 +593,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
 
     if (potentialFields.isEmpty()) {
-      throw new VisitorException("No field could be resolved for field: " + token.identifier.getLexeme(), token);
+      throw new TypeCheckingVisitorException("No field could be resolved for field: " + token.identifier.getLexeme(), token);
     }
     tokenStack.push(new TypeCheckToken((Declaration)potentialFields.get(0)));
   }
@@ -645,10 +638,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
               cast.tokenType, cast.getAbsolutePath(), cast.isArray)) {
         tokenStack.push(cast);
       } else {
-        throw new VisitorException("Not castable types: "  + token.toString() + " and " + tokenToCast.toString(), token);
+        throw new TypeCheckingVisitorException("Not castable types: "  + token.toString() + " and " + tokenToCast.toString(), token);
       }
     } catch (TypeHierarchyException e) {
-      throw new VisitorException(e.getMessage(), token);
+      throw new TypeCheckingVisitorException(e.getMessage(), token);
     }
   }
 
@@ -676,7 +669,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if(token.isOnPrimary()) {
       TypeCheckToken primary = tokenStack.pop();
       if(primary.tokenType != TokenType.OBJECT) {
-        throw new VisitorException("Expected object when calling method " + token.identifier.getLexeme() + " but found " + primary.tokenType, token);
+        throw new TypeCheckingVisitorException("Expected object when calling method " + token.identifier.getLexeme() + " but found " + primary.tokenType, token);
       }
 
       matchingDeclarations = new ArrayList<Token>();
@@ -709,7 +702,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
   public void visit(StatementExpression token) throws VisitorException {
     super.visit(token);
     if(tokenStack.size() == 0) {
-      throw new VisitorException("Expected an value on stack, but found none", token);
+      throw new TypeCheckingVisitorException("Expected an value on stack, but found none", token);
     }
 
     tokenStack.pop();
@@ -721,12 +714,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
     if(token.children.get(1).getTokenType() == TokenType.Expression) {
       // Check may not be necessary, but just keep it in case
       if (tokenStack.size() == 0) {
-        throw new VisitorException("Expected an value on stack, but found none", token);
+        throw new TypeCheckingVisitorException("Expected an value on stack, but found none", token);
       }
 
       TypeCheckToken expression = tokenStack.pop();
       if(expression.tokenType == TokenType.VOID) {
-        throw new VisitorException("Can not return void values", token);
+        throw new TypeCheckingVisitorException("Can not return void values", token);
       }
 
       returnCallStack.push(expression);
@@ -785,7 +778,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
   private void ensureBooleanCondition(Token context, String contextStr) throws VisitorException{
     TypeCheckToken expression = tokenStack.pop();
     if (expression.tokenType != TokenType.BOOLEAN) {
-      throw new VisitorException("Expected boolean expression in " + contextStr + " but found " + expression, context);
+      throw new TypeCheckingVisitorException("Expected boolean expression in " + contextStr + " but found " + expression, context);
     }
   }
 
@@ -860,7 +853,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
   private void assertNotArray(Token token, TypeCheckToken type, OperandSide side, String operator) throws VisitorException {
     if (type.isArray) {
-      throw new VisitorException("Arrays are not allowed to be used with the " + operator + " operator.  The " + side.toString().toLowerCase() + " hand operator is an array of type " + type.tokenType, token);
+      throw new TypeCheckingVisitorException("Arrays are not allowed to be used with the " + operator + " operator.  The " + side.toString().toLowerCase() + " hand operator is an array of type " + type.tokenType, token);
     }
   }
 
@@ -872,7 +865,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
   private Declaration determineDeclaration(Name name, Class [] classes) throws VisitorException {
     Set<Class> classSet = new HashSet<Class>(Arrays.asList(classes));
     if(name.getDeclarationTypes() == null) {
-      throw new VisitorException("Found no declarations for " + name.getLexeme(), name);
+      throw new TypeCheckingVisitorException("Found no declarations for " + name.getLexeme(), name);
     }
 
     for(Declaration declaration : name.getDeclarationTypes()) {
@@ -881,7 +874,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     }
 
-    throw new VisitorException("Can not determine declaration " + name.getLexeme(), name);
+    throw new TypeCheckingVisitorException("Can not determine declaration " + name.getLexeme(), name);
   }
 
   private List<Token> getAllMatchinDeclarations(Name name, Class [] classes) throws VisitorException {
@@ -895,7 +888,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
 
     if(declarations.size() == 0) {
-      throw new VisitorException("Can not determine declaration " + name.getLexeme(), name);
+      throw new TypeCheckingVisitorException("Can not determine declaration " + name.getLexeme(), name);
     }
 
     return declarations;
@@ -946,6 +939,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     }
 
-    throw new VisitorException("Can not find any " + (isMethod ? "Method" : "Constructor") + " declaration for " + (context != null ? context.getLexeme() : "null"), context);
+    throw new TypeCheckingVisitorException("Can not find any " + (isMethod ? "Method" : "Constructor") + " declaration for " + (context != null ? context.getLexeme() : "null"), context);
   }
 }
