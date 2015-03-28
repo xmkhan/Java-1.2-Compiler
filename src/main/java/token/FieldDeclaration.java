@@ -19,6 +19,10 @@ public class FieldDeclaration extends Declaration {
     delimiter = children.get(children.size() - 1);
   }
 
+  public boolean containsModifier(String modifier) {
+    return modifiers != null && modifiers.containsModifier(modifier);
+  }
+
   private void assignType(Token token) {
     if (token instanceof Modifiers) {
       modifiers = (Modifiers) token;

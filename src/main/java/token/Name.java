@@ -15,6 +15,10 @@ public class Name extends Token {
 
   private boolean usedInCast;
 
+  public enum ClassifiedType { Ambiguous, NonStaticExpr, StaticExpr, Type, Package}
+
+  public ClassifiedType classifiedType = ClassifiedType.Ambiguous;
+
   public String getAbsolutePath() {
     return absolutePath;
   }
