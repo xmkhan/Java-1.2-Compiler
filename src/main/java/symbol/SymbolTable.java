@@ -1,6 +1,8 @@
 package symbol;
 
 import token.Declaration;
+import token.FieldDeclaration;
+import token.MethodDeclaration;
 import token.Token;
 
 import java.util.ArrayList;
@@ -124,5 +126,12 @@ public class SymbolTable {
       if (classSet.contains(symbol.getClass())) tokensOfClazzType.add(symbol);
     }
     return tokensOfClazzType;
+  }
+
+  public Declaration getClass(Declaration field) {
+    String className = field.getAbsolutePath().substring(0, field.getAbsolutePath().lastIndexOf('.'));
+    List<Token> classDecl = find(className);
+    if (classDecl.isEmpty()) return null;
+    return (Declaration) classDecl.get(0);
   }
 }

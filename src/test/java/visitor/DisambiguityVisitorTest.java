@@ -72,6 +72,17 @@ public class DisambiguityVisitorTest {
   }
 
   @Test
+  public void testNestedProtectedAccess() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+        "src/test/resources/disambiguity/J1_forwardfield2.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToTypeChecking(files);
+    visitor = new DisambiguityVisitor(bundle.symbolTable, bundle.graph);
+    visitor.disambiguateUnits(bundle.units);
+  }
+
+  @Test
   public void testInterfaceObject() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();
     files.addAll(Arrays.asList(
@@ -151,7 +162,6 @@ public class DisambiguityVisitorTest {
     visitor.disambiguateUnits(bundle.units);
   }
 
-  // CURRENTLY BROKEN ~~~~~~~~~~~~~~~~
   @Test(expected = TypeHierarchyException.class)
   public void test6() throws IOException, CompilerException {
     List<String> files = CompilationUnitGenerator.getStdlibFiles();

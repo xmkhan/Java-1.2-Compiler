@@ -143,7 +143,8 @@ public class VariableNameResolutionAlgorithm {
       throw new VariableNameResolutionException("Nothing qualified for 0th of name: " + name.getLexeme(), name);
     }
 
-    // 2.1. Check the object hierarchy, specifically for fields
+    // 2.1. Check the object hierarchy, specifically for fields. Otherwise, keep trying to get the Type when the LHS
+    // contains Packages.
     for (int i = 1; i < identifiers.length - 1; ++i) {
       boolean match = false;
       HierarchyGraphNode node = hierarchyGraph.get(currentType.toString());
@@ -151,9 +152,16 @@ public class VariableNameResolutionAlgorithm {
         List<FieldDeclaration> classFields = node.getAllFields();
         for (FieldDeclaration field : classFields) {
           if (field.getIdentifier().equals(identifiers[i])) {
+            if (field.modifiers.containsModifier("protected") && symbolTable.getClass(field) != unit.typeDeclaration.getDeclaration()) {
+              throw new VariableNameResolutionException("Field declaration is protected: field" + field.getIdentifier());
+            }
+            if (name.classifiedType == Name.ClassifiedType.NonStaticExpr && field.containsModifier("static")) {
+              throw new VariableNameResolutionException("Going from Non-static to static for field: " + field.getIdentifier(), field);
+            }
             currentType.setLength(0);
             currentType.append(getTypePath(field.type));
             lastMatchedDecl = field;
+            name.classifiedType = field.containsModifier("static") ? Name.ClassifiedType.StaticExpr : Name.ClassifiedType.NonStaticExpr;
             match = true;
             break;
           }
@@ -164,13 +172,16 @@ public class VariableNameResolutionAlgorithm {
         currentType.append(identifiers[i]);
         Declaration classDecl = (Declaration) symbolTable.findWithType(
             currentType.toString(), NameResolutionAlgorithm.CLASS_TYPES);
-        if (classDecl != null) continue;
+        if (classDecl != null) {
+          name.classifiedType = Name.ClassifiedType.Type;
+          continue;
+        }
         List<Token> pkgDecls = symbolTable.findWithPrefixOfAnyType(
             currentType.toString(), new Class[] {PackageDeclaration.class});
         if (pkgDecls == null) {
           throw new VariableNameResolutionException("Failed to disambiguate type: " + name.getLexeme(), name);
         }
-
+        name.classifiedType = Name.ClassifiedType.Package;
       }
     }
     List<Declaration> declarations = new ArrayList<Declaration>();
@@ -225,6 +236,10 @@ public class VariableNameResolutionAlgorithm {
       lastMatchedDecl = (Declaration) variableSymbols.get(0);
       currentType.setLength(0);
       currentType.append(getTypePath(lastMatchedDecl.type));
+      if (lastMatchedDecl instanceof FieldDeclaration && ((FieldDeclaration) lastMatchedDecl).containsModifier("static")) {
+        name.classifiedType = Name.ClassifiedType.StaticExpr;
+      }
+      name.classifiedType = Name.ClassifiedType.NonStaticExpr;
       return lastMatchedDecl;
     }
 
@@ -236,6 +251,7 @@ public class VariableNameResolutionAlgorithm {
           lastMatchedDecl = field;
           currentType.setLength(0);
           currentType.append(getTypePath(lastMatchedDecl.type));
+          name.classifiedType = field.containsModifier("static") ? Name.ClassifiedType.StaticExpr : Name.ClassifiedType.NonStaticExpr;
           return lastMatchedDecl;
         }
       }
@@ -248,6 +264,7 @@ public class VariableNameResolutionAlgorithm {
       lastMatchedDecl = unit.typeDeclaration.getDeclaration();
       currentType.setLength(0);
       currentType.append(lastMatchedDecl.getAbsolutePath());
+      name.classifiedType = Name.ClassifiedType.Type;
       return lastMatchedDecl;
     }
 
@@ -260,6 +277,7 @@ public class VariableNameResolutionAlgorithm {
         if (lastMatchedDecl != null) {
           currentType.setLength(0);
           currentType.append(lastMatchedDecl.getAbsolutePath());
+          name.classifiedType = Name.ClassifiedType.Type;
           return lastMatchedDecl;
         }
       }
@@ -272,6 +290,7 @@ public class VariableNameResolutionAlgorithm {
     if (lastMatchedDecl != null) {
       currentType.setLength(0);
       currentType.append(lastMatchedDecl.getAbsolutePath());
+      name.classifiedType = Name.ClassifiedType.Type;
       return lastMatchedDecl;
     }
 
@@ -285,6 +304,7 @@ public class VariableNameResolutionAlgorithm {
         if (lastMatchedDecl != null) {
           currentType.setLength(0);
           currentType.append(lastMatchedDecl.getAbsolutePath());
+          name.classifiedType = Name.ClassifiedType.Type;
           matches++;
         }
       }
@@ -300,12 +320,16 @@ public class VariableNameResolutionAlgorithm {
         lastMatchedDecl = (Declaration) type;
         currentType.setLength(0);
         currentType.append(lastMatchedDecl.getAbsolutePath());
+        name.classifiedType = Name.ClassifiedType.Type;
         return lastMatchedDecl;
       }
     }
 
     List<Token> pkgs = symbolTable.findWithPrefixOfAnyType(currentType.toString(), new Class[] {PackageDeclaration.class});
-    if (pkgs != null && !pkgs.isEmpty()) lastMatchedDecl = (Declaration) pkgs.get(0);
+    if (pkgs != null && !pkgs.isEmpty()) {
+      lastMatchedDecl = (Declaration) pkgs.get(0);
+      name.classifiedType = Name.ClassifiedType.Package;
+    }
     return lastMatchedDecl;
   }
 
