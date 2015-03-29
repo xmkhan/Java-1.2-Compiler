@@ -28,6 +28,11 @@ public class ConstructorDeclarator extends Token {
     if (formalParameterList != null) formalParameterList.acceptReverse(v);
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public FormalParameterList getParameterList() {
     return formalParameterList != null ? formalParameterList : null;
   }

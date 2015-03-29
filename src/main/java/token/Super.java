@@ -31,6 +31,11 @@ public class Super extends Token {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   private void assignType(Token token) {
     if (token instanceof ClassType) {
       classType = (ClassType) token;

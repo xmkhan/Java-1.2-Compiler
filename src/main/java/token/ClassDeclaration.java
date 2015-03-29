@@ -51,4 +51,9 @@ public class ClassDeclaration extends Declaration {
     if (implementsClasses != null) implementsClasses.acceptReverse(v);
     if (classBody != null) classBody.acceptReverse(v);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

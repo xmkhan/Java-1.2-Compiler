@@ -40,4 +40,9 @@ public class UnaryExpression extends Token {
     if (exp != null) exp.acceptReverse(v);
     if (posExp != null) posExp.acceptReverse(v);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

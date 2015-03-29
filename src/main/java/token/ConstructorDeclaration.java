@@ -53,4 +53,9 @@ public class ConstructorDeclaration extends BaseMethodDeclaration {
     }
     closeScope.acceptReverse(v);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

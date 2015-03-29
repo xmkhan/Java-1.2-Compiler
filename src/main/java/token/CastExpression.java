@@ -32,6 +32,11 @@ public class CastExpression extends Token {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   private void determineCast() {
     Token token = children.get(1);
 

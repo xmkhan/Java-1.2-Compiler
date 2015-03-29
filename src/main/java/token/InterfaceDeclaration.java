@@ -44,4 +44,9 @@ public class InterfaceDeclaration extends Declaration {
     if (interfaceBody != null) interfaceBody.acceptReverse(v);
     if (modifiers != null) modifiers.acceptReverse(v);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

@@ -42,6 +42,11 @@ public class ArrayCreationExpression extends Token {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public boolean isPrimitiveType() {
     return primitiveType != null;
   }

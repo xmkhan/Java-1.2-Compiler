@@ -4,6 +4,7 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MethodDeclaration extends BaseMethodDeclaration {
 
@@ -24,6 +25,11 @@ public class MethodDeclaration extends BaseMethodDeclaration {
     closeScope = new Token("}", TokenType.RIGHT_BRACE);
   }
 
+  public List<FormalParameter> getParameters() {
+    if (methodHeader.paramList == null || methodHeader.paramList.params == null) return new ArrayList<FormalParameter>();
+    return methodHeader.paramList.params;
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     newScope.accept(v);
@@ -40,5 +46,10 @@ public class MethodDeclaration extends BaseMethodDeclaration {
     methodHeader.acceptReverse(v);
     methodBody.acceptReverse(v);
     closeScope.acceptReverse(v);
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

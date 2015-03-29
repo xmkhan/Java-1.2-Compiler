@@ -58,6 +58,11 @@ public class Name extends Token {
     v.visit(this);
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public boolean isSimple() {
     return !isQualified();
   }

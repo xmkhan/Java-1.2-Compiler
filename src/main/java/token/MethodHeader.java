@@ -52,4 +52,9 @@ public class MethodHeader extends Token {
     if (type != null) type.acceptReverse(v);
     if (paramList != null) paramList.acceptReverse(v);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

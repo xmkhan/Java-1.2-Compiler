@@ -53,4 +53,9 @@ public class FieldDeclaration extends Declaration {
     if (expr != null) expr.acceptReverse(v);
     v.visit(delimiter);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

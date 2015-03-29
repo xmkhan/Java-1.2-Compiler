@@ -36,4 +36,9 @@ public class InterfaceTypeList extends Token {
       type.acceptReverse(v);
     }
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

@@ -40,6 +40,11 @@ public class MethodDeclarator extends Token {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public FormalParameterList getParameterList() {
     return formalParameterList != null ? formalParameterList : null;
   }

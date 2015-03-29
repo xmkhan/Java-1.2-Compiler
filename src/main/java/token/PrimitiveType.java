@@ -27,6 +27,11 @@ public class PrimitiveType extends Token {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public Token getType() {
     return children.get(0);
   }

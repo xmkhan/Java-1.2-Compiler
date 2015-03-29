@@ -28,6 +28,11 @@ public class InterfaceBody extends Token {
     if (interfaceMemberDeclarations != null) interfaceMemberDeclarations.acceptReverse(v);
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public InterfaceMemberDeclarations getInterfaceMemberDeclaration() {
     return interfaceMemberDeclarations;
   }

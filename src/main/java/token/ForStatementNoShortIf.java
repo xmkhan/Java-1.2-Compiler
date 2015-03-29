@@ -50,4 +50,9 @@ public class ForStatementNoShortIf extends BaseStatement {
       token.acceptReverse(v);
     }
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

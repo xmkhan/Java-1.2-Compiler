@@ -24,4 +24,9 @@ public class Interfaces extends Token {
     v.visit(this);
     if (interfaceTypeList != null) interfaceTypeList.acceptReverse(v);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

@@ -54,5 +54,11 @@ public class MethodInvocation extends Token {
     if (name != null) name.acceptReverse(v);
     if (primary != null) primary.acceptReverse(v);
     if (identifier != null) identifier.acceptReverse(v);
-    if (argumentList != null) argumentList.acceptReverse(v);  }
+    if (argumentList != null) argumentList.acceptReverse(v);
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

@@ -11,6 +11,7 @@ public class Block extends BaseStatement {
     super("", TokenType.Block, children);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {
       token.accept(v);
@@ -24,5 +25,10 @@ public class Block extends BaseStatement {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

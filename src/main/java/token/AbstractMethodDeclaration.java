@@ -21,6 +21,7 @@ public class AbstractMethodDeclaration extends BaseMethodDeclaration {
     closeScope = new Token("}", TokenType.RIGHT_BRACE);
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     newScope.accept(v);
     methodHeader.accept(v);
@@ -28,10 +29,16 @@ public class AbstractMethodDeclaration extends BaseMethodDeclaration {
     v.visit(this);
   }
 
+  @Override
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
     newScope.acceptReverse(v);
     methodHeader.acceptReverse(v);
     closeScope.acceptReverse(v);
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

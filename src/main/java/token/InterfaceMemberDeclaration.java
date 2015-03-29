@@ -29,6 +29,11 @@ public class InterfaceMemberDeclaration extends Token {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public MethodHeader getMethodHeader() {
     return (MethodHeader) abstractMethodDeclaration.children.get(0);
   }

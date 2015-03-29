@@ -63,4 +63,9 @@ public class ImportDeclarations extends Token {
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

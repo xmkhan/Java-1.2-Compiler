@@ -33,6 +33,11 @@ public class FormalParameter extends Declaration {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public boolean isPrimitive() {
     return type.isPrimitiveType();
   }
