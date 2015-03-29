@@ -26,14 +26,18 @@ public class TypeCheckingVisitor extends BaseVisitor {
   private HierarchyGraphNode node;
   private CompilationUnit unit;
 
+  private boolean explicitThisUsedInContext;
+
   public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph, Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode) {
     this.symbolTable = symbolTable;
     this.compilationUnitToNode = compilationUnitToNode;
     this.hierarchyGraph = hierarchyGraph;
+    explicitThisUsedInContext = false;
   }
 
   public void typeCheckUnits(List<CompilationUnit> units) throws VisitorException {
     for(CompilationUnit unit : units) {
+      explicitThisUsedInContext = false;
       // we don't need to type check interfaces
       if (unit.typeDeclaration.classDeclaration == null) {
         continue;
@@ -371,6 +375,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(MethodDeclaration token) throws VisitorException {
     super.visit(token);
+    if (token.methodHeader.modifiers.isStatic() && explicitThisUsedInContext) {
+      throw new TypeCheckingVisitorException("explicit this used in static context. Class: " + node.getFullname() + " Method: " + token.methodHeader.identifier.getLexeme(), token);
+    }
     while(!returnCallStack.isEmpty()) {
       TypeCheckToken returnToken = returnCallStack.pop();
       if(token.methodHeader.voidType != null) {
@@ -399,6 +406,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
         }
       }
     }
+    // reset the this used in method body check, as we will be visiting another method.
+    explicitThisUsedInContext = false;
   }
 
   @Override
@@ -451,6 +460,17 @@ public class TypeCheckingVisitor extends BaseVisitor {
     Declaration constructorDeclaration = matchCall(matchingDeclarations, false, arguments, name);
 
     Declaration classDecl = determineDeclaration(name, new Class [] {ClassDeclaration.class});
+
+    HierarchyGraphNode parent = hierarchyGraph.get(classDecl.getAbsolutePath());
+    if ((!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) ||
+      !parent.getPackageName().equals(node.getPackageName())) &&
+      ((ConstructorDeclaration)constructorDeclaration).modifiers.isProtected()) {
+      throw new TypeCheckingVisitorException("Protected constructor " +
+        constructor +
+        "accessed from outside of package or class hierarchy. Violating class: " +
+        node.getFullname(), token);
+    }
+
     tokenStack.push(new TypeCheckToken(classDecl));
   }
 
@@ -484,6 +504,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
     // If variable isn't initialized, no need to check
     if(decl.expr == null) {
       return;
+    }
+
+    if (decl.modifiers.isStatic() && explicitThisUsedInContext) {
+      throw new TypeCheckingVisitorException("explicit this used in static context. Class: " + node.getFullname() + " FieldDeclaration: " + decl.identifier.getLexeme(), decl);
+    } else {
+      explicitThisUsedInContext = false;
     }
 
     TypeCheckToken assignedType = tokenStack.pop();
@@ -650,6 +676,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
 
     if (token.children.get(0).getTokenType() == TokenType.THIS) {
+      explicitThisUsedInContext = true;
       tokenStack.push(new TypeCheckToken((unit.typeDeclaration.getDeclaration())));
     }
   }
@@ -674,6 +701,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
       matchingDeclarations = new ArrayList<Token>();
       List<BaseMethodDeclaration> allMethods = hierarchyGraph.get(primary.getAbsolutePath()).getAllMethods();
+
       for (Iterator<BaseMethodDeclaration> it = allMethods.listIterator(); it.hasNext(); ) {
         BaseMethodDeclaration method = it.next();
         if(method instanceof MethodDeclaration && ((MethodDeclaration) method).methodHeader.identifier.getLexeme().equals(token.identifier.getLexeme())
@@ -687,6 +715,14 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
 
     Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name == null ? token.identifier : token.name);
+
+   /* if (token.primary != null && token.primary.children.get(0).getTokenType() == TokenType.THIS &&
+      methodDeclaration != null && methodDeclaration instanceof MethodDeclaration) {
+      if (((MethodDeclaration)methodDeclaration).methodHeader.modifiers.isStatic()) {
+        System.out.println("THIS: " + token.identifier);
+      }
+    }*/
+
     if(methodDeclaration.type == null) {
       tokenStack.push(new TypeCheckToken(TokenType.VOID, false));
     } else if(methodDeclaration.type.isPrimitiveType()) {

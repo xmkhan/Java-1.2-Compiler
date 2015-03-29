@@ -45,4 +45,18 @@ public class Modifiers extends Token {
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
+
+  public boolean isStatic() {
+    for (Modifier modifier : modifiers) {
+      if (modifier.getModifier().getTokenType() == TokenType.STATIC) return true;
+    }
+    return false;
+  }
+
+  public boolean isProtected() {
+    for (Modifier modifier : modifiers) {
+      if (modifier.getModifier().getTokenType() == TokenType.PROTECTED) return true;
+    }
+    return false;
+  }
 }
