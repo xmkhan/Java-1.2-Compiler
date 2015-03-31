@@ -96,6 +96,18 @@ public class HierarchyGraphNode {
   }
 
   /**
+   * Traverse the graph and fetch all classes connected to this node.
+   */
+  public List<Token> getAllBaseClasses() {
+    List<Token> allBaseClasses = new ArrayList<Token>();
+    allBaseClasses.add(classOrInterface);
+    for (HierarchyGraphNode node : extendsList) {
+      allBaseClasses.addAll(node.getAllBaseClasses());
+    }
+    return allBaseClasses;
+  }
+
+  /**
    * Traverse the graph and fetch all the fields extended by this class
    * @return this node's fields + all the extended fields
    */
