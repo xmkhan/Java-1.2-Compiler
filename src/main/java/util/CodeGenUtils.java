@@ -4,6 +4,7 @@ import token.Declaration;
 import token.FormalParameter;
 import token.MethodDeclaration;
 
+import java.io.PrintStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,6 +15,9 @@ public class CodeGenUtils {
 
   public static AtomicInteger ifStatementCount = new AtomicInteger(0);
 
+  /**
+   * Generate a label for a given declaration using absolute path.
+   */
   public static String genLabel(Declaration declaration) {
     StringBuilder sb = new StringBuilder();
     sb.append(declaration.getAbsolutePath());
@@ -32,6 +36,44 @@ public class CodeGenUtils {
       sb.append(":");
     }
     return sb.toString();
+  }
+
+  /**
+   * Generate a label for a given method using it's identifier and paramater list.
+   */
+  public static String genMethodLabel(MethodDeclaration methodDeclaration) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(methodDeclaration.getIdentifier());
+    for (FormalParameter parameter : methodDeclaration.getParameters()) {
+      sb.append('#');
+      sb.append(parameter.getAbsolutePath());
+    }
+    if (methodDeclaration.getParameters().isEmpty()) {
+      sb.append('#');
+      sb.append("void");
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Generates a throwaway label to use for handling if-statement jmps.
+   */
+  public static String genNextIfStatementLabel() {
+    return String.format("if#%d", ifStatementCount.getAndIncrement());
+  }
+
+  public static void genPushRegisters(PrintStream output) {
+    output.println("push eax");
+    output.println("push ebx");
+    output.println("push ecx");
+    output.println("push edx");
+  }
+
+  public static void genPopRegisters(PrintStream output) {
+    output.println("pop eax");
+    output.println("pop ebx");
+    output.println("pop ecx");
+    output.println("pop edx");
   }
 
 }

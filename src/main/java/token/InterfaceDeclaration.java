@@ -11,6 +11,8 @@ public class InterfaceDeclaration extends Declaration {
   public ExtendsInterfaces extendsInterfaces;
   public InterfaceBody interfaceBody;
 
+  public int classId = -1;
+
   public InterfaceDeclaration(ArrayList<Token> children) {
     super("", TokenType.InterfaceDeclaration, children);
     for (Token token : children) {

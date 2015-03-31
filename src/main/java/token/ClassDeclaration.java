@@ -4,6 +4,7 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ClassDeclaration extends Declaration {
 
@@ -11,6 +12,13 @@ public class ClassDeclaration extends Declaration {
   public Super extendsClass;
   public Interfaces implementsClasses;
   public ClassBody classBody;
+
+  public int classId = -1;
+  public int classSize = 0;
+  public int vTableSize = 0;
+
+  public HashMap<String, MethodDeclaration> methodLabels = new HashMap<String, MethodDeclaration>();
+  public HashMap<String, FieldDeclaration> fieldLabels = new HashMap<String, FieldDeclaration>();
 
   public ClassDeclaration(ArrayList<Token> children) {
     super("", TokenType.ClassDeclaration, children);

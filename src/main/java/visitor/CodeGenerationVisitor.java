@@ -96,10 +96,48 @@ import token.VariableDeclarator;
 import token.WhileStatement;
 import token.WhileStatementNoShortIf;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.util.List;
+
 /**
  * Responsible for generating x86 assembly code for the program.
  */
 public class CodeGenerationVisitor extends BaseVisitor {
+
+  public PrintStream output;
+
+  private boolean[][] subclassTable;
+
+  public CodeGenerationVisitor(boolean[][] subclassTable) {
+    this.subclassTable = subclassTable;
+  }
+
+  public void generateCode(List<CompilationUnit> units) throws FileNotFoundException, VisitorException {
+
+    for (CompilationUnit unit : units) {
+      output = new PrintStream(new FileOutputStream("output/" + unit.typeDeclaration.getDeclaration().getIdentifier()));
+      unit.traverse(this);
+    }
+  }
+
+  private void genSubtypeTable() {
+    output.println("__subtype_table: dd");
+    output.println(String.format("mov eax, %d",(4 * subclassTable.length)));
+    output.println("call __malloc");
+    output.println("mov __subtype_table, eax");
+    for(int i = 0; i < subclassTable.length; ++i) {
+      output.println(String.format("mov eax, %d", (4 * subclassTable.length)));
+      output.println("call __malloc");
+      output.println(String.format("mov __subtype_table + %d, eax", 4 * i));
+      output.println(String.format("mov ebx, __subtype_table + %d", 4 * i));
+      for (int j = 0; j < subclassTable[i].length; ++j) {
+        output.println(String.format("mov [ebx + %d], %d", 4 * j, subclassTable[i][j] ? 1 : 0));
+      }
+    }
+  }
+
   @Override
   public void visit(ExpressionStatement token) throws VisitorException {
     super.visit(token);
@@ -538,6 +576,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassDeclaration token) throws VisitorException {
     super.visit(token);
+
   }
 
   @Override
