@@ -1,10 +1,12 @@
 package token;
 
+import algorithm.base.Pair;
 import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class ClassDeclaration extends Declaration {
 
@@ -17,8 +19,10 @@ public class ClassDeclaration extends Declaration {
   public int classSize = 0;
   public int vTableSize = 0;
 
-  public HashMap<String, MethodDeclaration> methodLabels = new HashMap<String, MethodDeclaration>();
-  public HashMap<String, FieldDeclaration> fieldLabels = new HashMap<String, FieldDeclaration>();
+  public List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
+  public List<FieldDeclaration> fields = new ArrayList<FieldDeclaration>();
+
+  public MethodDeclaration[] interfaceMethods;
 
   public ClassDeclaration(ArrayList<Token> children) {
     super("", TokenType.ClassDeclaration, children);

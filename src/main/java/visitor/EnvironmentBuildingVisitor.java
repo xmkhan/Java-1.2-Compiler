@@ -25,16 +25,25 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
   private SymbolTable table;
   private StringBuilder prefix;
 
+  private int classId;
+  private int interfaceMethodId;
+
   public EnvironmentBuildingVisitor(SymbolTable table) {
     this.table = table;
     this.prefix = new StringBuilder();
   }
 
   public void buildGlobalScope(List<CompilationUnit> units) throws VisitorException {
+    classId = 0;
+    interfaceMethodId = 0;
     table.newScope();
     for (CompilationUnit unit : units) {
       unit.acceptReverse(this);
     }
+  }
+
+  public int getInterfaceMethodCount() {
+    return interfaceMethodId;
   }
 
   @Override
@@ -89,6 +98,7 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
     super.visit(token);
     String identifier = prefix.toString() + token.getIdentifier();
     table.addDecl(identifier, token);
+    token.interfaceMethodId = interfaceMethodId++;
   }
 
   @Override
@@ -111,6 +121,18 @@ public class EnvironmentBuildingVisitor extends BaseVisitor {
           "No two local variables with overlapping scope have the same name.", token);
     }
     table.addDecl(identifier, token);
+  }
+
+  @Override
+  public void visit(ClassDeclaration token) throws VisitorException {
+    super.visit(token);
+    token.classId = classId++;
+  }
+
+  @Override
+  public void visit(InterfaceDeclaration token) throws VisitorException {
+    super.visit(token);
+    token.classId = classId++;
   }
 
   @Override

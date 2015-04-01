@@ -1,5 +1,6 @@
 package visitor;
 
+import algorithm.base.Pair;
 import exception.VisitorException;
 import token.AbstractMethodDeclaration;
 import token.AdditiveExpression;
@@ -95,11 +96,13 @@ import token.UnaryExpressionNotMinus;
 import token.VariableDeclarator;
 import token.WhileStatement;
 import token.WhileStatementNoShortIf;
+import util.CodeGenUtils;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Responsible for generating x86 assembly code for the program.
@@ -109,12 +112,25 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public PrintStream output;
 
   private boolean[][] subclassTable;
+  private final int numInterfaceMethods;
+  private MethodDeclaration[][] selectorIndexTable;
 
-  public CodeGenerationVisitor(boolean[][] subclassTable) {
+  public CodeGenerationVisitor(boolean[][] subclassTable, int numInterfaceMethods) {
     this.subclassTable = subclassTable;
+    this.numInterfaceMethods = numInterfaceMethods;
   }
 
   public void generateCode(List<CompilationUnit> units) throws FileNotFoundException, VisitorException {
+
+    selectorIndexTable = new MethodDeclaration[units.size()][numInterfaceMethods];
+    for (CompilationUnit unit : units) {
+      if (unit.typeDeclaration.getDeclaration() instanceof ClassDeclaration) {
+        ClassDeclaration classDeclaration = (ClassDeclaration) unit.typeDeclaration.getDeclaration();
+        for (int i = 0; i < classDeclaration.interfaceMethods.length; ++i) {
+          selectorIndexTable[classDeclaration.classId][i] = classDeclaration.interfaceMethods[i];
+        }
+      }
+    }
 
     for (CompilationUnit unit : units) {
       output = new PrintStream(new FileOutputStream("output/" + unit.typeDeclaration.getDeclaration().getIdentifier()));
@@ -123,6 +139,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   private void genSubtypeTable() {
+    output.println("global __subtype_table");
     output.println("__subtype_table: dd");
     output.println(String.format("mov eax, %d",(4 * subclassTable.length)));
     output.println("call __malloc");
@@ -130,10 +147,27 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for(int i = 0; i < subclassTable.length; ++i) {
       output.println(String.format("mov eax, %d", (4 * subclassTable.length)));
       output.println("call __malloc");
-      output.println(String.format("mov __subtype_table + %d, eax", 4 * i));
-      output.println(String.format("mov ebx, __subtype_table + %d", 4 * i));
+      output.println(String.format("mov [__subtype_table + %d], eax", 4 * i));
+      output.println(String.format("mov ebx, [__subtype_table + %d]", 4 * i));
       for (int j = 0; j < subclassTable[i].length; ++j) {
         output.println(String.format("mov [ebx + %d], %d", 4 * j, subclassTable[i][j] ? 1 : 0));
+      }
+    }
+  }
+
+  private void genSelectorIndexTable() {
+    output.println("global __selector_index_table");
+    output.println("__selector_index_table: dd");
+    output.println(String.format("mov eax, %d",(4 * selectorIndexTable.length)));
+    output.println("call __malloc");
+    output.println("mov __selector_index_table, eax");
+    for(int i = 0; i < selectorIndexTable.length; ++i) {
+      output.println(String.format("mov eax, %d", (4 * selectorIndexTable.length)));
+      output.println("call __malloc");
+      output.println(String.format("mov [__selector_index_table + %d], eax", 4 * i));
+      output.println(String.format("mov ebx, [__selector_index_table + %d]", 4 * i));
+      for (int j = 0; j < selectorIndexTable[i].length; ++j) {
+        output.println(String.format("lea [ebx + %d], %s", 4 * j, CodeGenUtils.genLabel(selectorIndexTable[i][j])));
       }
     }
   }
@@ -446,6 +480,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(CompilationUnit token) throws VisitorException {
     super.visit(token);
+    output.println("section .text");
   }
 
   @Override
@@ -577,6 +612,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(ClassDeclaration token) throws VisitorException {
     super.visit(token);
 
+    // After generating code for the subtree, at the end we create the vtable entry.
+    output.println(String.format("global __vtable_%s", token.getAbsolutePath()));
+    output.println(String.format("__vtable_%s: dd", token.getAbsolutePath()));
+    output.println(String.format("mov eax, %d", token.vTableSize));
+    output.println("call __malloc");
+    output.println(String.format("mov __vtable_%s, eax", token.getAbsolutePath()));
+    for (int i = 0; i < token.methods.size(); ++i) {
+      output.println(String.format("lea [__vtable_%s + %d], %s", token.getAbsolutePath(), 4 * i, CodeGenUtils.genLabel(token.methods.get(i))));
+    }
   }
 
   @Override
