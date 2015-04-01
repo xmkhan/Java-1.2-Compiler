@@ -7,6 +7,7 @@ import org.junit.Test;
 import util.CompilationUnitGenerator;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -246,6 +247,24 @@ public class TypeCheckingVisitorTest {
     files.addAll(Arrays.asList(
             "src/test/resources/reachability/J1_Reachable1.java"
     ));
+    bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
+    visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
+    visitor.typeCheckUnits(bundle.units);
+  }
+
+
+  @Test
+  public void testali() throws IOException, CompilerException {
+    //List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    List<String> files = new ArrayList<String>();
+    files.addAll(Arrays.asList(
+      "src/test/resources/typechecking/a3/Je_6_ProtectedAccess_Method_OutsidePackage_NotBySubclass/A.java",
+      "src/test/resources/typechecking/a3/Je_6_ProtectedAccess_Method_OutsidePackage_NotBySubclass/Main.java"/*,
+      "src/test/resources/typechecking/a3/Je_6_ProtectedAccess_TwoSubtypes/Main.java",
+      "src/test/resources/typechecking/a3/Je_6_ProtectedAccess_InstanceField_SubDeclare_SubVar/B/B.java",
+      "src/test/resources/typechecking/a3/Je_6_ProtectedAccess_InstanceField_SubDeclare_SubVar/C/C.java",
+      "src/test/resources/typechecking/a3/Je_6_ProtectedAccess_InstanceField_SubDeclare_SubVar/D/D.java"*/
+      ));
     bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
     visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
     visitor.typeCheckUnits(bundle.units);
