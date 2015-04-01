@@ -1,5 +1,6 @@
 package util;
 
+import token.AbstractMethodDeclaration;
 import token.Declaration;
 import token.FormalParameter;
 import token.MethodDeclaration;
@@ -42,6 +43,19 @@ public class CodeGenUtils {
    * Generate a label for a given method using it's identifier and paramater list.
    */
   public static String genMethodLabel(MethodDeclaration methodDeclaration) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(methodDeclaration.getIdentifier());
+    for (FormalParameter parameter : methodDeclaration.getParameters()) {
+      sb.append('#');
+      sb.append(parameter.getAbsolutePath());
+    }
+    if (methodDeclaration.getParameters().isEmpty()) {
+      sb.append('#');
+      sb.append("void");
+    }
+    return sb.toString();
+  }
+  public static String genMethodLabel(AbstractMethodDeclaration methodDeclaration) {
     StringBuilder sb = new StringBuilder();
     sb.append(methodDeclaration.getIdentifier());
     for (FormalParameter parameter : methodDeclaration.getParameters()) {

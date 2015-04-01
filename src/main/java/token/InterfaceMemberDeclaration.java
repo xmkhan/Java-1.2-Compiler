@@ -6,7 +6,7 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class InterfaceMemberDeclaration extends Token {
-  AbstractMethodDeclaration abstractMethodDeclaration;
+  public AbstractMethodDeclaration abstractMethodDeclaration;
 
   public InterfaceMemberDeclaration(ArrayList<Token> children) {
     super("", TokenType.InterfaceMemberDeclaration, children);

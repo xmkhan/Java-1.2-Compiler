@@ -4,12 +4,15 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AbstractMethodDeclaration extends BaseMethodDeclaration {
   public MethodHeader methodHeader;
 
   public Token newScope;
   public Token closeScope;
+
+  public int interfaceMethodId = -1;
 
   public AbstractMethodDeclaration(ArrayList<Token> children) {
     super("", TokenType.AbstractMethodDeclaration, children);
@@ -19,6 +22,11 @@ public class AbstractMethodDeclaration extends BaseMethodDeclaration {
     // To handle implicit scopes, we explicitly add the scope.
     newScope = new Token("{", TokenType.LEFT_BRACE);
     closeScope = new Token("}", TokenType.RIGHT_BRACE);
+  }
+
+  public List<FormalParameter> getParameters() {
+    if (methodHeader.paramList == null || methodHeader.paramList.params == null) return new ArrayList<FormalParameter>();
+    return methodHeader.paramList.params;
   }
 
   @Override
