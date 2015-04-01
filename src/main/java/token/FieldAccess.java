@@ -17,6 +17,16 @@ public class FieldAccess extends Token {
   public Primary primary;
   public Token identifier;
 
+  private Declaration determinedDeclaration;
+
+  public Declaration getDeterminedDeclaration() {
+    return determinedDeclaration;
+  }
+
+  public void setDeterminedDeclaration(Declaration declaration) {
+    this.determinedDeclaration = declaration;
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {

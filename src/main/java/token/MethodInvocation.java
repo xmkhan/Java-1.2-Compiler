@@ -11,6 +11,7 @@ public class MethodInvocation extends Token {
   public ArgumentList argumentList;
   public Primary primary;
   public Token identifier;
+  private Declaration determinedDeclaration;
 
   public MethodInvocation(ArrayList<Token> children) {
     super("", TokenType.MethodInvocation, children);
@@ -37,6 +38,14 @@ public class MethodInvocation extends Token {
 
   public boolean hasArguments() {
     return argumentList != null;
+  }
+
+  public Declaration getDeterminedDeclaration() {
+    return determinedDeclaration;
+  }
+
+  public void setDeterminedDeclaration(Declaration declaration) {
+    this.determinedDeclaration = declaration;
   }
 
   @Override

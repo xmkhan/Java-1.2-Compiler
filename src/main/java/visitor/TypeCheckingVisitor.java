@@ -309,8 +309,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(UnaryExpressionNotMinus token) throws VisitorException {
     super.visit(token);
-    if (token.children.get(0).getTokenType() == TokenType.Primary ||
-      token.children.get(0).getTokenType() == TokenType.CastExpression) return;
+    if (token.children.get(0).getTokenType() == TokenType.Primary) {
+      ((Primary)token.children.get(0)).setDeterminedType(tokenStack.peek());
+    } else if(token.children.get(0).getTokenType() == TokenType.CastExpression) return;
 
     if(token.children.get(0).getTokenType() == TokenType.Name) {
       Name name = (Name) token.children.get(0);
@@ -340,11 +341,14 @@ public class TypeCheckingVisitor extends BaseVisitor {
         if(determinedDecl.type.isArray() && originalPathArr[originalPathArr.length - 1].equals("length") &&
                 originalPathArr[originalPathArr.length - 2].equals(determinedAbsolutePathArr[determinedAbsolutePathArr.length - 1])) {
           tokenStack.push(new TypeCheckToken(TokenType.INT));
-        } else  {
+          name.setDeterminedDeclaration(determinedDecl);
+
+        } else {
           throw new TypeCheckingVisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);
         }
       } else {
         tokenStack.push(new TypeCheckToken(determinedDecl));
+        name.setDeterminedDeclaration(determinedDecl);
       }
     } else if(token.children.size() == 2) {
       // No need to pop since if the type is valid we would've to push it back on the stack anyways
@@ -449,6 +453,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     String constructor = name.getAbsolutePath() + "." + nameParts[nameParts.length - 1];
     List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, new Class [] {ConstructorDeclaration.class});
     Declaration constructorDeclaration = matchCall(matchingDeclarations, false, arguments, name);
+    name.setDeterminedDeclaration(constructorDeclaration);
 
     Declaration classDecl = determineDeclaration(name, new Class [] {ClassDeclaration.class});
     tokenStack.push(new TypeCheckToken(classDecl));
@@ -529,8 +534,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
 
       tokenStack.push(new TypeCheckToken(determinedDecalaration, false));
+      name.setDeterminedDeclaration(determinedDecalaration);
     } else {
       TypeCheckToken primaryAccess = tokenStack.pop();
+      token.primary.setDeterminedType(primaryAccess);
 
       if(!primaryAccess.isArray) {
         throw new TypeCheckingVisitorException("Trying to dereference an array with an index: name=" + primaryAccess.tokenType, token);
@@ -555,6 +562,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     } else {
       Declaration determined = determineDeclaration(token.name, new Class[] {ClassDeclaration.class});
       tokenStack.push(new TypeCheckToken(determined, true));
+      token.name.setDeterminedDeclaration(determined);
     }
 
     //TODO: Figure out what this was for
@@ -570,6 +578,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
   public void visit(FieldAccess token) throws VisitorException {
     super.visit(token);
     TypeCheckToken firstIdentifier = tokenStack.pop();
+    token.primary.setDeterminedType(firstIdentifier);
+
     if (firstIdentifier.isArray) {
       if (token.identifier.getLexeme().equals("length")) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
@@ -596,6 +606,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       throw new TypeCheckingVisitorException("No field could be resolved for field: " + token.identifier.getLexeme(), token);
     }
     tokenStack.push(new TypeCheckToken((Declaration)potentialFields.get(0)));
+    token.setDeterminedDeclaration((Declaration)potentialFields.get(0));
   }
 
   @Override
@@ -608,6 +619,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
                                                                            FieldDeclaration.class,
                                                                            FormalParameter.class});
       tokenStack.push(new TypeCheckToken(determinedDecl));
+      name.setDeterminedDeclaration(determinedDecl);
     }
   }
 
@@ -622,6 +634,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       Declaration determinedNameDecl = determineDeclaration(token.name, new Class[]{ClassDeclaration.class,
                                                                                     InterfaceDeclaration.class});
       cast = new TypeCheckToken(determinedNameDecl, token.isArrayCast());
+      token.name.setDeterminedDeclaration(determinedNameDecl);
     }
 
     try {
@@ -668,6 +681,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
     List<Token> matchingDeclarations;
     if(token.isOnPrimary()) {
       TypeCheckToken primary = tokenStack.pop();
+      token.primary.setDeterminedType(primary);
+
       if(primary.tokenType != TokenType.OBJECT) {
         throw new TypeCheckingVisitorException("Expected object when calling method " + token.identifier.getLexeme() + " but found " + primary.tokenType, token);
       }
@@ -687,6 +702,11 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
 
     Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name == null ? token.identifier : token.name);
+    if(token.name != null) {
+      token.name.setDeterminedDeclaration(methodDeclaration);
+    }
+    token.setDeterminedDeclaration(methodDeclaration);
+
     if(methodDeclaration.type == null) {
       tokenStack.push(new TypeCheckToken(TokenType.VOID, false));
     } else if(methodDeclaration.type.isPrimitiveType()) {
