@@ -93,7 +93,7 @@ public class CodeGenUtils {
   public static void genPopRegisters(PrintStream output) {
     output.println("pop edx");
     output.println("pop ecx");
-    output.println("pop edx");
+    output.println("pop ebx");
     output.println("pop eax");
   }
 

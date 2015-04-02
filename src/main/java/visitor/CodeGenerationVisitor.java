@@ -448,7 +448,18 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(MethodDeclaration token) throws VisitorException {
     super.visit(token);
-    if (testMainMethod == null && token.getIdentifier().equals("test"));
+    // Keep track of test method to generate starting point.
+    if (testMainMethod == null && isTestMethod(token)) testMainMethod = token;
+    output.println(String.format("%s:", CodeGenUtils.genLabel(token)));
+    visit(token.methodBody);
+  }
+
+  private boolean isTestMethod(MethodDeclaration token) {
+    return token.getIdentifier().equals("test") &&
+        token.getParameters().isEmpty() &&
+        token.methodHeader.type.getType().getLexeme().equals("int") &&
+        token.methodHeader.modifiers.containsModifier("static") &&
+        token.methodHeader.modifiers.getModifiers().size() == 1;
   }
 
   @Override
@@ -685,6 +696,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(MethodBody token) throws VisitorException {
     super.visit(token);
+    if (token.block != null) visit(token.block);
   }
 
   @Override
