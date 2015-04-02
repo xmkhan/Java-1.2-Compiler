@@ -104,6 +104,7 @@ import util.CodeGenUtils;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -190,6 +191,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(FieldDeclaration token) throws VisitorException {
     super.visit(token);
+    int fieldSize = CodeGenUtils.getSize(token.type.getType().getLexeme());
+    if (token.containsModifier("static")) {
+      output.println(String.format("global %s", token.getAbsolutePath()));
+      output.println(String.format("%s %s", token.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
+      visit(token.expr);
+      output.println(String.format("mov [%s], eax", token.getAbsolutePath()));
+    } else {
+      
+    }
   }
 
   @Override

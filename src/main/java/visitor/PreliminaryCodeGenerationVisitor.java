@@ -106,7 +106,7 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
     // Add # of bytes based on type for all fields for the class.
     for (FieldDeclaration field : classDeclaration.fields) {
       if (field.type.isPrimitiveType() && !field.type.isArray()) {
-        classDeclaration.classSize += getSize(field.type.getType().getLexeme());
+        classDeclaration.classSize += CodeGenUtils.getSize(field.type.getType().getLexeme());
       } else {
         classDeclaration.classSize += 4;
       }
@@ -132,12 +132,4 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
     }
   }
 
-  private int getSize(String type) {
-    if (type.equals("boolean")) return 1;
-    else if (type.equals("int")) return 4;
-    else if (type.equals("char")) return 1;
-    else if (type.equals("byte")) return 1;
-    else if (type.equals("short")) return 2;
-    return 4;
-  }
 }
