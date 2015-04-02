@@ -195,10 +195,18 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.containsModifier("static")) {
       output.println(String.format("global %s", token.getAbsolutePath()));
       output.println(String.format("%s %s", token.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
-      visit(token.expr);
+      if (token.expr != null) visit(token.expr);
+      else output.println("mov eax, 0");
       output.println(String.format("mov [%s], eax", token.getAbsolutePath()));
     } else {
-      
+      // For all non-static fields, we assume that the value at eax is 'this'.
+      output.println("push eax");
+      visit(token.expr);
+      if (token.expr != null) visit(token.expr);
+      else output.println("mov eax, 0");
+      output.println("mov ebx, eax");
+      output.println("pop eax");
+      output.println(String.format("mov [eax + %d], ebx", token.offset));
     }
   }
 
@@ -370,13 +378,30 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ConstructorDeclaration token) throws VisitorException {
     super.visit(token);
-    HierarchyGraphNode node = graph.get(table.getClass(token).getAbsolutePath());
+    String label = CodeGenUtils.genLabel(token);
+    output.println(String.format("global %s", label));
+    output.println(String.format("%s:", label));
+    ClassDeclaration classDeclaration = (ClassDeclaration) table.getClass(token);
+    HierarchyGraphNode node = graph.get(classDeclaration.getAbsolutePath());
     List<Token> classTokens = node.getAllBaseClasses();
+    // Call the default constructor for all base classes.
     for (Token clazz : classTokens) {
-      ClassDeclaration classDeclaration = (ClassDeclaration) clazz;
+      ClassDeclaration baseClass = (ClassDeclaration) clazz;
       CodeGenUtils.genPopRegisters(output);
-      output.println(String.format("call %s.%s#void", classDeclaration.getAbsolutePath(), classDeclaration.getIdentifier()));
+      output.println(String.format("call %s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier()));
       CodeGenUtils.genPushRegisters(output);
+    }
+    // Initialize all non-static fields. Firstly, we put 'this' into eax.
+    int offset = 8;
+    for (FormalParameter param : token.getParameters()) {
+      param.offset = offset;
+      offset += CodeGenUtils.getSize(param.getType().getLexeme());
+    }
+    output.println(String.format("mov eax, [ebp + %d]", offset));
+    for (FieldDeclaration field : classDeclaration.fields) {
+      if (!field.containsModifier("static")) {
+        visit(field);
+      }
     }
     visit(token.body);
   }
@@ -461,6 +486,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Keep track of test method to generate starting point.
     if (testMainMethod == null && isTestMethod(token)) testMainMethod = token;
     output.println(String.format("%s:", CodeGenUtils.genLabel(token)));
+    int offset = 8;
+    for (FormalParameter param : token.getParameters()) {
+      param.offset = offset;
+      offset += CodeGenUtils.getSize(param.getType().getLexeme());
+    }
     visit(token.methodBody);
   }
 
