@@ -350,22 +350,32 @@ public class TypeCheckingVisitor extends BaseVisitor {
           token.children.get(0) instanceof Name && ((Name)token.children.get(0)).qualifiedName == null) {
           explicitThisUsedInContext = true;
         }
-        HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
-        if (!parent.getFullname().equals(node.getFullname()) &&
-          (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
-          !parent.getPackageName().equals(node.getPackageName())) &&
-          ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
-          throw new TypeCheckingVisitorException("Protected field " +
-            determinedDecl.getLexeme() +
-            "accessed from outside of package or class hierarchy. Violating class: " +
-            node.getFullname(), token);
+        if (name != null && name.getDeclarationPath() != null && name.getDeclarationPath().get(name.getDeclarationPath().size() - 1).type != null) {
+          HierarchyGraphNode parent = hierarchyGraph.get(name.getDeclarationPath().get(name.getDeclarationPath().size()-1).type.getType().getLexeme());
+
+          if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+            ((FieldDeclaration) determinedDecl).modifiers.isProtected() &&
+            !parent.getPackageName().equals(node.getPackageName()) &&
+            !hierarchyGraph.nodeAIsParentOfNodeB(node, parent)) {
+            throw new TypeCheckingVisitorException("Protected field " + determinedDecl.identifier.getLexeme() +
+              " is accessed outside of hierarchy and package", token);
+          }
+          if (parent == null &&
+            ((Name)token.children.get(0)).qualifiedName != null && ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
+            //throw new TypeCheckingVisitorException("faileddd" , token);
+          }
         }
-        if (!parent.getFullname().equals(node.getFullname()) &&
-          ((FieldDeclaration) determinedDecl).modifiers.isProtected() &&
-          !parent.getPackageName().equals(node.getPackageName()) &&
-          ((Name)token.children.get(0)).qualifiedName != null) {
-          throw new TypeCheckingVisitorException("Protected field " + determinedDecl.identifier.getLexeme() +
-            " is accessed outside of hierarchy and package", token);
+        if (name != null) {
+          HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
+          if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+            (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
+              !parent.getPackageName().equals(node.getPackageName())) &&
+            ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
+            throw new TypeCheckingVisitorException("Protected field " +
+              determinedDecl.getLexeme() +
+              "accessed from outside of package or class hierarchy. Violating class: " +
+              node.getFullname(), token);
+          }
         }
       }
 
@@ -517,21 +527,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
     tokenStack.push(new TypeCheckToken(classDecl));
   }
 
-  /*public void visit(Name name) throws VisitorException {
-    if (name.simpleName != null) {
-      System.out.println("s " + name.simpleName.getLexeme());
-    } else if (name.qualifiedName != null) {
-      String[] qualifiedName = name.getLexeme().split("\\.");
-      String simpleName = qualifiedName[qualifiedName.length-1];
-      Declaration determinedDecalaration = determineDeclaration(name, new Class[] {FormalParameter.class,
-        FieldDeclaration.class,
-        LocalVariableDeclaration.class});
-      Declaration clazz = symbolTable.getClass(determinedDecalaration);
-
-      System.out.println("q " + name.qualifiedName.getLexeme());
-    }
-  }*/
-
   @Override
   public void visit(LocalVariableDeclaration decl) throws VisitorException {
     TypeCheckToken assignedType = tokenStack.pop();
@@ -640,14 +635,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
       Declaration determined = determineDeclaration(token.name, new Class[] {ClassDeclaration.class});
       tokenStack.push(new TypeCheckToken(determined, true));
     }
-
-    //TODO: Figure out what this was for
-    //? Cant it be initiated
-    // call shah's function on token.classType....
-    /*if (false) {
-      // ClassType was abstract
-      throw new VisitorException("Abstract class " + " cannot be instantiated", token);
-    }*/
   }
 
   @Override
@@ -699,18 +686,35 @@ public class TypeCheckingVisitor extends BaseVisitor {
           //explicitThisUsedInContext = true;
         }
 
-        HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
-        if (!parent.getFullname().equals(node.getFullname()) &&
-          (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
-          !parent.getPackageName().equals(node.getPackageName())) &&
-          ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
-          throw new TypeCheckingVisitorException("Protected field " +
-            determinedDecl.getLexeme() +
-            "accessed from outside of package or class hierarchy. Violating class: " +
-            node.getFullname(), token);
+        if (name != null && name.getDeclarationPath() != null && name.getDeclarationPath().get(name.getDeclarationPath().size() - 1).type != null) {
+          HierarchyGraphNode parent = hierarchyGraph.get(name.getDeclarationPath().get(name.getDeclarationPath().size() - 1).type.getType().getLexeme());
+
+          if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+            ((FieldDeclaration) determinedDecl).modifiers.isProtected() &&
+            !parent.getPackageName().equals(node.getPackageName()) &&
+            !hierarchyGraph.nodeAIsParentOfNodeB(node, parent) &&
+            ((Name)token.children.get(0)).qualifiedName != null) {
+            throw new TypeCheckingVisitorException("Protected field " + determinedDecl.identifier.getLexeme() +
+              " is accessed outside of hierarchy and package", token);
+          }
+          if (parent == null &&
+            ((Name)token.children.get(0)).qualifiedName != null && ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
+            //throw new TypeCheckingVisitorException("faileddd" , token);
+          }
+        }
+        if (name != null) {
+          HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
+          if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+            (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
+              !parent.getPackageName().equals(node.getPackageName())) &&
+            ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
+            throw new TypeCheckingVisitorException("Protected field " +
+              determinedDecl.getLexeme() +
+              "accessed from outside of package or class hierarchy. Violating class: " +
+              node.getFullname(), token);
+          }
         }
       }
-
       tokenStack.push(new TypeCheckToken(determinedDecl));
     }
   }
@@ -793,14 +797,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
 
     Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name == null ? token.identifier : token.name);
-
-   /* if (token.primary != null && token.primary.children.get(0).getTokenType() == TokenType.THIS &&
-      methodDeclaration != null && methodDeclaration instanceof MethodDeclaration) {
-      if (((MethodDeclaration)methodDeclaration).methodHeader.modifiers.isStatic()) {
-        System.out.println("THIS: " + token.identifier);
-      }
-    }*/
-
       Declaration clazz = symbolTable.getClass(methodDeclaration);
 
       if (token.name != null && token.name.classifiedType == Name.ClassifiedType.Type &&
@@ -821,8 +817,21 @@ public class TypeCheckingVisitor extends BaseVisitor {
         explicitThisUsedInContext = true;
       }
 
+    if (token.name != null && token.name.getDeclarationPath() != null && token.name.getDeclarationPath().get(token.name.getDeclarationPath().size() - 1).type != null) {
+      HierarchyGraphNode parent = hierarchyGraph.get(token.name.getDeclarationPath().get(token.name.getDeclarationPath().size() - 1).type.getType().getLexeme());
+
+      if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+        ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isProtected() &&
+        !parent.getPackageName().equals(node.getPackageName()) &&
+        !hierarchyGraph.nodeAIsParentOfNodeB(node, parent) &&
+        ((Name)token.children.get(0)).qualifiedName != null) {
+        throw new TypeCheckingVisitorException("Protected field " + methodDeclaration.identifier.getLexeme() +
+          " is accessed outside of hierarchy and package", token);
+      }
+    }
+    if (token.name != null) {
       HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
-      if (!parent.getFullname().equals(node.getFullname()) &&
+      if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
         (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
           !parent.getPackageName().equals(node.getPackageName())) &&
         ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isProtected()) {
@@ -831,6 +840,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
           "accessed from outside of package or class hierarchy. Violating class: " +
           node.getFullname(), token);
       }
+    }
 
     if(methodDeclaration.type == null) {
       tokenStack.push(new TypeCheckToken(TokenType.VOID, false));

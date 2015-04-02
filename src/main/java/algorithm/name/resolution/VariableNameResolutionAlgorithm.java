@@ -181,7 +181,7 @@ public class VariableNameResolutionAlgorithm {
         }
         List<Token> pkgDecls = symbolTable.findWithPrefixOfAnyType(
             currentType.toString(), new Class[] {PackageDeclaration.class});
-        if (pkgDecls == null) {
+        if (pkgDecls == null || pkgDecls.isEmpty()) {
           throw new VariableNameResolutionException("Failed to disambiguate type: " + name.getLexeme(), name);
         }
         name.classifiedType = Name.ClassifiedType.Package;
