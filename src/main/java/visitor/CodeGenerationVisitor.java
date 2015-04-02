@@ -2,6 +2,7 @@ package visitor;
 
 import algorithm.base.Pair;
 import exception.VisitorException;
+import symbol.SymbolTable;
 import token.AbstractMethodDeclaration;
 import token.AdditiveExpression;
 import token.AndExpression;
@@ -96,6 +97,8 @@ import token.UnaryExpressionNotMinus;
 import token.VariableDeclarator;
 import token.WhileStatement;
 import token.WhileStatementNoShortIf;
+import type.hierarchy.HierarchyGraph;
+import type.hierarchy.HierarchyGraphNode;
 import util.CodeGenUtils;
 
 import java.io.FileNotFoundException;
@@ -109,15 +112,22 @@ import java.util.Map;
  */
 public class CodeGenerationVisitor extends BaseVisitor {
 
-  public PrintStream output;
-
+  // Internal data members.
   private boolean[][] subclassTable;
   private final int numInterfaceMethods;
-  private MethodDeclaration[][] selectorIndexTable;
+  private final SymbolTable table;
+  private final HierarchyGraph graph;
 
-  public CodeGenerationVisitor(boolean[][] subclassTable, int numInterfaceMethods) {
+  // Temporary data structures.
+  public PrintStream output;
+  private MethodDeclaration[][] selectorIndexTable;
+  private MethodDeclaration testMainMethod;
+
+  public CodeGenerationVisitor(boolean[][] subclassTable, int numInterfaceMethods, SymbolTable table, HierarchyGraph graph) {
     this.subclassTable = subclassTable;
     this.numInterfaceMethods = numInterfaceMethods;
+    this.table = table;
+    this.graph = graph;
   }
 
   public void generateCode(List<CompilationUnit> units) throws FileNotFoundException, VisitorException {
@@ -133,7 +143,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
 
     for (CompilationUnit unit : units) {
-      output = new PrintStream(new FileOutputStream("output/" + unit.typeDeclaration.getDeclaration().getIdentifier()));
+      output = new PrintStream(new FileOutputStream(String.format("output/%s.o",unit.typeDeclaration.getDeclaration().getIdentifier())));
       unit.traverse(this);
     }
   }
@@ -350,6 +360,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ConstructorDeclaration token) throws VisitorException {
     super.visit(token);
+    HierarchyGraphNode node = graph.get(table.getClass(token).getAbsolutePath());
+    List<Token> classTokens = node.getAllBaseClasses();
+    for (Token clazz : classTokens) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) clazz;
+      CodeGenUtils.genPopRegisters(output);
+      output.println(String.format("call %s.%s#void", classDeclaration.getAbsolutePath(), classDeclaration.getIdentifier()));
+      CodeGenUtils.genPushRegisters(output);
+    }
+    visit(token.body);
   }
 
   @Override
@@ -405,11 +424,31 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassInstanceCreationExpression token) throws VisitorException {
     super.visit(token);
+    if (!(token.classType.classOrInterfaceType.name.getDeterminedDeclaration() instanceof ConstructorDeclaration)) {
+      throw new VisitorException(String.format("Incorrect determined declaration for %s, expected ConstructorDeclaration",
+          token.classType.classOrInterfaceType.name.getLexeme()), token);
+    }
+    ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) token.classType.classOrInterfaceType.name.getDeterminedDeclaration();
+    ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
+    output.println(String.format("mov eax, %d", classDeclaration.classSize));
+    output.println("call __malloc");
+    // Push "this" on the stack.
+    output.println("push eax");
+    // For all non-static fields, initialize them before calling the specified constructor.
+    for (FieldDeclaration field : classDeclaration.fields) {
+      if (!field.containsModifier("static")) {
+        visit(field);
+      }
+    }
+    CodeGenUtils.genPushRegisters(output);
+    output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
+    CodeGenUtils.genPopRegisters(output);
   }
 
   @Override
   public void visit(MethodDeclaration token) throws VisitorException {
     super.visit(token);
+    if (testMainMethod == null && token.getIdentifier().equals("test"));
   }
 
   @Override
@@ -612,7 +651,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(ClassDeclaration token) throws VisitorException {
     super.visit(token);
 
-    // After generating code for the subtree, at the end we create the vtable entry.
+    // After generating code for the class subtree, at the end we create the vtable entry.
     output.println(String.format("global __vtable_%s", token.getAbsolutePath()));
     output.println(String.format("__vtable_%s: dd", token.getAbsolutePath()));
     output.println(String.format("mov eax, %d", token.vTableSize));

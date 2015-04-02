@@ -4,6 +4,7 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ConstructorDeclaration extends BaseMethodDeclaration {
   public Modifiers modifiers;
@@ -24,7 +25,7 @@ public class ConstructorDeclaration extends BaseMethodDeclaration {
     closeScope = new Token("}", TokenType.RIGHT_BRACE);
   }
 
-  public void assignType(Token token) {
+  private void assignType(Token token) {
     if (token instanceof Modifiers) {
       modifiers = (Modifiers) token;
     } else if (token instanceof ConstructorDeclarator) {
@@ -32,6 +33,13 @@ public class ConstructorDeclaration extends BaseMethodDeclaration {
     } else if (token instanceof ConstructorBody) {
       body = (ConstructorBody) token;
     }
+  }
+
+  public List<FormalParameter> getParameters() {
+    if (declarator.formalParameterList == null || declarator.formalParameterList.params == null) {
+      return new ArrayList<FormalParameter>();
+    }
+    return declarator.formalParameterList.params;
   }
 
   @Override

@@ -1,11 +1,13 @@
 package util;
 
 import token.AbstractMethodDeclaration;
+import token.ConstructorDeclaration;
 import token.Declaration;
 import token.FormalParameter;
 import token.MethodDeclaration;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -22,9 +24,13 @@ public class CodeGenUtils {
   public static String genLabel(Declaration declaration) {
     StringBuilder sb = new StringBuilder();
     sb.append(declaration.getAbsolutePath());
-    if (declaration instanceof MethodDeclaration) {
-      MethodDeclaration methodDeclaration = (MethodDeclaration) declaration;
-      List<FormalParameter> parameters = methodDeclaration.getParameters();
+    if (declaration instanceof MethodDeclaration || declaration instanceof ConstructorDeclaration) {
+      List<FormalParameter> parameters;
+      if (declaration instanceof MethodDeclaration) {
+        parameters = ((MethodDeclaration) declaration).getParameters();
+      } else {
+        parameters = ((ConstructorDeclaration) declaration).getParameters();
+      }
       if (parameters.isEmpty()) {
         sb.append('#');
         sb.append("void");
@@ -55,6 +61,7 @@ public class CodeGenUtils {
     }
     return sb.toString();
   }
+
   public static String genMethodLabel(AbstractMethodDeclaration methodDeclaration) {
     StringBuilder sb = new StringBuilder();
     sb.append(methodDeclaration.getIdentifier());
@@ -84,10 +91,10 @@ public class CodeGenUtils {
   }
 
   public static void genPopRegisters(PrintStream output) {
-    output.println("pop eax");
-    output.println("pop ebx");
+    output.println("pop edx");
     output.println("pop ecx");
     output.println("pop edx");
+    output.println("pop eax");
   }
 
 }
