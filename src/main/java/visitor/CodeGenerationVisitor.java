@@ -389,19 +389,23 @@ public class CodeGenerationVisitor extends BaseVisitor {
     ClassDeclaration classDeclaration = (ClassDeclaration) table.getClass(token);
     HierarchyGraphNode node = graph.get(classDeclaration.getAbsolutePath());
     List<Token> classTokens = node.getAllBaseClasses();
-    // Call the default constructor for all base classes.
-    for (Token clazz : classTokens) {
-      ClassDeclaration baseClass = (ClassDeclaration) clazz;
+    if (!node.extendsList.isEmpty()) {
+      // Call the default constructor for the base class.
+      ClassDeclaration baseClass = (ClassDeclaration) node.extendsList.get(0).classOrInterface;
       CodeGenUtils.genPushRegisters(output);
       output.println(String.format("call %s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier()));
       CodeGenUtils.genPopRegisters(output);
     }
-    // Initialize all non-static fields. Firstly, we put 'this' into eax.
-    int offset = 8;
-    for (FormalParameter param : token.getParameters()) {
+
+    int offset = 8; // Accounts for [ebp, eip] on stack.
+    // Setup the offsets for the function parameter offsets.
+    List<FormalParameter> parameters = token.getParameters();
+    for (int i = parameters.size() - 1; i >= 0 ; --i) {
+      FormalParameter param = parameters.get(i);
       param.offset = offset;
       offset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
+    // Initialize the non-static fields. Firstly, we put 'this' into eax.
     output.println(String.format("mov eax, [ebp + %d]", offset));
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
