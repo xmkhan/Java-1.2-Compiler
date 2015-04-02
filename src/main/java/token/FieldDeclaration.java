@@ -11,6 +11,8 @@ public class FieldDeclaration extends Declaration {
   public Expression expr;
   public Token delimiter;
 
+  public int offset = -1;
+
   public FieldDeclaration(ArrayList<Token> children) {
     super("", TokenType.FieldDeclaration, children);
     for (Token token : children) {

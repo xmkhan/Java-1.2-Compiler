@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 public class FormalParameter extends Declaration {
 
+  public int offset = -1;
+
   public FormalParameter(ArrayList<Token> children) {
     super("", TokenType.FormalParameter, children);
     type = (Type) children.get(0);
