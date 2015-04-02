@@ -14,6 +14,7 @@ import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 import util.CodeGenUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,15 +63,18 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
     // Create array of method labels.
     List<BaseMethodDeclaration> methods = node.getAllMethods();
     HashMap<String, MethodDeclaration> methodLabels = new HashMap<String, MethodDeclaration>();
-    for (int i = methods.size() - 1; i >= 0; --i) {
-      BaseMethodDeclaration method = methods.get(i);
+    for (BaseMethodDeclaration method : methods) {
       if (method instanceof MethodDeclaration) {
         MethodDeclaration methodDeclaration = (MethodDeclaration) method;
         String methodLabel = CodeGenUtils.genMethodLabel(methodDeclaration);
-        classDeclaration.methods.add((MethodDeclaration)method);
-        methodLabels.put(methodLabel, (MethodDeclaration)method);
+        if (!methodLabel.contains(methodLabel)) {
+          classDeclaration.methods.add(methodDeclaration);
+          methodLabels.put(methodLabel, methodDeclaration);
+        }
       }
     }
+    // We want to be sorted from baseParent to derived
+    Collections.reverse(classDeclaration.methods);
 
     // Add subclasses to the subclass table
     List<Token> baseClasses = node.getAllBaseClasses();
@@ -90,15 +94,20 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
     // Create array of field labels.
     List<FieldDeclaration> fields = node.getAllFields();
     Set<String> fieldLabels = new HashSet<String>();
-    for (int i = fields.size() - 1; i >= 0; --i) {
-      FieldDeclaration field = fields.get(i);
-      classDeclaration.fields.add(field);
-      fieldLabels.add(field.getIdentifier());
+    for (FieldDeclaration field : fields) {
+      if (!fieldLabels.contains(field.getIdentifier())) {
+        classDeclaration.fields.add(field);
+        fieldLabels.add(field.getIdentifier());
+      }
     }
+    // We want to be sorted from baseParent to derived.
+    Collections.reverse(classDeclaration.fields);
+
     // Add # of bytes based on type for all fields for the class.
     for (FieldDeclaration field : classDeclaration.fields) {
-      if (field.type.isPrimitiveType()) {
-        classDeclaration.classSize += getSize(field.type.primitiveType.children.get(0).getLexeme());
+      field.offset = classDeclaration.classSize;
+      if (field.type.isPrimitiveType() && !field.type.isArray()) {
+        classDeclaration.classSize += CodeGenUtils.getSize(field.type.getType().getLexeme());
       } else {
         classDeclaration.classSize += 4;
       }
@@ -124,12 +133,4 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
     }
   }
 
-  private int getSize(String type) {
-    if (type.equals("boolean")) return 1;
-    else if (type.equals("int")) return 4;
-    else if (type.equals("char")) return 1;
-    else if (type.equals("byte")) return 1;
-    else if (type.equals("short")) return 2;
-    return 4;
-  }
 }

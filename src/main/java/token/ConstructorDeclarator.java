@@ -4,6 +4,7 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ConstructorDeclarator extends Token {
   public SimpleName simpleName;

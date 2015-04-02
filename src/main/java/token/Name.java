@@ -10,6 +10,12 @@ public class Name extends Token {
   public SimpleName simpleName;
   public QualifiedName qualifiedName;
 
+  /**
+   * The declaration path contains the list of declarations for 0..n-1 of the identifiers in a Name.
+   * For example: a.b.c.d, declarationPath would contain the identifiers for a,b,c.
+   */
+  private List<Declaration> declarationPath;
+
   private List<Declaration> declarationTypes;
   private String absolutePath;
 
@@ -43,6 +49,19 @@ public class Name extends Token {
 
   public void setDeterminedDeclaration(Declaration declaration) {
     this.determinedDeclaration = declaration;
+  }
+
+  public List<Declaration> getDeclarationPath() {
+    return declarationPath;
+  }
+
+  public void setDeclarationPath(List<Declaration> declarationPath) {
+    this.declarationPath = declarationPath;
+  }
+
+  public void addDeclarationNode(Declaration declaration) {
+    if (declarationPath == null) declarationPath = new ArrayList<Declaration>();
+    declarationPath.add(declaration);
   }
 
   public void setUsedInCast() {

@@ -100,10 +100,10 @@ public class HierarchyGraphNode {
    */
   public List<Token> getAllBaseClasses() {
     List<Token> allBaseClasses = new ArrayList<Token>();
-    allBaseClasses.add(classOrInterface);
     for (HierarchyGraphNode node : extendsList) {
       allBaseClasses.addAll(node.getAllBaseClasses());
     }
+    allBaseClasses.add(classOrInterface);
     return allBaseClasses;
   }
 
