@@ -1,101 +1,9 @@
 package visitor;
 
 import algorithm.base.Pair;
+import exception.TypeCheckingVisitorException;
 import exception.VisitorException;
-import token.AbstractMethodDeclaration;
-import token.AdditiveExpression;
-import token.AndExpression;
-import token.ArgumentList;
-import token.ArrayAccess;
-import token.ArrayCreationExpression;
-import token.ArrayType;
-import token.Assignment;
-import token.AssignmentExpression;
-import token.AssignmentOperator;
-import token.Block;
-import token.BlockStatement;
-import token.BlockStatements;
-import token.BooleanLiteral;
-import token.CastExpression;
-import token.CharLiteral;
-import token.ClassBody;
-import token.ClassBodyDeclaration;
-import token.ClassBodyDeclarations;
-import token.ClassDeclaration;
-import token.ClassInstanceCreationExpression;
-import token.ClassMemberDeclaration;
-import token.ClassOrInterfaceType;
-import token.ClassType;
-import token.CompilationUnit;
-import token.ConditionalAndExpression;
-import token.ConditionalOrExpression;
-import token.ConstructorBody;
-import token.ConstructorDeclaration;
-import token.ConstructorDeclarator;
-import token.EmptyStatement;
-import token.EqualityExpression;
-import token.Expression;
-import token.ExpressionStatement;
-import token.ExtendsInterfaces;
-import token.FieldAccess;
-import token.FieldDeclaration;
-import token.ForInit;
-import token.ForStatement;
-import token.ForStatementNoShortIf;
-import token.ForUpdate;
-import token.FormalParameter;
-import token.FormalParameterList;
-import token.IfThenElseStatement;
-import token.IfThenElseStatementNoShortIf;
-import token.IfThenStatement;
-import token.ImportDeclaration;
-import token.ImportDeclarations;
-import token.InclusiveOrExpression;
-import token.IntLiteral;
-import token.InterfaceBody;
-import token.InterfaceDeclaration;
-import token.InterfaceMemberDeclaration;
-import token.InterfaceMemberDeclarations;
-import token.InterfaceType;
-import token.InterfaceTypeList;
-import token.Interfaces;
-import token.LeftHandSide;
-import token.Literal;
-import token.LocalVariableDeclaration;
-import token.LocalVariableDeclarationStatement;
-import token.MethodBody;
-import token.MethodDeclaration;
-import token.MethodDeclarator;
-import token.MethodHeader;
-import token.MethodInvocation;
-import token.Modifier;
-import token.Modifiers;
-import token.MultiplicativeExpression;
-import token.Name;
-import token.PackageDeclaration;
-import token.Primary;
-import token.PrimitiveType;
-import token.QualifiedName;
-import token.ReferenceType;
-import token.RelationalExpression;
-import token.ReturnStatement;
-import token.SimpleName;
-import token.SingleTypeImportDeclaration;
-import token.Statement;
-import token.StatementExpression;
-import token.StatementNoShortIf;
-import token.StatementWithoutTrailingSubstatement;
-import token.StringLiteral;
-import token.Super;
-import token.Token;
-import token.Type;
-import token.TypeDeclaration;
-import token.TypeImportOnDemandDeclaration;
-import token.UnaryExpression;
-import token.UnaryExpressionNotMinus;
-import token.VariableDeclarator;
-import token.WhileStatement;
-import token.WhileStatementNoShortIf;
+import token.*;
 import util.CodeGenUtils;
 
 import java.io.FileNotFoundException;
@@ -278,22 +186,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(InclusiveOrExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(ClassBody token) throws VisitorException {
     super.visit(token);
   }
 
   @Override
   public void visit(ForStatement token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(ConditionalAndExpression token) throws VisitorException {
     super.visit(token);
   }
 
@@ -308,27 +206,75 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(Literal token) throws VisitorException {
+  public void visit(CharLiteral token) throws VisitorException {
     super.visit(token);
+    // Handled in Literal
   }
 
   @Override
-  public void visit(AndExpression token) throws VisitorException {
+  public void visit(IntLiteral token) throws VisitorException {
     super.visit(token);
+    // Handled in Literal
+  }
+
+  @Override
+  public void visit(StringLiteral token) throws VisitorException {
+    super.visit(token);
+    // Handled in Literal
+  }
+
+  @Override
+  public void visit(BooleanLiteral token) throws VisitorException {
+    super.visit(token);
+    // Handled in Literal
+  }
+
+  @Override
+  public void visit(Literal token) throws VisitorException {
+    super.visit(token);
+    output.println("; Literal");
+
+    Token literal = token.getLiteral();
+
+    if(token.isStringLiteral()) {
+      //TODO: Handle Strings
+      /*
+      +    ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) token.classType.classOrInterfaceType.name.getDeterminedDeclaration();
+      +    ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
+      +    output.println(String.format("mov eax, %d", classDeclaration.classSize));
+      +    output.println("call __malloc");
+      +    // Push "this" on the stack.
+              +    output.println("push eax");
+      +    // For all non-static fields, initialize them before calling the specified constructor.
+              +    for (FieldDeclaration field : classDeclaration.fields) {
+        +      if (!field.containsModifier("static")) {
+          +        visit(field);
+          +      }
+        +    }
+*/
+    } else if(token.isCharLiteral()) {
+      char value = token.getLexeme().charAt(0);
+      output.println(String.format("mov eax, '%c'", value));
+    } else {
+      int value = 0;
+      switch (literal.getTokenType()) {
+        case INT_LITERAL:
+          value = Integer.parseInt(token.getLexeme());
+          break;
+        case BooleanLiteral:
+          value = Boolean.parseBoolean(token.getLexeme()) ? 1 : 0;
+          break;
+        case NULL:
+          value = 0;
+          break;
+      }
+
+      output.println(String.format("mov eax, %d", value));
+    }
   }
 
   @Override
   public void visit(SimpleName token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(ArrayCreationExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(CharLiteral token) throws VisitorException {
     super.visit(token);
   }
 
@@ -343,7 +289,216 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(ArrayCreationExpression token) throws VisitorException {
+    super.visit(token);
+  }
+
+  @Override
+  public void visit(MultiplicativeExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      output.println("; MultiplicativeExpression");
+      token.expr1.traverse(this);
+      output.println("push eax");
+      token.expr.traverse(this);
+      output.println("pop ebx");
+      if(token.operator.getTokenType().equals(TokenType.MULT_OP)) {
+        output.println("imul eax, ebx");
+      } else {
+        String endLabel = CodeGenUtils.genNextTempLabel();
+        output.println("mov edx, 0");
+        output.println("cmp eax, 0");
+        output.println(String.format("jge %s", endLabel));
+        output.println("mov edx, -1");
+        output.println(endLabel);
+        output.println("idiv ebx");
+
+        if(token.operator.getTokenType().equals(TokenType.MOD_OP)) {
+          output.println("mov eax, edx");
+        }
+      }
+    } else {
+      token.expr1.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(AdditiveExpression token) throws VisitorException {
+    super.visit(token);
+    //TODO: Handle strings
+    if(token.isDefined()) {
+      output.println("; AdditiveExpression");
+      token.leftExpr.traverse(this);
+      output.println("push eax");
+      token.rightExpr.traverse(this);
+      output.println("pop ebx");
+      if(token.isAdd()) {
+        output.println("addl eax, ebx");
+      } else {
+        output.println("subl ebx, eax");
+        output.println("mov eax, ebx");
+      }
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(RelationalExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      output.println("; RelationalExpression");
+      token.leftExpr.traverse(this);
+      output.println("push eax");
+      token.rightExpr.traverse(this);
+      output.println("pop ebx");
+      output.println("mov ecx, eax");
+      output.println("mov eax, 0");
+      if(token.getOperator().getTokenType().equals(TokenType.INSTANCEOF)) {
+        //TODO: handle instanceof
+      } else {
+        String endLabel = CodeGenUtils.genNextTempLabel();
+        output.println("cmp ebx, ecx");
+        switch (token.getOperator().getTokenType()) {
+          case LESS_THAN_OP_EQUAL:
+            output.println(String.format("jg %s", endLabel));
+            break;
+          case LESS_THAN_OP:
+            output.println(String.format("jge %s", endLabel));
+            break;
+          case MORE_THAN_OP:
+            output.println(String.format("jle %s", endLabel));
+            break;
+          case MORE_THAN_OP_EQUAL:
+            output.println(String.format("jl %s", endLabel));
+            break;
+        }
+        output.println("mov eax, 1");
+        output.println(endLabel);
+      }
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(EqualityExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; EqualityExpression");
+      token.leftExpr.traverse(this);
+      output.println("push eax");
+      token.rightExpr.traverse(this);
+      output.println("pop ebx");
+      output.println("mov ecx, eax");
+      output.println("mov eax, 0");
+      output.println("cmpl ebx, ecx");
+      if (token.isEqualCheck()) {
+        output.println(String.format("jne %s", endLabel));
+      } else {
+        output.println(String.format("je %s", endLabel));
+      }
+      output.println("mov eax, 1");
+      output.println(endLabel);
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(AndExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+//      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; AndExpression");
+      token.leftExpr.traverse(this);
+      output.println("push eax");
+      token.rightExpr.traverse(this);
+      output.println("pop ebx");
+      output.println("and eax ebx");
+//      output.println("add ebx, eax");
+//      output.println("mov eax, 0");
+//      output.println("cmp ebx, 2");
+//      output.println(String.format("jne %s", endLabel));
+//      output.println("mov eax, 1");
+//      output.println(endLabel);
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(InclusiveOrExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+//      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; InclusiveOrExpression");
+      token.leftExpr.traverse(this);
+      output.println("push eax");
+      token.rightExpr.traverse(this);
+      output.println("pop ebx");
+      output.println("or eax, ebx");
+//      output.println("add eax, ebx");
+//      output.println("cmp eax, 2");
+//      output.println(String.format("jne %s", endLabel));
+//      output.println("mov eax, 1");
+//      output.println(endLabel);
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
   public void visit(ConditionalOrExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; ConditionalOrExpression");
+      token.leftExpr.traverse(this);
+      output.println("cmp eax, 1");
+      output.println(String.format("je %s", endLabel));
+      token.rightExpr.traverse(this);
+      output.println(endLabel);
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(ConditionalAndExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; ConditionalAndExpression");
+      token.leftExpr.traverse(this);
+      output.println("cmp eax, 0");
+      output.println(String.format("je %s", endLabel));
+      token.rightExpr.traverse(this);
+      output.println(endLabel);
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(UnaryExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isNegative()) {
+      token.exp.traverse(this);
+      output.println("neg eax");
+    } else {
+      token.posExp.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(UnaryExpressionNotMinus token) throws VisitorException {
     super.visit(token);
   }
 
@@ -368,16 +523,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(UnaryExpressionNotMinus token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(RelationalExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(StatementNoShortIf token) throws VisitorException {
     super.visit(token);
   }
@@ -393,16 +538,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(UnaryExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(AdditiveExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(ClassInstanceCreationExpression token) throws VisitorException {
     super.visit(token);
   }
@@ -414,11 +549,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(AbstractMethodDeclaration token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(MultiplicativeExpression token) throws VisitorException {
     super.visit(token);
   }
 
@@ -489,11 +619,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(IntLiteral token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(Super token) throws VisitorException {
     super.visit(token);
   }
@@ -554,11 +679,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(StringLiteral token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(ArrayType token) throws VisitorException {
     super.visit(token);
   }
@@ -594,11 +714,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(EqualityExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(ClassBodyDeclarations token) throws VisitorException {
     super.visit(token);
   }
@@ -630,11 +745,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(ForStatementNoShortIf token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(BooleanLiteral token) throws VisitorException {
     super.visit(token);
   }
 

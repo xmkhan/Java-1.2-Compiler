@@ -7,8 +7,32 @@ import java.util.ArrayList;
 
 public class AdditiveExpression extends Token {
 
+  public AdditiveExpression leftExpr;
+  public MultiplicativeExpression rightExpr;
+
   public AdditiveExpression(ArrayList<Token> children) {
     super("", TokenType.AdditiveExpression, children);
+
+    for(Token token : children) {
+      assignType(token);
+    }
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof AdditiveExpression) {
+      leftExpr = (AdditiveExpression) token;
+    } else if (token instanceof MultiplicativeExpression) {
+      rightExpr = (MultiplicativeExpression) token;
+    }
+  }
+
+  public boolean isDefined() {
+    return leftExpr != null && rightExpr != null;
+  }
+
+  public boolean isAdd() {
+    assert(isDefined());
+    return children.get(1).getTokenType() == TokenType.PLUS_OP;
   }
 
   @Override

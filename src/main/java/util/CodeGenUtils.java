@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CodeGenUtils {
 
   public static AtomicInteger ifStatementCount = new AtomicInteger(0);
+  public static AtomicInteger tempCount = new AtomicInteger(0);
+
 
   /**
    * Generate a label for a given declaration using absolute path.
@@ -74,6 +76,10 @@ public class CodeGenUtils {
    */
   public static String genNextIfStatementLabel() {
     return String.format("if#%d", ifStatementCount.getAndIncrement());
+  }
+
+  public static String genNextTempLabel() {
+    return String.format("temp#%d:", tempCount.getAndIncrement());
   }
 
   public static void genPushRegisters(PrintStream output) {

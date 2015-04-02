@@ -23,6 +23,10 @@ public class MultiplicativeExpression extends Token {
     }
   }
 
+  public boolean isDefined() {
+    return expr1 != null && expr != null;
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     if (expr1 != null) expr1.accept(v);
