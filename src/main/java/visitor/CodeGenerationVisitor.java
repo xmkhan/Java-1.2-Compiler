@@ -31,6 +31,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public PrintStream output;
   private MethodDeclaration[][] selectorIndexTable;
   private MethodDeclaration testMainMethod;
+  private int thisOffset;
 
   public CodeGenerationVisitor(boolean[][] subclassTable, int numInterfaceMethods, SymbolTable table, HierarchyGraph graph) {
     this.subclassTable = subclassTable;
@@ -154,11 +155,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(Primary token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(IfThenStatement token) throws VisitorException {
     super.visit(token);
   }
@@ -170,11 +166,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(InterfaceDeclaration token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(CastExpression token) throws VisitorException {
     super.visit(token);
   }
 
@@ -333,7 +324,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
       if(token.operator.getTokenType().equals(TokenType.MULT_OP)) {
         output.println("imul eax, ebx");
       } else {
+        String startLabel = CodeGenUtils.genNextTempLabel();
         String endLabel = CodeGenUtils.genNextTempLabel();
+        output.println("cmp ebx, 0");
+        output.println(String.format("jne %s", startLabel));
+        output.println("call __exception");
+        output.println(startLabel);
         output.println("mov edx, 0");
         output.println("cmp eax, 0");
         output.println(String.format("jge %s", endLabel));
@@ -515,9 +511,20 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
+  public void visit(Primary token) throws VisitorException {
+    super.visit(token);
+  }
+
+  @Override
+  public void visit(CastExpression token) throws VisitorException {
+    super.visit(token);
+  }
+
+  @Override
   public void visit(UnaryExpression token) throws VisitorException {
     super.visit(token);
     if(token.isNegative()) {
+      output.println("; UnaryExpression");
       token.exp.traverse(this);
       output.println("neg eax");
     } else {
@@ -528,6 +535,46 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(UnaryExpressionNotMinus token) throws VisitorException {
     super.visit(token);
+    if(token.isNeg()) {
+      output.println("; UnaryExpressionNotMinus");
+      token.unaryExpression.traverse(this);
+      output.println("not eax");
+    } else if(token.name != null) {
+      output.println("; UnaryExpressionNotMinus");
+      List<Declaration> declarationPaths = token.name.getDeclarationPath();
+      int startIdx = 0;
+      for (; startIdx < declarationPaths.size(); startIdx++) {
+        Declaration curr = declarationPaths.get(startIdx);
+        if(curr instanceof LocalVariableDeclaration) {
+          LocalVariableDeclaration localVariableDeclaration = (LocalVariableDeclaration) curr;
+          //output.println(String.format("mov eax, [ebp - %d]", localVariableDeclaration.offset));
+          break;
+        } else if(curr instanceof FormalParameter) {
+          FormalParameter formalParameter = (FormalParameter) curr;
+          output.println(String.format("mov eax, [ebp + %d]", formalParameter.offset));
+          break;
+        } else if(curr instanceof FieldDeclaration) {
+          FieldDeclaration fieldDeclaration = (FieldDeclaration) curr;
+          if(fieldDeclaration.containsModifier("static")) {
+            output.println(String.format("mov eax, [%s]", fieldDeclaration.getAbsolutePath()));
+          } else {
+            output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+            output.println(String.format("mov eax, [eax + %d]", fieldDeclaration.offset));
+          }
+          break;
+        }
+      }
+
+      for(startIdx = startIdx + 1; startIdx < declarationPaths.size(); startIdx++) {
+        // Safe to assume that no static accesses here
+        FieldDeclaration curr = (FieldDeclaration) declarationPaths.get(startIdx);
+        output.println(String.format("mov eax, [eax + %d]", curr.offset));
+      }
+    } else if(token.primary != null) {
+      token.primary.traverse(this);
+    } else if(token.castExpression != null) {
+      token.castExpression.traverse(this);
+    }
   }
 
   @Override
@@ -553,6 +600,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       offset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
     output.println(String.format("mov eax, [ebp + %d]", offset));
+    thisOffset = offset;
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
         visit(field);
@@ -626,6 +674,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       param.offset = offset;
       offset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
+    thisOffset = token.methodHeader.modifiers.containsModifier("static") ? offset : 0;
+
     visit(token.methodBody);
   }
 
