@@ -14,6 +14,8 @@ public class MethodDeclaration extends BaseMethodDeclaration {
   public Token newScope;
   public Token closeScope;
 
+  public int methodId = -1;
+
   public MethodDeclaration(ArrayList<Token> children) {
     super("", TokenType.MethodDeclaration, children);
     methodHeader = (MethodHeader) children.get(0);

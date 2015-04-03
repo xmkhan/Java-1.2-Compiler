@@ -89,18 +89,22 @@ public class CodeGenUtils {
     return String.format("temp#%d:", tempCount.getAndIncrement());
   }
 
-  public static void genPushRegisters(PrintStream output) {
-    output.println("push eax");
+  public static void genPushRegisters(PrintStream output, boolean excludeEax) {
+    if(!excludeEax) {
+      output.println("push eax");
+    }
     output.println("push ebx");
     output.println("push ecx");
     output.println("push edx");
   }
 
-  public static void genPopRegisters(PrintStream output) {
+  public static void genPopRegisters(PrintStream output, boolean excludeEax) {
     output.println("pop edx");
     output.println("pop ecx");
     output.println("pop ebx");
-    output.println("pop eax");
+    if(!excludeEax) {
+      output.println("pop eax");
+    }
   }
 
 

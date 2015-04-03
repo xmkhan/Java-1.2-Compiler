@@ -76,6 +76,10 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
     // We want to be sorted from baseParent to derived
     Collections.reverse(classDeclaration.methods);
 
+    for (int i = 0; i < classDeclaration.methods.size(); ++i) {
+      classDeclaration.methods.get(i).methodId = i;
+    }
+
     // Add subclasses to the subclass table
     List<Token> baseClasses = node.getAllBaseClasses();
     for (int i = 0; i < baseClasses.size(); ++i) {
