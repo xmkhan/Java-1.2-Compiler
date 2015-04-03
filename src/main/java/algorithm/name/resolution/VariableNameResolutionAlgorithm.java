@@ -142,6 +142,7 @@ public class VariableNameResolutionAlgorithm {
     if (lastMatchedDecl == null) {
       throw new VariableNameResolutionException("Nothing qualified for 0th of name: " + name.getLexeme(), name);
     }
+    name.addDeclarationNode(lastMatchedDecl);
 
     // 2.1. Check the object hierarchy, specifically for fields. Otherwise, keep trying to get the Type when the LHS
     // contains Packages.
@@ -161,6 +162,7 @@ public class VariableNameResolutionAlgorithm {
             currentType.setLength(0);
             currentType.append(getTypePath(field.type));
             lastMatchedDecl = field;
+            name.addDeclarationNode(lastMatchedDecl);
             name.classifiedType = field.containsModifier("static") ? Name.ClassifiedType.StaticExpr : Name.ClassifiedType.NonStaticExpr;
             match = true;
             break;
@@ -174,6 +176,7 @@ public class VariableNameResolutionAlgorithm {
             currentType.toString(), NameResolutionAlgorithm.CLASS_TYPES);
         if (classDecl != null) {
           name.classifiedType = Name.ClassifiedType.Type;
+          name.addDeclarationNode(classDecl);
           continue;
         }
         List<Token> pkgDecls = symbolTable.findWithPrefixOfAnyType(
@@ -182,6 +185,7 @@ public class VariableNameResolutionAlgorithm {
           throw new VariableNameResolutionException("Failed to disambiguate type: " + name.getLexeme(), name);
         }
         name.classifiedType = Name.ClassifiedType.Package;
+        name.addDeclarationNode((Declaration)pkgDecls.get(0));
       }
     }
     List<Declaration> declarations = new ArrayList<Declaration>();
