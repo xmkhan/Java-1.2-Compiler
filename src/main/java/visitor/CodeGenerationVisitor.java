@@ -4,7 +4,102 @@ import algorithm.base.Pair;
 import exception.TypeCheckingVisitorException;
 import exception.VisitorException;
 import symbol.SymbolTable;
-import token.*;
+import token.AbstractMethodDeclaration;
+import token.AdditiveExpression;
+import token.AndExpression;
+import token.ArgumentList;
+import token.ArrayAccess;
+import token.ArrayCreationExpression;
+import token.ArrayType;
+import token.Assignment;
+import token.AssignmentExpression;
+import token.AssignmentOperator;
+import token.Block;
+import token.BlockStatement;
+import token.BlockStatements;
+import token.BooleanLiteral;
+import token.CastExpression;
+import token.CharLiteral;
+import token.ClassBody;
+import token.ClassBodyDeclaration;
+import token.ClassBodyDeclarations;
+import token.ClassDeclaration;
+import token.ClassInstanceCreationExpression;
+import token.ClassMemberDeclaration;
+import token.ClassOrInterfaceType;
+import token.ClassType;
+import token.CompilationUnit;
+import token.ConditionalAndExpression;
+import token.ConditionalOrExpression;
+import token.ConstructorBody;
+import token.ConstructorDeclaration;
+import token.ConstructorDeclarator;
+import token.Declaration;
+import token.EmptyStatement;
+import token.EqualityExpression;
+import token.Expression;
+import token.ExpressionStatement;
+import token.ExtendsInterfaces;
+import token.FieldAccess;
+import token.FieldDeclaration;
+import token.ForInit;
+import token.ForStatement;
+import token.ForStatementNoShortIf;
+import token.ForUpdate;
+import token.FormalParameter;
+import token.FormalParameterList;
+import token.IfThenElseStatement;
+import token.IfThenElseStatementNoShortIf;
+import token.IfThenStatement;
+import token.ImportDeclaration;
+import token.ImportDeclarations;
+import token.InclusiveOrExpression;
+import token.IntLiteral;
+import token.InterfaceBody;
+import token.InterfaceDeclaration;
+import token.InterfaceMemberDeclaration;
+import token.InterfaceMemberDeclarations;
+import token.InterfaceType;
+import token.InterfaceTypeList;
+import token.Interfaces;
+import token.LeftHandSide;
+import token.Literal;
+import token.LocalVariableDeclaration;
+import token.LocalVariableDeclarationStatement;
+import token.MethodBody;
+import token.MethodDeclaration;
+import token.MethodDeclarator;
+import token.MethodHeader;
+import token.MethodInvocation;
+import token.Modifier;
+import token.Modifiers;
+import token.MultiplicativeExpression;
+import token.Name;
+import token.PackageDeclaration;
+import token.Primary;
+import token.PrimitiveType;
+import token.QualifiedName;
+import token.ReferenceType;
+import token.RelationalExpression;
+import token.ReturnStatement;
+import token.SimpleName;
+import token.SingleTypeImportDeclaration;
+import token.Statement;
+import token.StatementExpression;
+import token.StatementNoShortIf;
+import token.StatementWithoutTrailingSubstatement;
+import token.StringLiteral;
+import token.Super;
+import token.Token;
+import token.TokenType;
+import token.Type;
+import token.TypeDeclaration;
+import token.TypeImportOnDemandDeclaration;
+import token.UnaryExpression;
+import token.UnaryExpressionNotMinus;
+import token.VariableDeclarator;
+import token.WhileStatement;
+import token.WhileStatementNoShortIf;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 import util.CodeGenUtils;
@@ -27,12 +122,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private final HierarchyGraph graph;
 
   // Temporary data structures.
+  private int numUnits;
+  private int offset;
   public PrintStream output;
-  private Stack<Integer> offsets;
   private Stack<Stack<LocalVariableDeclaration>> declStack;
   private MethodDeclaration[][] selectorIndexTable;
   private MethodDeclaration testMainMethod;
   private int thisOffset;
+  private ClassDeclaration objectDeclaration;
 
   public CodeGenerationVisitor(boolean[][] subclassTable, int numInterfaceMethods, SymbolTable table, HierarchyGraph graph) {
     this.subclassTable = subclassTable;
@@ -42,35 +139,47 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   public void generateCode(List<CompilationUnit> units) throws FileNotFoundException, VisitorException {
-
+    numUnits = units.size();
     selectorIndexTable = new MethodDeclaration[units.size()][numInterfaceMethods];
     for (CompilationUnit unit : units) {
       if (unit.typeDeclaration.getDeclaration() instanceof ClassDeclaration) {
         ClassDeclaration classDeclaration = (ClassDeclaration) unit.typeDeclaration.getDeclaration();
         for (int i = 0; i < classDeclaration.interfaceMethods.length; ++i) {
+          // Nulls will automatically be initialized to null on assignment.
           selectorIndexTable[classDeclaration.classId][i] = classDeclaration.interfaceMethods[i];
         }
       }
     }
 
     // Initialize stack variables.
-    offsets = new Stack<Integer>();
+    offset = 0;
     declStack = new Stack<Stack<LocalVariableDeclaration>>();
+
+    // Find the Object declaration that is used by Arrays.
+    for (CompilationUnit unit : units) {
+      if (unit.typeDeclaration.getDeclaration().getAbsolutePath().equals("java.lang.Object")) {
+        objectDeclaration = (ClassDeclaration) unit.typeDeclaration.getDeclaration();
+      }
+    }
 
     for (CompilationUnit unit : units) {
       output = new PrintStream(new FileOutputStream(String.format("output/%s.o",unit.typeDeclaration.getDeclaration().getIdentifier())));
       unit.traverse(this);
     }
+    output = new PrintStream(new FileOutputStream("output/__program.o"));
+    genSubtypeTable();
+    genSelectorIndexTable();
   }
 
   private void genSubtypeTable() {
+    output.println("; CODE GENERATION: genSubtypeTable");
     output.println("global __subtype_table");
     output.println("__subtype_table: dd");
     output.println(String.format("mov eax, %d",(4 * subclassTable.length)));
     output.println("call __malloc");
     output.println("mov __subtype_table, eax");
     for(int i = 0; i < subclassTable.length; ++i) {
-      output.println(String.format("mov eax, %d", (4 * subclassTable.length)));
+      output.println(String.format("mov eax, %d", (4 * subclassTable[i].length)));
       output.println("call __malloc");
       output.println(String.format("mov [__subtype_table + %d], eax", 4 * i));
       output.println(String.format("mov ebx, [__subtype_table + %d]", 4 * i));
@@ -78,9 +187,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println(String.format("mov [ebx + %d], %d", 4 * j, subclassTable[i][j] ? 1 : 0));
       }
     }
+    output.println("; END genSubtypeTable");
   }
 
   private void genSelectorIndexTable() {
+    output.println("; CODE GENERATION: genSelectorIndexTable");
     output.println("global __selector_index_table");
     output.println("__selector_index_table: dd");
     output.println(String.format("mov eax, %d",(4 * selectorIndexTable.length)));
@@ -92,8 +203,31 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("mov [__selector_index_table + %d], eax", 4 * i));
       output.println(String.format("mov ebx, [__selector_index_table + %d]", 4 * i));
       for (int j = 0; j < selectorIndexTable[i].length; ++j) {
-        output.println(String.format("lea [ebx + %d], %s", 4 * j, CodeGenUtils.genLabel(selectorIndexTable[i][j])));
+        if (selectorIndexTable[i][j] == null) output.println(String.format("mov [ebx + %d], 0", 4 * j));
+        else output.println(String.format("lea [ebx + %d], %s", 4 * j, CodeGenUtils.genLabel(selectorIndexTable[i][j])));
       }
+    }
+    output.println("; END genSelectorIndexTable");
+  }
+
+  private void genPrimitiveArrayVTable() {
+    if (objectDeclaration != null) {
+      output.println("; CODE GENERATION: genPrimitiveArrayVTable");
+      String[] primitiveNames = new String[]{"boolean", "int", "char", "byte", "short"};
+      for (int i = 0; i < primitiveNames.length; ++i) {
+        String name = primitiveNames[i];
+        output.println(String.format("global __vtable_%s_array", name));
+        output.println(String.format("__vtable_%s_array: dd", name));
+        output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
+        output.println("call __malloc");
+        output.println(String.format("mov __vtable_%s_array, eax", name));
+        output.println(String.format("mov [__vtable_%s_array], %d", name, numUnits + i));
+        for (int j = 1; j < objectDeclaration.methods.size(); ++j) {
+          output.println(String.format("lea [__vtable_%s_array + %d], %s", name, 4 * j,
+              CodeGenUtils.genLabel(objectDeclaration.methods.get(j))));
+        }
+      }
+      output.println("; END genPrimitiveArrayVTable");
     }
   }
 
@@ -105,23 +239,24 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(FieldDeclaration token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: FieldDeclaration");
     int fieldSize = CodeGenUtils.getSize(token.type.getType().getLexeme());
     if (token.containsModifier("static")) {
       output.println(String.format("global %s", token.getAbsolutePath()));
-      output.println(String.format("%s %s", token.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
-      if (token.expr != null) visit(token.expr);
+      output.println(String.format("%s: %s", token.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
+      if (token.expr != null) token.expr.traverse(this);
       else output.println("mov eax, 0");
       output.println(String.format("mov [%s], eax", token.getAbsolutePath()));
     } else {
       // For all non-static fields, we assume that the value at eax is 'this'.
       output.println("push eax");
-      visit(token.expr);
-      if (token.expr != null) visit(token.expr);
+      if (token.expr != null) token.expr.traverse(this);
       else output.println("mov eax, 0");
       output.println("mov ebx, eax");
       output.println("pop eax");
       output.println(String.format("mov [eax + %d], ebx", token.offset));
     }
+    output.println("; END FieldDeclaration");
   }
 
   @Override
@@ -636,6 +771,38 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ArrayCreationExpression token) throws VisitorException {
     super.visit(token);
+    // Determine the label for the vtable.
+    String vTableName;
+    if (token.name != null) {
+      vTableName = token.name.getDeterminedDeclaration().getAbsolutePath();
+    } else {
+      vTableName = token.primitiveType.getType().getLexeme();
+    }
+
+    output.println("; CODE GENERATION: ArrayCreationExpression");
+    CodeGenUtils.genPushRegisters(output, false);
+    token.expression.traverse(this);
+    output.println("mov ebx, eax");
+    // Expression should have returned an integer for the size, we add 8 for the vtable_ptr and length.
+    output.println("lea eax, [eax * 4 + 8]");
+    output.println("call __malloc");
+    // Initialize the array to default values.
+    String begin = CodeGenUtils.genUniqueLabel();
+    String end = CodeGenUtils.genUniqueLabel();
+    output.println("mov ecx, 0");
+    output.println(String.format("%s:", begin));
+    output.println("cmp ecx, ebx");
+    output.println(String.format("jge %s", end));
+    output.println("mov [eax + ecx * 4], 0");
+    output.println("inc ecx");
+    output.println(String.format("jmp %s", begin));
+    output.println(String.format("%s:", end));
+    // Move the address of the vtable as 0th index.
+    output.println(String.format("lea [eax], __vtable_%s_array", vTableName));
+    // Move length as 1st index.
+    output.println("mov [eax + 4], ebx");
+    CodeGenUtils.genPopRegisters(output, false);
+    output.println("; END ArrayCreationExpression");
   }
 
   @Override
@@ -675,6 +842,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ConstructorDeclaration token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: ConstructorDeclaration");
     String label = CodeGenUtils.genLabel(token);
     output.println(String.format("global %s", label));
     output.println(String.format("%s:", label));
@@ -684,36 +852,39 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (!node.extendsList.isEmpty()) {
       // Call the default constructor for the base class.
       ClassDeclaration baseClass = (ClassDeclaration) node.extendsList.get(0).classOrInterface;
-      CodeGenUtils.genPushRegisters(output, false);
       output.println(String.format("call %s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier()));
-      CodeGenUtils.genPopRegisters(output, false);
     }
 
-    int offset = 8; // Accounts for [ebp, eip] on stack.
+    int paramOffset = 8; // Accounts for [ebp, eip] on stack.
     // Setup the offsets for the function parameter offsets.
     List<FormalParameter> parameters = token.getParameters();
     for (int i = parameters.size() - 1; i >= 0 ; --i) {
       FormalParameter param = parameters.get(i);
-      param.offset = offset;
-      offset += CodeGenUtils.getSize(param.getType().getLexeme());
+      param.offset = paramOffset;
+      paramOffset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
     // Initialize the non-static fields. Firstly, we put 'this' into eax.
-    output.println(String.format("mov eax, [ebp + %d]", offset));
-    thisOffset = offset;
+    output.println(String.format("mov eax, [ebp + %d]", paramOffset));
+    thisOffset = paramOffset;
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
-        visit(field);
+        field.traverse(this);
       }
     }
-    offsets.push(0);
-    visit(token.body);
-    offsets.pop();
+    offset = 0;
+    token.body.traverse(this);
+    output.println("; END ConstructorDeclaration");
   }
 
   @Override
   public void visit(LocalVariableDeclaration token) throws VisitorException {
     super.visit(token);
-    incOffset(CodeGenUtils.getSize(token.type.getType().getLexeme()));
+    output.println("; CODE GENERATION: LocalVariableDeclaration");
+    token.offset = offset;
+    token.expression.traverse(this);
+    output.println("push eax");
+    offset += CodeGenUtils.getSize(token.type.getType().getLexeme());
+    output.println("; END LocalVariableDeclaration");
   }
 
   @Override
@@ -744,12 +915,20 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassInstanceCreationExpression token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: ClassInstanceCreationExpression");
     if (!(token.classType.classOrInterfaceType.name.getDeterminedDeclaration() instanceof ConstructorDeclaration)) {
       throw new VisitorException(String.format("Incorrect determined declaration for %s, expected ConstructorDeclaration",
           token.classType.classOrInterfaceType.name.getLexeme()), token);
     }
     ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) token.classType.classOrInterfaceType.name.getDeterminedDeclaration();
     ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
+    CodeGenUtils.genPushRegisters(output, false);
+    if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
+      for (Expression expr : token.argumentList.argumentList) {
+        expr.traverse(this);
+        output.println("push eax");
+      }
+    }
     output.println(String.format("mov eax, %d", classDeclaration.classSize));
     output.println("call __malloc");
     // Push "this" on the stack.
@@ -757,30 +936,36 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // For all non-static fields, initialize them before calling the specified constructor.
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
-        visit(field);
+        field.traverse(this);
       }
     }
-    CodeGenUtils.genPushRegisters(output, false);
     output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
     CodeGenUtils.genPopRegisters(output, false);
+    output.println("; END ClassInstanceCreationExpression");
   }
 
   @Override
   public void visit(MethodDeclaration token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: MethodDeclaration");
     // Keep track of test method to generate starting point.
     if (testMainMethod == null && isTestMethod(token)) testMainMethod = token;
-    output.println(String.format("%s:", CodeGenUtils.genLabel(token)));
-    int offset = 8;
-    for (FormalParameter param : token.getParameters()) {
-      param.offset = offset;
-      offset += CodeGenUtils.getSize(param.getType().getLexeme());
-    }
-    thisOffset = token.methodHeader.modifiers.containsModifier("static") ? offset : 0;
 
-    offsets.push(0);
-    visit(token.methodBody);
-    offsets.pop();
+    output.println(String.format("global %s", CodeGenUtils.genLabel(token)));
+    output.println(String.format("%s:", CodeGenUtils.genLabel(token)));
+    int paramOffset = 8; // Accounts for [ebp, eip] on stack.
+    // Setup the offsets for the function parameter offsets.
+    List<FormalParameter> parameters = token.getParameters();
+    for (int i = parameters.size() - 1; i >= 0 ; --i) {
+      FormalParameter param = parameters.get(i);
+      param.offset = paramOffset;
+      paramOffset += CodeGenUtils.getSize(param.getType().getLexeme());
+    }
+    thisOffset = token.methodHeader.modifiers.containsModifier("static") ? paramOffset : 0;
+
+    offset = 0;
+    token.methodBody.traverse(this);
+    output.println("; END MethodDeclaration");
   }
 
   private void generateNameAccess(Name name, boolean pushThisOnStackForMethod) {
@@ -1068,16 +1253,36 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassDeclaration token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: ClassDeclaration");
 
     // After generating code for the class subtree, at the end we create the vtable entry.
+    output.println(String.format("; Generating code for %s vtable", token.getAbsolutePath()));
     output.println(String.format("global __vtable_%s", token.getAbsolutePath()));
     output.println(String.format("__vtable_%s: dd", token.getAbsolutePath()));
     output.println(String.format("mov eax, %d", token.vTableSize));
     output.println("call __malloc");
     output.println(String.format("mov __vtable_%s, eax", token.getAbsolutePath()));
-    for (int i = 0; i < token.methods.size(); ++i) {
+    output.println(String.format("mov [__vtable_%s], %d", token.getAbsolutePath(), token.classId));
+    for (int i = 1; i < token.methods.size(); ++i) {
+      output.println(String.format("; Loading address of method decl: %s", token.methods.get(i).getAbsolutePath()));
       output.println(String.format("lea [__vtable_%s + %d], %s", token.getAbsolutePath(), 4 * i, CodeGenUtils.genLabel(token.methods.get(i))));
     }
+    // Additionally, we generate the vtable for the Array type.
+    if (objectDeclaration != null) {
+      output.println(String.format("; Generating code for the %s array vtable", token.getAbsolutePath()));
+      output.println(String.format("global __vtable_%s_array", token.getAbsolutePath()));
+      output.println(String.format("__vtable_%s_array: dd", token.getAbsolutePath()));
+      output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
+      output.println("call __malloc");
+      output.println(String.format("mov __vtable_%s_array, eax", token.getAbsolutePath()));
+
+      output.println(String.format("mov [__vtable_%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
+      for (int i = 1; i < objectDeclaration.methods.size(); ++i) {
+        output.println(String.format("lea [__vtable_%s_array + %d], %s", token.getAbsolutePath(), 4 * i,
+            CodeGenUtils.genLabel(objectDeclaration.methods.get(i))));
+      }
+    }
+    output.println("; END ClassDeclaration");
   }
 
   @Override
@@ -1107,12 +1312,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.getLexeme().equals("{")) {
       declStack.push(new Stack<LocalVariableDeclaration>());
     } else if (token.getLexeme().equals("}")) {
-      int scopeOffset = 0;
       while(!declStack.peek().empty()) {
         LocalVariableDeclaration decl = declStack.peek().pop();
-        scopeOffset += CodeGenUtils.getSize(decl.type.getType().getLexeme());
+        offset -= CodeGenUtils.getSize(decl.type.getType().getLexeme());
       }
-      decOffset(scopeOffset);
       declStack.pop();
     }
   }
@@ -1123,16 +1326,5 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("jne %s", startLabel));
     output.println("call __exception");
     output.println(startLabel);
-  }
-
-  private void incOffset(int diff) {
-    int offset = offsets.peek() + diff;
-    offsets.pop();
-    offsets.push(offset);
-  }
-  private void decOffset(int diff) {
-    int offset = offsets.peek() - diff;
-    offsets.pop();
-    offsets.push(offset);
   }
 }
