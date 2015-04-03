@@ -557,6 +557,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementExpression token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -718,6 +719,26 @@ public class CodeGenerationVisitor extends BaseVisitor {
     offsets.push(offset);
   }
 
+  private void ifThenElseVisitHelper(BaseIfThenElse token) throws VisitorException {
+    String ifLabel = CodeGenUtils.genNextIfStatementLabel();
+
+    visit(token.expression);
+
+    output.println("cmp eax 0");
+    output.println("je " + ifLabel);
+
+
+    visit(token.statementNoShortIf);
+    output.println(String.format("jmp %s", CodeGenUtils.getCurrentElseStmtLabel()));
+
+    // else
+    output.print(ifLabel);
+    visit(token.getElseStatement());
+    if (!(token.getElseStatement() instanceof BaseIfThenElse)) {
+      output.println(String.format("%s:", CodeGenUtils.genNextElseStmtLabel()));
+    }
+  }
+
   private void forLoopVisitHelper(BaseForStatement token) throws VisitorException {
     String forLabel = CodeGenUtils.genNextForStatementLabel();
     String endForLabel = "end#" + forLabel;
@@ -737,26 +758,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     output.println("jmp " + forLabel);
     output.println(endForLabel);
-  }
-
-  private void ifThenElseVisitHelper(BaseIfThenElse token) throws VisitorException {
-    String ifLabel = CodeGenUtils.genNextIfStatementLabel();
-
-    visit(token.expression);
-
-    output.println("cmp eax 0");
-    output.println("je " + ifLabel);
-
-
-    visit(token.statementNoShortIf);
-    output.println(String.format("jmp %s", CodeGenUtils.getCurrentElseStmtLabel()));
-
-    // else
-    output.print(ifLabel);
-    visit(token.getElseStatement());
-    if (!(token.getElseStatement() instanceof BaseIfThenElse)) {
-      output.println(String.format("%s:", CodeGenUtils.genNextElseStmtLabel()));
-    }
   }
 
   private void whileStatementHelper(BaseWhileStatement token) throws VisitorException {
