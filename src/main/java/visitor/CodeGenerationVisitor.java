@@ -97,6 +97,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ExpressionStatement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -170,11 +171,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     visit(token.expression);
 
     output.println("cmp eax 0");
-    output.println("je " + CodeGenUtils.removeColonFromLabel(ifLabel));
+    output.println("je " + ifLabel);
 
     visit(token.statement);
 
-    output.println(ifLabel);
+    output.println(String.format("%s:", ifLabel));
   }
 
   @Override
@@ -242,27 +243,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(ForStatement token) throws VisitorException {
     super.visit(token);
     forLoopVisitHelper(token);
-  }
-
-  private void forLoopVisitHelper(BaseForStatement token) throws VisitorException {
-    String forLabel = CodeGenUtils.genNextForStatementLabel();
-    String endForLabel = "end#" + forLabel;
-
-    if (token.forInit != null) visit(token.forInit);
-
-    output.println(String.format("%s:", forLabel));
-
-
-    if (token.expression != null) visit(token.expression);
-
-    output.println("cmp eax 0");
-    output.println("je " + endForLabel);
-
-    if (token.getStatement() != null) visit(token.getStatement());
-    if (token.forUpdate != null) visit(token.forUpdate);
-
-    output.println("jmp " + forLabel);
-    output.println(endForLabel);
   }
 
   @Override
@@ -398,6 +378,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(BlockStatement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -497,6 +478,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementWithoutTrailingSubstatement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -512,6 +494,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Statement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -563,6 +546,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(BlockStatements token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -583,8 +567,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(LocalVariableDeclarationStatement token) throws VisitorException {
-    if (token == null) return;
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -605,6 +589,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Block token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -631,6 +616,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(EmptyStatement token) throws VisitorException {
     super.visit(token);
+    return;
   }
 
   @Override
@@ -732,6 +718,27 @@ public class CodeGenerationVisitor extends BaseVisitor {
     offsets.push(offset);
   }
 
+  private void forLoopVisitHelper(BaseForStatement token) throws VisitorException {
+    String forLabel = CodeGenUtils.genNextForStatementLabel();
+    String endForLabel = "end#" + forLabel;
+
+    if (token.forInit != null) visit(token.forInit);
+
+    output.println(String.format("%s:", forLabel));
+
+
+    if (token.expression != null) visit(token.expression);
+
+    output.println("cmp eax 0");
+    output.println("je " + endForLabel);
+
+    if (token.getStatement() != null) visit(token.getStatement());
+    if (token.forUpdate != null) visit(token.forUpdate);
+
+    output.println("jmp " + forLabel);
+    output.println(endForLabel);
+  }
+
   private void ifThenElseVisitHelper(BaseIfThenElse token) throws VisitorException {
     String ifLabel = CodeGenUtils.genNextIfStatementLabel();
 
@@ -773,5 +780,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     // end of while loop label; use to exit
     output.println(endLabel);
+  }
+
+  private void visitEveryChild(Token token) throws VisitorException {
+    for (Token child : token.children) {
+      visit(token);
+    }
   }
 }

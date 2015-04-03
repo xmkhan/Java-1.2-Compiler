@@ -118,10 +118,6 @@ public class CodeGenUtils {
     return String.format("for#%d", forStatementCount.getAndIncrement());
   }
 
-  public static String removeColonFromLabel(String label) {
-    return label.substring(0, label.length() - 1);
-  }
-
   /*
    * Generates a throwaway label to use for handling if-statement jmps.
    */
