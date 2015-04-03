@@ -431,6 +431,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ReturnStatement token) throws VisitorException {
     super.visit(token);
+    // Executed the return expression
+    if (token.children.size() == 2) visit(token.children.get(1));
+    output.println("mov esp ebp");
+    output.println("pop ebp");
+    output.println("ret");
   }
 
   @Override
