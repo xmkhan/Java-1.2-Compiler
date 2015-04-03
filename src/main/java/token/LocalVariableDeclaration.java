@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 public class LocalVariableDeclaration extends Declaration {
 
+  public int offset = -1;
+
   public LocalVariableDeclaration(ArrayList<Token> children) {
     super("", TokenType.LocalVariableDeclaration, children);
     type = (Type) children.get(0);

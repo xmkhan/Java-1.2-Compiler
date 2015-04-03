@@ -3,8 +3,8 @@ package visitor;
 import algorithm.base.Pair;
 import exception.TypeCheckingVisitorException;
 import exception.VisitorException;
-import token.*;
 import symbol.SymbolTable;
+import token.*;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 import util.CodeGenUtils;
@@ -12,9 +12,8 @@ import util.CodeGenUtils;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Stack;
 
 /**
  * Responsible for generating x86 assembly code for the program.
@@ -29,6 +28,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   // Temporary data structures.
   public PrintStream output;
+  private Stack<Integer> offsets;
+  private Stack<Stack<LocalVariableDeclaration>> declStack;
   private MethodDeclaration[][] selectorIndexTable;
   private MethodDeclaration testMainMethod;
   private int thisOffset;
@@ -51,6 +52,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
         }
       }
     }
+
+    // Initialize stack variables.
+    offsets = new Stack<Integer>();
+    declStack = new Stack<Stack<LocalVariableDeclaration>>();
 
     for (CompilationUnit unit : units) {
       output = new PrintStream(new FileOutputStream(String.format("output/%s.o",unit.typeDeclaration.getDeclaration().getIdentifier())));
@@ -586,19 +591,23 @@ public class CodeGenerationVisitor extends BaseVisitor {
     ClassDeclaration classDeclaration = (ClassDeclaration) table.getClass(token);
     HierarchyGraphNode node = graph.get(classDeclaration.getAbsolutePath());
     List<Token> classTokens = node.getAllBaseClasses();
-    // Call the default constructor for all base classes.
-    for (Token clazz : classTokens) {
-      ClassDeclaration baseClass = (ClassDeclaration) clazz;
-      CodeGenUtils.genPopRegisters(output);
-      output.println(String.format("call %s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier()));
+    if (!node.extendsList.isEmpty()) {
+      // Call the default constructor for the base class.
+      ClassDeclaration baseClass = (ClassDeclaration) node.extendsList.get(0).classOrInterface;
       CodeGenUtils.genPushRegisters(output);
+      output.println(String.format("call %s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier()));
+      CodeGenUtils.genPopRegisters(output);
     }
-    // Initialize all non-static fields. Firstly, we put 'this' into eax.
-    int offset = 8;
-    for (FormalParameter param : token.getParameters()) {
+
+    int offset = 8; // Accounts for [ebp, eip] on stack.
+    // Setup the offsets for the function parameter offsets.
+    List<FormalParameter> parameters = token.getParameters();
+    for (int i = parameters.size() - 1; i >= 0 ; --i) {
+      FormalParameter param = parameters.get(i);
       param.offset = offset;
       offset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
+    // Initialize the non-static fields. Firstly, we put 'this' into eax.
     output.println(String.format("mov eax, [ebp + %d]", offset));
     thisOffset = offset;
     for (FieldDeclaration field : classDeclaration.fields) {
@@ -606,12 +615,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
         visit(field);
       }
     }
+    offsets.push(0);
     visit(token.body);
+    offsets.pop();
   }
 
   @Override
   public void visit(LocalVariableDeclaration token) throws VisitorException {
     super.visit(token);
+    incOffset(CodeGenUtils.getSize(token.type.getType().getLexeme()));
   }
 
   @Override
@@ -676,7 +688,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     thisOffset = token.methodHeader.modifiers.containsModifier("static") ? offset : 0;
 
+    offsets.push(0);
     visit(token.methodBody);
+    offsets.pop();
   }
 
   private boolean isTestMethod(MethodDeclaration token) {
@@ -902,5 +916,27 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Token token) throws VisitorException {
     super.visit(token);
+    if (token.getLexeme().equals("{")) {
+      declStack.push(new Stack<LocalVariableDeclaration>());
+    } else if (token.getLexeme().equals("}")) {
+      int scopeOffset = 0;
+      while(!declStack.peek().empty()) {
+        LocalVariableDeclaration decl = declStack.peek().pop();
+        scopeOffset += CodeGenUtils.getSize(decl.type.getType().getLexeme());
+      }
+      decOffset(scopeOffset);
+      declStack.pop();
+    }
+  }
+
+  private void incOffset(int diff) {
+    int offset = offsets.peek() + diff;
+    offsets.pop();
+    offsets.push(offset);
+  }
+  private void decOffset(int diff) {
+    int offset = offsets.peek() - diff;
+    offsets.pop();
+    offsets.push(offset);
   }
 }
