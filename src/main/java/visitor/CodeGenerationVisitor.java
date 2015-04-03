@@ -97,6 +97,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ExpressionStatement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -379,6 +380,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(BlockStatement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -477,6 +479,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementWithoutTrailingSubstatement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -492,6 +495,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Statement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -543,6 +547,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(BlockStatements token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -563,8 +568,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(LocalVariableDeclarationStatement token) throws VisitorException {
-    if (token == null) return;
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -585,6 +590,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Block token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -611,6 +617,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(EmptyStatement token) throws VisitorException {
     super.visit(token);
+    return;
   }
 
   @Override
@@ -710,5 +717,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     int offset = offsets.peek() - diff;
     offsets.pop();
     offsets.push(offset);
+  }
+
+  private void visitEveryChild(Token token) throws VisitorException {
+    for (Token child : token.children) {
+      visit(token);
+    }
   }
 }
