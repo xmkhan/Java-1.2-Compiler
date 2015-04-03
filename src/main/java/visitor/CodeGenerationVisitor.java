@@ -556,20 +556,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
     ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) token.classType.classOrInterfaceType.name.getDeterminedDeclaration();
     ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
     CodeGenUtils.genPushRegisters(output);
-    if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
-      for (Expression expr : token.argumentList.argumentList) {
-        expr.traverse(this);
-        output.println("push eax");
-      }
-    }
     output.println(String.format("mov eax, %d", classDeclaration.classSize));
     output.println("call __malloc");
     // Push "this" on the stack.
     output.println("push eax");
-    // For all non-static fields, initialize them before calling the specified constructor.
-    for (FieldDeclaration field : classDeclaration.fields) {
-      if (!field.containsModifier("static")) {
-        field.traverse(this);
+    if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
+      for (Expression expr : token.argumentList.argumentList) {
+        expr.traverse(this);
+        output.println("push eax");
       }
     }
     output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
