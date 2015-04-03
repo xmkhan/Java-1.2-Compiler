@@ -2,101 +2,7 @@ package visitor;
 
 import exception.VisitorException;
 import symbol.SymbolTable;
-import token.AbstractMethodDeclaration;
-import token.AdditiveExpression;
-import token.AndExpression;
-import token.ArgumentList;
-import token.ArrayAccess;
-import token.ArrayCreationExpression;
-import token.ArrayType;
-import token.Assignment;
-import token.AssignmentExpression;
-import token.AssignmentOperator;
-import token.Block;
-import token.BlockStatement;
-import token.BlockStatements;
-import token.BooleanLiteral;
-import token.CastExpression;
-import token.CharLiteral;
-import token.ClassBody;
-import token.ClassBodyDeclaration;
-import token.ClassBodyDeclarations;
-import token.ClassDeclaration;
-import token.ClassInstanceCreationExpression;
-import token.ClassMemberDeclaration;
-import token.ClassOrInterfaceType;
-import token.ClassType;
-import token.CompilationUnit;
-import token.ConditionalAndExpression;
-import token.ConditionalOrExpression;
-import token.ConstructorBody;
-import token.ConstructorDeclaration;
-import token.ConstructorDeclarator;
-import token.Declaration;
-import token.EmptyStatement;
-import token.EqualityExpression;
-import token.Expression;
-import token.ExpressionStatement;
-import token.ExtendsInterfaces;
-import token.FieldAccess;
-import token.FieldDeclaration;
-import token.ForInit;
-import token.ForStatement;
-import token.ForStatementNoShortIf;
-import token.ForUpdate;
-import token.FormalParameter;
-import token.FormalParameterList;
-import token.IfThenElseStatement;
-import token.IfThenElseStatementNoShortIf;
-import token.IfThenStatement;
-import token.ImportDeclaration;
-import token.ImportDeclarations;
-import token.InclusiveOrExpression;
-import token.IntLiteral;
-import token.InterfaceBody;
-import token.InterfaceDeclaration;
-import token.InterfaceMemberDeclaration;
-import token.InterfaceMemberDeclarations;
-import token.InterfaceType;
-import token.InterfaceTypeList;
-import token.Interfaces;
-import token.LeftHandSide;
-import token.Literal;
-import token.LocalVariableDeclaration;
-import token.LocalVariableDeclarationStatement;
-import token.MethodBody;
-import token.MethodDeclaration;
-import token.MethodDeclarator;
-import token.MethodHeader;
-import token.MethodInvocation;
-import token.Modifier;
-import token.Modifiers;
-import token.MultiplicativeExpression;
-import token.Name;
-import token.PackageDeclaration;
-import token.Primary;
-import token.PrimitiveType;
-import token.QualifiedName;
-import token.ReferenceType;
-import token.RelationalExpression;
-import token.ReturnStatement;
-import token.SimpleName;
-import token.SingleTypeImportDeclaration;
-import token.Statement;
-import token.StatementExpression;
-import token.StatementNoShortIf;
-import token.StatementWithoutTrailingSubstatement;
-import token.StringLiteral;
-import token.Super;
-import token.Token;
-import token.Type;
-import token.TypeDeclaration;
-import token.TypeImportOnDemandDeclaration;
-import token.UnaryExpression;
-import token.UnaryExpressionNotMinus;
-import token.VariableDeclarator;
-import token.WhileStatement;
-import token.WhileStatementNoShortIf;
+import token.*;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 import util.CodeGenUtils;
@@ -323,23 +229,25 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForStatement token) throws VisitorException {
     super.visit(token);
-    if (token == null) return;
+    forLoopVisitHelper(token);
+  }
 
+  private void forLoopVisitHelper(BaseForStatement token) throws VisitorException {
     String forLabel = CodeGenUtils.genNextForStatementLabel();
     String endForLabel = "end#" + forLabel;
 
-    visit(token.forInit);
+    if (token.forInit != null) visit(token.forInit);
 
     output.println(String.format("%s:", forLabel));
 
 
-    visit(token.expression);
+    if (token.expression != null) visit(token.expression);
 
     output.println("cmp eax 0");
     output.println("je " + CodeGenUtils.removeColonFromLabel(endForLabel));
 
-    visit(token.statement);
-    visit(token.forUpdate);
+    if (token.getStatement() != null) visit(token.getStatement());
+    if (token.forUpdate != null) visit(token.forUpdate);
 
     output.println("jmp " + CodeGenUtils.removeColonFromLabel(forLabel));
     output.println(endForLabel);
@@ -649,7 +557,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(ForInit token) throws VisitorException {
-    if (token == null) return;
     super.visit(token);
     visit(token.children.get(0));
   }
@@ -698,6 +605,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForUpdate token) throws VisitorException {
     super.visit(token);
+    visit(token.children.get(0));
   }
 
   @Override
@@ -758,6 +666,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    forLoopVisitHelper(token);
   }
 
   @Override
