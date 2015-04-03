@@ -5,10 +5,9 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class StatementNoShortIf extends BaseStatement {
-
-  public StatementNoShortIf(ArrayList<Token> children) {
-    super("", TokenType.StatementNoShortIf, children);
+public abstract class BaseWhileStatement extends BaseStatement {
+  public BaseWhileStatement(String lexeme, TokenType tokenType, ArrayList<Token> children) {
+    super(lexeme, tokenType, children);
   }
 
   @Override

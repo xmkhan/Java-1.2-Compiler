@@ -5,10 +5,14 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class StatementNoShortIf extends BaseStatement {
+public abstract class BaseIfThenElse extends BaseStatement {
+  public Expression expression;
+  public StatementNoShortIf statementNoShortIf;
 
-  public StatementNoShortIf(ArrayList<Token> children) {
-    super("", TokenType.StatementNoShortIf, children);
+  public BaseIfThenElse(String lexeme, TokenType tokenType, ArrayList<Token> children) {
+    super(lexeme, tokenType, children);
+    expression = (Expression) children.get(2);
+    statementNoShortIf = (StatementNoShortIf) children.get(4);
   }
 
   @Override
@@ -31,4 +35,6 @@ public class StatementNoShortIf extends BaseStatement {
   public void traverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
+
+  public abstract BaseStatement getElseStatement();
 }

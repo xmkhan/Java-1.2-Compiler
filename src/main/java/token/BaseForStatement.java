@@ -5,28 +5,33 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class ArrayCreationExpression extends Token {
-  public Expression expression;
-  public PrimitiveType primitiveType;
-  public Name name;
 
-  public ArrayCreationExpression(ArrayList<Token> children) {
-    super("", TokenType.ArrayCreationExpression, children);
+public abstract class BaseForStatement extends BaseStatement {
+  public ForInit forInit;
+  public ForUpdate forUpdate;
+  public Expression expression;
+
+  public BaseForStatement(String lexeme, TokenType tokenType, ArrayList<Token> children) {
+    super(lexeme, tokenType, children);
     for (Token token : children) {
       assignType(token);
     }
+    // To handle implicit scopes, we explicitly add the scope.
+    children.add(0, new Token("{", TokenType.LEFT_BRACE));
+    children.add(new Token("}", TokenType.RIGHT_BRACE));
   }
 
   private void assignType(Token token) {
-    if (token instanceof Expression) {
+    if (token instanceof ForInit) {
+      forInit = (ForInit) token;
+    } else if (token instanceof ForUpdate) {
+      forUpdate = (ForUpdate) token;
+    } else if(token instanceof Expression) {
       expression = (Expression) token;
-    } else if (token instanceof PrimitiveType) {
-      primitiveType = (PrimitiveType) token;
-    } else if (token instanceof Name) {
-      name = (Name) token;
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {
       token.accept(v);
@@ -47,11 +52,5 @@ public class ArrayCreationExpression extends Token {
     v.visit(this);
   }
 
-  public boolean isPrimitiveType() {
-    return primitiveType != null;
-  }
-
-  public boolean isObjectType() {
-    return name != null;
-  }
+  public abstract Token getStatement();
 }

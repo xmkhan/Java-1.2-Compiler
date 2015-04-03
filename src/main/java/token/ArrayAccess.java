@@ -46,4 +46,9 @@ public class ArrayAccess extends Token {
     if(primary != null) primary.acceptReverse(v);
     if(expression != null) expression.acceptReverse(v);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

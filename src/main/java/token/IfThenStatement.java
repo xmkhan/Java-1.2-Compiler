@@ -4,11 +4,16 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class IfThenStatement extends BaseStatement {
+  public Expression expression;
+  public Statement statement;
 
   public IfThenStatement(ArrayList<Token> children) {
     super("", TokenType.IfThenStatement, children);
+    expression = (Expression) children.get(2);
+    statement = (Statement) children.get(4);
   }
 
   @Override
@@ -25,5 +30,10 @@ public class IfThenStatement extends BaseStatement {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

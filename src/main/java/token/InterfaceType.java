@@ -25,7 +25,11 @@ public class InterfaceType extends Token {
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
     classOrInterfaceType.acceptReverse(v);
+  }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 
   private void assignType(Token token) {

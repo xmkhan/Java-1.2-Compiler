@@ -35,6 +35,11 @@ public class Type extends Token {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   private void assignType(Token token) {
     if (token instanceof PrimitiveType) {
       primitiveType = (PrimitiveType) token;

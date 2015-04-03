@@ -45,4 +45,9 @@ public class ArgumentList extends Token {
       expression.acceptReverse(v);
     }
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

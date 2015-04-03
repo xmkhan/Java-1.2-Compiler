@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 public class LocalVariableDeclaration extends Declaration {
 
+  public int offset = -1;
+
   public LocalVariableDeclaration(ArrayList<Token> children) {
     super("", TokenType.LocalVariableDeclaration, children);
     type = (Type) children.get(0);
@@ -27,5 +29,10 @@ public class LocalVariableDeclaration extends Declaration {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

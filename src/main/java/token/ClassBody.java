@@ -27,4 +27,9 @@ public class ClassBody extends Token {
     v.visit(this);
     if (bodyDeclarations != null) bodyDeclarations.acceptReverse(v);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

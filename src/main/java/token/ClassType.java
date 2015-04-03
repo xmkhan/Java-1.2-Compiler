@@ -31,6 +31,11 @@ public class ClassType extends Token {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public Token getType() {
     return classOrInterfaceType != null ? classOrInterfaceType.getType() : null;
   }

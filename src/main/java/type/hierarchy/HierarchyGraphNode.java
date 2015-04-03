@@ -96,6 +96,32 @@ public class HierarchyGraphNode {
   }
 
   /**
+   * Traverse the graph and fetch all classes connected to this node.
+   */
+  public List<Token> getAllBaseClasses() {
+    List<Token> allBaseClasses = new ArrayList<Token>();
+    for (HierarchyGraphNode node : extendsList) {
+      allBaseClasses.addAll(node.getAllBaseClasses());
+    }
+    allBaseClasses.add(classOrInterface);
+    return allBaseClasses;
+  }
+
+  /**
+   * Traverse the graph and fetch all interfaces.
+   */
+  public List<Token> getAllInterfaces() {
+    List<Token> allInterfaces = new ArrayList<Token>();
+    for (HierarchyGraphNode interfaceNode : implementsList) {
+      allInterfaces.add(interfaceNode.classOrInterface);
+    }
+    for (HierarchyGraphNode node : extendsList) {
+      allInterfaces.addAll(node.getAllInterfaces());
+    }
+    return allInterfaces;
+  }
+
+  /**
    * Traverse the graph and fetch all the fields extended by this class
    * @return this node's fields + all the extended fields
    */
@@ -158,4 +184,6 @@ public class HierarchyGraphNode {
   public void setBaseMethodDeclarations(List<BaseMethodDeclaration> baseMethodDeclarations) {
     this.baseMethodDeclarations = baseMethodDeclarations;
   }
+
+
 }

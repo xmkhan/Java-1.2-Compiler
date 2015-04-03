@@ -4,6 +4,7 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ConstructorDeclarator extends Token {
   public SimpleName simpleName;
@@ -26,6 +27,11 @@ public class ConstructorDeclarator extends Token {
   public void acceptReverse(Visitor v) throws VisitorException {
     v.visit(this);
     if (formalParameterList != null) formalParameterList.acceptReverse(v);
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 
   public FormalParameterList getParameterList() {

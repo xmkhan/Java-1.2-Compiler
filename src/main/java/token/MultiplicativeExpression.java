@@ -36,4 +36,9 @@ public class MultiplicativeExpression extends Token {
     if (expr1 != null) expr1.acceptReverse(v);
     expr.acceptReverse(v);
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }
