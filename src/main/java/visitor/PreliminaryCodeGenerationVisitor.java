@@ -35,11 +35,27 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
   }
 
   public void setupClassMetadata(List<CompilationUnit> units) throws VisitorException {
-    subclassTable = new boolean[units.size()][units.size()];
+    // [0...units.size) => objects, [units.size...2 * units.size) => object arrays,
+    // [units.size * 2...units.size * 2 + 5) => primitive array types.
+    subclassTable = new boolean[units.size() * 2 + 5][units.size() * 2 + 5];
 
     for (CompilationUnit unit : units) {
       unit.acceptReverse(this);
     }
+
+    // The following code locates the objectClassId, so that it can be used by the array types.
+    int objectClassId = -1;
+    for (CompilationUnit unit : units) {
+      if (unit.typeDeclaration.getDeclaration().getAbsolutePath().equals("java.lang.Object")) {
+        objectClassId = ((ClassDeclaration) unit.typeDeclaration.getDeclaration()).classId;
+      }
+    }
+    // Sets that all ArrayTypes are subclasses of object.
+    for (int i = units.size(); i < 2 * units.size() + 5 && objectClassId > 0; ++i) {
+      subclassTable[i][objectClassId] = true;
+      subclassTable[i][i] = true;
+    }
+
   }
 
   public boolean[][] exportSubclassTable() {
@@ -56,8 +72,8 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
 
     // Add 4 bytes of memory for the virtual table pointer.
     classDeclaration.classSize += 4;
-    // Add the number of bytes based on length of name.
-    classDeclaration.vTableSize += classDeclaration.getAbsolutePath().length() + 1;
+    // Add 4 bytes to store the classId
+    classDeclaration.vTableSize += 4;
 
     HierarchyGraphNode node = graph.get(classDeclaration.getAbsolutePath());
     // Create array of method labels.

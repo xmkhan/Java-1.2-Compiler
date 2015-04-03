@@ -89,6 +89,7 @@ import token.StatementWithoutTrailingSubstatement;
 import token.StringLiteral;
 import token.Super;
 import token.Token;
+import token.TokenType;
 import token.Type;
 import token.TypeDeclaration;
 import token.TypeImportOnDemandDeclaration;
@@ -119,11 +120,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private final HierarchyGraph graph;
 
   // Temporary data structures.
+  private int numUnits;
+  private int offset;
   public PrintStream output;
-  private Stack<Integer> offsets;
   private Stack<Stack<LocalVariableDeclaration>> declStack;
   private MethodDeclaration[][] selectorIndexTable;
   private MethodDeclaration testMainMethod;
+  private ClassDeclaration objectDeclaration;
 
   public CodeGenerationVisitor(boolean[][] subclassTable, int numInterfaceMethods, SymbolTable table, HierarchyGraph graph) {
     this.subclassTable = subclassTable;
@@ -133,7 +136,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   public void generateCode(List<CompilationUnit> units) throws FileNotFoundException, VisitorException {
-
+    numUnits = units.size();
     selectorIndexTable = new MethodDeclaration[units.size()][numInterfaceMethods];
     for (CompilationUnit unit : units) {
       if (unit.typeDeclaration.getDeclaration() instanceof ClassDeclaration) {
@@ -145,13 +148,23 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
 
     // Initialize stack variables.
-    offsets = new Stack<Integer>();
+    offset = 0;
     declStack = new Stack<Stack<LocalVariableDeclaration>>();
+
+    // Find the Object declaration that is used by Arrays.
+    for (CompilationUnit unit : units) {
+      if (unit.typeDeclaration.getDeclaration().getAbsolutePath().equals("java.lang.Object")) {
+        objectDeclaration = (ClassDeclaration) unit.typeDeclaration.getDeclaration();
+      }
+    }
 
     for (CompilationUnit unit : units) {
       output = new PrintStream(new FileOutputStream(String.format("output/%s.o",unit.typeDeclaration.getDeclaration().getIdentifier())));
       unit.traverse(this);
     }
+    output = new PrintStream(new FileOutputStream("output/__program.o"));
+    genSubtypeTable();
+    genSelectorIndexTable();
   }
 
   private void genSubtypeTable() {
@@ -188,6 +201,25 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
   }
 
+  private void genPrimitiveArrayVTable() {
+    if (objectDeclaration != null) {
+      String[] primitiveNames = new String[]{"boolean", "int", "char", "byte", "short"};
+      for (int i = 0; i < primitiveNames.length; ++i) {
+        String name = primitiveNames[i];
+        output.println(String.format("global __vtable_%s_array", name));
+        output.println(String.format("__vtable_%s_array: dd", name));
+        output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
+        output.println("call __malloc");
+        output.println(String.format("mov __vtable_%s_array, eax", name));
+        output.println(String.format("mov [__vtable_%s_array], %d", name, numUnits + i));
+        for (int j = 1; j < objectDeclaration.methods.size(); ++j) {
+          output.println(String.format("lea [__vtable_%s_array + %d], %s", name, 4 * j,
+              CodeGenUtils.genLabel(objectDeclaration.methods.get(j))));
+        }
+      }
+    }
+  }
+
   @Override
   public void visit(ExpressionStatement token) throws VisitorException {
     super.visit(token);
@@ -199,15 +231,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
     int fieldSize = CodeGenUtils.getSize(token.type.getType().getLexeme());
     if (token.containsModifier("static")) {
       output.println(String.format("global %s", token.getAbsolutePath()));
-      output.println(String.format("%s %s", token.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
-      if (token.expr != null) visit(token.expr);
+      output.println(String.format("%s: %s", token.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
+      if (token.expr != null) token.expr.traverse(this);
       else output.println("mov eax, 0");
       output.println(String.format("mov [%s], eax", token.getAbsolutePath()));
     } else {
       // For all non-static fields, we assume that the value at eax is 'this'.
       output.println("push eax");
-      visit(token.expr);
-      if (token.expr != null) visit(token.expr);
+      if (token.expr != null) token.expr.traverse(this);
       else output.println("mov eax, 0");
       output.println("mov ebx, eax");
       output.println("pop eax");
@@ -358,6 +389,26 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ArrayCreationExpression token) throws VisitorException {
     super.visit(token);
+    token.expression.traverse(this);
+    CodeGenUtils.genPushRegisters(output);
+    output.println("mov ebx, eax");
+    // Expression should have returned an integer for the size, we add 8 for the vtable_ptr and length.
+    output.println("lea eax, [eax * 4 + 8]");
+    output.println("call __malloc");
+    // Initialize the array to default values.
+    String begin = CodeGenUtils.genUniqueLabel();
+    String end = CodeGenUtils.genUniqueLabel();
+    output.println("mov ecx, 0");
+    output.println(String.format("%s:", begin));
+    output.println("cmp ecx, ebx");
+    output.println(String.format("jge %s", end));
+    output.println("mov [eax + ecx * 4], 0");
+    output.println("inc ecx");
+    output.println(String.format("jmp %s", begin));
+    output.println(String.format("%s:", end));
+    output.println(String.format("mov [eax] __vtable_%s", objectDeclaration.getAbsolutePath()));
+    output.println("mov [eax + 4], ebx");
+    CodeGenUtils.genPopRegisters(output);
   }
 
   @Override
@@ -409,18 +460,18 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("mov eax, [ebp + %d]", offset));
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
-        visit(field);
+        field.traverse(this);
       }
     }
-    offsets.push(0);
-    visit(token.body);
-    offsets.pop();
+    offset = 0;
+    token.body.traverse(this);
   }
 
   @Override
   public void visit(LocalVariableDeclaration token) throws VisitorException {
     super.visit(token);
-    incOffset(CodeGenUtils.getSize(token.type.getType().getLexeme()));
+    token.offset = offset;
+    offset += CodeGenUtils.getSize(token.type.getType().getLexeme());
   }
 
   @Override
@@ -477,6 +528,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) token.classType.classOrInterfaceType.name.getDeterminedDeclaration();
     ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
+    CodeGenUtils.genPushRegisters(output);
     output.println(String.format("mov eax, %d", classDeclaration.classSize));
     output.println("call __malloc");
     // Push "this" on the stack.
@@ -484,10 +536,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // For all non-static fields, initialize them before calling the specified constructor.
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
-        visit(field);
+        field.traverse(this);
       }
     }
-    CodeGenUtils.genPushRegisters(output);
     output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
     CodeGenUtils.genPopRegisters(output);
   }
@@ -497,15 +548,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     // Keep track of test method to generate starting point.
     if (testMainMethod == null && isTestMethod(token)) testMainMethod = token;
+    output.println(String.format("global %s", CodeGenUtils.genLabel(token)));
     output.println(String.format("%s:", CodeGenUtils.genLabel(token)));
-    int offset = 8;
+    int paramOffset = 8;
     for (FormalParameter param : token.getParameters()) {
-      param.offset = offset;
-      offset += CodeGenUtils.getSize(param.getType().getLexeme());
+      param.offset = paramOffset;
+      paramOffset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
-    offsets.push(0);
-    visit(token.methodBody);
-    offsets.pop();
+    offset = 0;
+    token.methodBody.traverse(this);
   }
 
   private boolean isTestMethod(MethodDeclaration token) {
@@ -722,8 +773,23 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("mov eax, %d", token.vTableSize));
     output.println("call __malloc");
     output.println(String.format("mov __vtable_%s, eax", token.getAbsolutePath()));
-    for (int i = 0; i < token.methods.size(); ++i) {
+    output.println(String.format("mov [__vtable_%s], %d", token.getAbsolutePath(), token.classId));
+    for (int i = 1; i < token.methods.size(); ++i) {
       output.println(String.format("lea [__vtable_%s + %d], %s", token.getAbsolutePath(), 4 * i, CodeGenUtils.genLabel(token.methods.get(i))));
+    }
+    // Additionally, we generate the vtable for the Array type.
+    if (objectDeclaration != null) {
+      output.println(String.format("global __vtable_%s_array", token.getAbsolutePath()));
+      output.println(String.format("__vtable_%s_array: dd", token.getAbsolutePath()));
+      output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
+      output.println("call __malloc");
+      output.println(String.format("mov __vtable_%s_array, eax", token.getAbsolutePath()));
+
+      output.println(String.format("mov [__vtable_%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
+      for (int i = 1; i < objectDeclaration.methods.size(); ++i) {
+        output.println(String.format("lea [__vtable_%s_array + %d], %s", token.getAbsolutePath(), 4 * i,
+            CodeGenUtils.genLabel(objectDeclaration.methods.get(i))));
+      }
     }
   }
 
@@ -759,24 +825,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.getLexeme().equals("{")) {
       declStack.push(new Stack<LocalVariableDeclaration>());
     } else if (token.getLexeme().equals("}")) {
-      int scopeOffset = 0;
       while(!declStack.peek().empty()) {
         LocalVariableDeclaration decl = declStack.peek().pop();
-        scopeOffset += CodeGenUtils.getSize(decl.type.getType().getLexeme());
+        offset -= CodeGenUtils.getSize(decl.type.getType().getLexeme());
       }
-      decOffset(scopeOffset);
       declStack.pop();
     }
-  }
-
-  private void incOffset(int diff) {
-    int offset = offsets.peek() + diff;
-    offsets.pop();
-    offsets.push(offset);
-  }
-  private void decOffset(int diff) {
-    int offset = offsets.peek() - diff;
-    offsets.pop();
-    offsets.push(offset);
   }
 }

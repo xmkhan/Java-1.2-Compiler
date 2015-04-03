@@ -18,6 +18,8 @@ public class CodeGenUtils {
 
   public static AtomicInteger ifStatementCount = new AtomicInteger(0);
 
+  public static AtomicInteger counter = new AtomicInteger(0);
+
   /**
    * Generate a label for a given declaration using absolute path.
    */
@@ -82,6 +84,9 @@ public class CodeGenUtils {
   public static String genNextIfStatementLabel() {
     return String.format("if#%d", ifStatementCount.getAndIncrement());
   }
+  public static String genUniqueLabel() {
+    return String.format("label%d", counter.getAndIncrement());
+  }
 
   public static void genPushRegisters(PrintStream output) {
     output.println("push eax");
@@ -97,13 +102,18 @@ public class CodeGenUtils {
     output.println("pop eax");
   }
 
-
+  /**
+   * Currently, we assume that the size of all data types is 4 bytes. However, this method is invoked so that in the
+   * feature, we may support data types of different sizes: 1, 2, or 4 bytes with the appropriate mov/registers.
+   */
   public static int getSize(String type) {
+    /**
     if (type.equals("boolean")) return 1;
     else if (type.equals("int")) return 4;
     else if (type.equals("char")) return 1;
     else if (type.equals("byte")) return 1;
     else if (type.equals("short")) return 2;
+    */
     return 4;
   }
 
