@@ -698,7 +698,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     } else {
       Name name = (Name) token.name;
-      matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class});
+      matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class, AbstractMethodDeclaration.class});
     }
 
     Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name == null ? token.identifier : token.name);

@@ -135,11 +135,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(MethodInvocation token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(Interfaces token) throws VisitorException {
     super.visit(token);
   }
@@ -313,8 +308,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(ArrayCreationExpression token) throws VisitorException {
+  public void visit(Expression token) throws VisitorException {
     super.visit(token);
+    token.children.get(0).traverse(this);
+  }
+
+  @Override
+  public void visit(AssignmentExpression token) throws VisitorException {
+    super.visit(token);
+    token.children.get(0).traverse(this);
   }
 
   @Override
@@ -518,6 +520,79 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Primary token) throws VisitorException {
     super.visit(token);
+    if(token.children.size() == 1) {
+      if(token.children.get(0).getTokenType() == TokenType.THIS) {
+        output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+      } else {
+        token.children.get(0).traverse(this);
+      }
+    } else {
+     token.children.get(1).traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(FieldAccess token) throws VisitorException {
+    super.visit(token);
+    if(token.primary.getDeterminedType().isArray) {
+      //TODO: length
+    } else {
+      FieldDeclaration decl = (FieldDeclaration) token.getDeterminedDeclaration();
+      output.println(String.format("mov eax, [eax + %d]", decl.offset));
+    }
+  }
+
+  @Override
+  public void visit(ArrayAccess token) throws VisitorException {
+    super.visit(token);
+  }
+
+  @Override
+  public void visit(MethodInvocation token) throws VisitorException {
+    super.visit(token);
+    if(token.isOnPrimary()) {
+      token.primary.traverse(this);
+
+      TypeCheckToken primaryType = token.primary.getDeterminedType();
+      if(primaryType.declaration instanceof InterfaceDeclaration) {
+        AbstractMethodDeclaration methodDecl = (AbstractMethodDeclaration) token.getDeterminedDeclaration();
+        output.println("mov eax, [eax]");
+        output.println("mov eax, [eax]");
+        output.println("mul eax, 4");
+        output.println("mov eax, [__selector_index_table + eax]");
+        output.println(String.format("mov eax, [eax + %d]", methodDecl.interfaceMethodId * 4));
+      } else {
+        MethodDeclaration methodDecl = (MethodDeclaration) token.getDeterminedDeclaration();
+        ClassDeclaration classDeclaration = (ClassDeclaration) primaryType.declaration;
+        int index = classDeclaration.methods.indexOf(methodDecl);
+        output.println("mov eax, [eax]");
+        output.println(String.format("mov eax, [eax + %d]", index * 4));
+      }
+    } else {
+      Name name = token.name;
+
+    }
+  }
+
+  @Override
+  public void visit(LeftHandSide token) throws VisitorException {
+    super.visit(token);
+    if(token.children.get(0) instanceof Name) {
+      Name name = (Name) token.children.get(0);
+
+    } else {
+      token.children.get(0).traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(Assignment token) throws VisitorException {
+    super.visit(token);
+  }
+
+  @Override
+  public void visit(ArrayCreationExpression token) throws VisitorException {
+    super.visit(token);
   }
 
   @Override
@@ -574,6 +649,28 @@ public class CodeGenerationVisitor extends BaseVisitor {
         // Safe to assume that no static accesses here
         FieldDeclaration curr = (FieldDeclaration) declarationPaths.get(startIdx);
         output.println(String.format("mov eax, [eax + %d]", curr.offset));
+      }
+
+      if(declarationPaths.size() > 0) {
+        FieldDeclaration currDecl = (FieldDeclaration) token.name.getDeterminedDeclaration();
+        output.println(String.format("mov eax, [eax + %d]", currDecl.offset));
+      } else {
+        Declaration currDecl = token.name.getDeterminedDeclaration();
+        if(currDecl instanceof LocalVariableDeclaration) {
+          LocalVariableDeclaration localVariableDeclaration = (LocalVariableDeclaration) currDecl;
+          //output.println(String.format("mov eax, [ebp - %d]", localVariableDeclaration.offset));
+        } else if(currDecl instanceof FormalParameter) {
+          FormalParameter formalParameter = (FormalParameter) currDecl;
+          output.println(String.format("mov eax, [ebp + %d]", formalParameter.offset));
+        } else if(currDecl instanceof FieldDeclaration) {
+          FieldDeclaration fieldDeclaration = (FieldDeclaration) currDecl;
+          if(fieldDeclaration.containsModifier("static")) {
+            output.println(String.format("mov eax, [%s]", fieldDeclaration.getAbsolutePath()));
+          } else {
+            output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+            output.println(String.format("mov eax, [eax + %d]", fieldDeclaration.offset));
+          }
+        }
       }
     } else if(token.primary != null) {
       token.primary.traverse(this);
@@ -693,6 +790,38 @@ public class CodeGenerationVisitor extends BaseVisitor {
     offsets.pop();
   }
 
+  private void generateNameAccess(Name name) {
+    List<Declaration> declarationPaths = name.getDeclarationPath();
+    int startIdx = 0;
+    for (; startIdx < declarationPaths.size(); startIdx++) {
+      Declaration curr = declarationPaths.get(startIdx);
+      if(curr instanceof LocalVariableDeclaration) {
+        LocalVariableDeclaration localVariableDeclaration = (LocalVariableDeclaration) curr;
+        //output.println(String.format("mov eax, [ebp - %d]", localVariableDeclaration.offset));
+        break;
+      } else if(curr instanceof FormalParameter) {
+        FormalParameter formalParameter = (FormalParameter) curr;
+        output.println(String.format("mov eax, [ebp + %d]", formalParameter.offset));
+        break;
+      } else if(curr instanceof FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = (FieldDeclaration) curr;
+        if(fieldDeclaration.containsModifier("static")) {
+          output.println(String.format("mov eax, [%s]", fieldDeclaration.getAbsolutePath()));
+        } else {
+          output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+          output.println(String.format("mov eax, [eax + %d]", fieldDeclaration.offset));
+        }
+        break;
+      }
+    }
+
+    for(startIdx = startIdx + 1; startIdx < declarationPaths.size(); startIdx++) {
+      // Safe to assume that no static accesses here
+      FieldDeclaration curr = (FieldDeclaration) declarationPaths.get(startIdx);
+      output.println(String.format("mov eax, [eax + %d]", curr.offset));
+    }
+  }
+
   private boolean isTestMethod(MethodDeclaration token) {
     return token.getIdentifier().equals("test") &&
         token.getParameters().isEmpty() &&
@@ -722,11 +851,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(AssignmentExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(StatementWithoutTrailingSubstatement token) throws VisitorException {
     super.visit(token);
   }
@@ -748,16 +872,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(FormalParameter token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(LeftHandSide token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(Assignment token) throws VisitorException {
     super.visit(token);
   }
 
@@ -793,11 +907,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(FieldAccess token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(StatementExpression token) throws VisitorException {
     super.visit(token);
   }
@@ -809,16 +918,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(LocalVariableDeclarationStatement token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(ArrayAccess token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(Expression token) throws VisitorException {
     super.visit(token);
   }
 
