@@ -7,7 +7,6 @@ import token.FormalParameter;
 import token.MethodDeclaration;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,7 +17,7 @@ public class CodeGenUtils {
 
   public static AtomicInteger ifStatementCount = new AtomicInteger(0);
 
-  public static AtomicInteger counter = new AtomicInteger(0);
+  public static AtomicInteger labelCounter = new AtomicInteger(0);
 
   /**
    * Generate a label for a given declaration using absolute path.
@@ -85,7 +84,7 @@ public class CodeGenUtils {
     return String.format("if#%d", ifStatementCount.getAndIncrement());
   }
   public static String genUniqueLabel() {
-    return String.format("label%d", counter.getAndIncrement());
+    return String.format("label%d", labelCounter.getAndIncrement());
   }
 
   public static void genPushRegisters(PrintStream output) {

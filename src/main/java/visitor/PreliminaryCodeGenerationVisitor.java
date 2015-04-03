@@ -72,6 +72,7 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
 
     // Add 4 bytes of memory for the virtual table pointer.
     classDeclaration.classSize += 4;
+
     // Add 4 bytes to store the classId
     classDeclaration.vTableSize += 4;
 
