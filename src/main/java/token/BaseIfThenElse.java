@@ -4,16 +4,15 @@ import exception.VisitorException;
 import visitor.Visitor;
 
 import java.util.ArrayList;
-import java.util.Stack;
 
-public class IfThenStatement extends BaseStatement {
+public abstract class BaseIfThenElse extends BaseStatement {
   public Expression expression;
-  public Statement statement;
+  public StatementNoShortIf statementNoShortIf;
 
-  public IfThenStatement(ArrayList<Token> children) {
-    super("", TokenType.IfThenStatement, children);
+  public BaseIfThenElse(String lexeme, TokenType tokenType, ArrayList<Token> children) {
+    super(lexeme, tokenType, children);
     expression = (Expression) children.get(2);
-    statement = (Statement) children.get(4);
+    statementNoShortIf = (StatementNoShortIf) children.get(4);
   }
 
   @Override
@@ -36,4 +35,6 @@ public class IfThenStatement extends BaseStatement {
   public void traverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
+
+  public abstract BaseStatement getElseStatement();
 }

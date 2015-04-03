@@ -17,6 +17,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CodeGenUtils {
 
   public static AtomicInteger ifStatementCount = new AtomicInteger(0);
+  public static AtomicInteger elseStmtCount = new AtomicInteger(0);
+  public static AtomicInteger forStatementCount = new AtomicInteger(0);
+  public static AtomicInteger elseStatementCount = new AtomicInteger(0);
 
   /**
    * Generate a label for a given declaration using absolute path.
@@ -77,10 +80,45 @@ public class CodeGenUtils {
   }
 
   /**
-   * Generates a throwaway label to use for handling if-statement jmps.
+   * Generates a throwaway label to use for handling if-elseStatement jmps.
    */
   public static String genNextIfStatementLabel() {
     return String.format("if#%d", ifStatementCount.getAndIncrement());
+  }
+
+  /**
+   * use getCurrentElseStmtLabel() inside of 'if' and 'elseif'
+   * blocks of 'if-then-else statements.  It marks the exit point
+   * of the if-then-else elseStatement.
+   * Keeps using the same label.
+   * @return
+   */
+  public static String getCurrentElseStmtLabel() {
+    return String.format("else#%d", elseStatementCount.get());
+  }
+
+  /**
+   * Use this method in the 'else' clause of 'if-then-else'
+   * statements to mark the exit point.
+   *
+   * It returns the current label, then increments it
+   * for the next set of if-then-else statements.
+   *
+   * @return
+   */
+  public static String genNextElseStmtLabel() {
+    return String.format("else#%d", elseStatementCount.getAndIncrement());
+  }
+
+  /**
+   * Generates a throwaway label to use for handling for-loop jmps.
+   */
+  public static String genNextForStatementLabel() {
+    return String.format("for#%d", forStatementCount.getAndIncrement());
+  }
+
+  public static String removeColonFromLabel(String label) {
+    return label.substring(0, label.length() - 1);
   }
 
   public static void genPushRegisters(PrintStream output) {
