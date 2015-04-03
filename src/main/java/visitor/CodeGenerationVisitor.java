@@ -164,6 +164,16 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(IfThenStatement token) throws VisitorException {
     super.visit(token);
+    String ifLabel = CodeGenUtils.genNextIfStatementLabel();
+
+    visit(token.expression);
+
+    output.println("cmp eax 0");
+    output.println("je " + CodeGenUtils.removeColonFromLabel(ifLabel));
+
+    visit(token.statement);
+
+    output.println(ifLabel);
   }
 
   @Override
@@ -209,6 +219,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(IfThenElseStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    ifThenElseVisitHelper(token);
   }
 
   @Override
@@ -296,6 +307,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(IfThenElseStatement token) throws VisitorException {
     super.visit(token);
+    ifThenElseVisitHelper(token);
   }
 
   @Override
@@ -374,6 +386,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    visit(token);
   }
 
   @Override
@@ -710,5 +723,25 @@ public class CodeGenerationVisitor extends BaseVisitor {
     int offset = offsets.peek() - diff;
     offsets.pop();
     offsets.push(offset);
+  }
+
+  private void ifThenElseVisitHelper(BaseIfThenElse token) throws VisitorException {
+    String ifLabel = CodeGenUtils.genNextIfStatementLabel();
+
+    visit(token.expression);
+
+    output.println("cmp eax 0");
+    output.println("je " + CodeGenUtils.removeColonFromLabel(ifLabel));
+
+
+    visit(token.statementNoShortIf);
+    output.println("jmp " + CodeGenUtils.removeColonFromLabel(CodeGenUtils.getCurrentElseStmtLabel()));
+
+    // else
+    output.print(ifLabel);
+    visit(token.getElseStatement());
+    if (!(token.getElseStatement() instanceof BaseIfThenElse)) {
+      output.println(CodeGenUtils.genNextElseStmtLabel());
+    }
   }
 }
