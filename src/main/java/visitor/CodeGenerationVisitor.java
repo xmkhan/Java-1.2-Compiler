@@ -318,6 +318,26 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForStatement token) throws VisitorException {
     super.visit(token);
+    if (token == null) return;
+
+    String forLabel = CodeGenUtils.genNextForStatementLabel();
+    String endForLabel = "end#" + forLabel;
+
+    visit(token.forInit);
+
+    output.println(String.format("%s:", forLabel));
+
+
+    visit(token.expression);
+
+    output.println("cmp eax 0");
+    output.println("je " + CodeGenUtils.removeColonFromLabel(endForLabel));
+
+    visit(token.statement);
+    visit(token.forUpdate);
+
+    output.println("jmp " + CodeGenUtils.removeColonFromLabel(forLabel));
+    output.println(endForLabel);
   }
 
   @Override
@@ -615,11 +635,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(ForInit token) throws VisitorException {
+    if (token == null) return;
     super.visit(token);
+    visit(token.children.get(0));
   }
 
   @Override
   public void visit(LocalVariableDeclarationStatement token) throws VisitorException {
+    if (token == null) return;
     super.visit(token);
   }
 
