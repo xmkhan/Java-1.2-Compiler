@@ -731,17 +731,17 @@ public class CodeGenerationVisitor extends BaseVisitor {
     visit(token.expression);
 
     output.println("cmp eax 0");
-    output.println("je " + CodeGenUtils.removeColonFromLabel(ifLabel));
+    output.println("je " + ifLabel);
 
 
     visit(token.statementNoShortIf);
-    output.println("jmp " + CodeGenUtils.removeColonFromLabel(CodeGenUtils.getCurrentElseStmtLabel()));
+    output.println(String.format("jmp %s", CodeGenUtils.getCurrentElseStmtLabel()));
 
     // else
     output.print(ifLabel);
     visit(token.getElseStatement());
     if (!(token.getElseStatement() instanceof BaseIfThenElse)) {
-      output.println(CodeGenUtils.genNextElseStmtLabel());
+      output.println(String.format("%s:", CodeGenUtils.genNextElseStmtLabel()));
     }
   }
 }
