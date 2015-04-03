@@ -18,6 +18,7 @@ public class CodeGenUtils {
 
   public static AtomicInteger ifStatementCount = new AtomicInteger(0);
   public static AtomicInteger forStatementCount = new AtomicInteger(0);
+  public static AtomicInteger whileStmtCount = new AtomicInteger(0);
 
   /**
    * Generate a label for a given declaration using absolute path.
@@ -91,8 +92,11 @@ public class CodeGenUtils {
     return String.format("for#%d", forStatementCount.getAndIncrement());
   }
 
-  public static String removeColonFromLabel(String label) {
-    return label.substring(0, label.length()-1);
+  /*
+   * Generates a throwaway label to use for handling if-statement jmps.
+   */
+  public static String genNextWhileStmtLabel() {
+    return String.format("while#%d", whileStmtCount.getAndIncrement());
   }
 
   public static void genPushRegisters(PrintStream output) {

@@ -149,6 +149,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(WhileStatement token) throws VisitorException {
     super.visit(token);
+    whileStatementHelper(token);
   }
 
   @Override
@@ -244,12 +245,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.expression != null) visit(token.expression);
 
     output.println("cmp eax 0");
-    output.println("je " + CodeGenUtils.removeColonFromLabel(endForLabel));
+    output.println("je " + endForLabel);
 
     if (token.getStatement() != null) visit(token.getStatement());
     if (token.forUpdate != null) visit(token.forUpdate);
 
-    output.println("jmp " + CodeGenUtils.removeColonFromLabel(forLabel));
+    output.println("jmp " + forLabel);
     output.println(endForLabel);
   }
 
@@ -462,6 +463,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(WhileStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    whileStatementHelper(token);
   }
 
   @Override
@@ -710,5 +712,28 @@ public class CodeGenerationVisitor extends BaseVisitor {
     int offset = offsets.peek() - diff;
     offsets.pop();
     offsets.push(offset);
+  }
+
+  private void whileStatementHelper(BaseWhileStatement token) throws VisitorException {
+    String whileLabel = CodeGenUtils.genNextWhileStmtLabel();
+    String endLabel = "end#" + whileLabel;
+
+    output.println(String.format("%s:", whileLabel));
+
+    // Test the expression
+    visit(token.children.get(2));
+
+    // Jump to end of while loop if expression failed
+    output.println("cmp eax 0");
+    output.println("je " + whileLabel);
+
+    // while loop content
+    visit(token.children.get(4));
+
+    // jump back to expression check
+    output.println("jmp " + whileLabel);
+
+    // end of while loop label; use to exit
+    output.println(endLabel);
   }
 }
