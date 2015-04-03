@@ -352,7 +352,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
         }
         if (name != null && name.getDeclarationPath() != null && name.getDeclarationPath().get(name.getDeclarationPath().size() - 1).type != null) {
           HierarchyGraphNode parent = hierarchyGraph.get(name.getDeclarationPath().get(name.getDeclarationPath().size()-1).type.getType().getLexeme());
-
+          // Case where an instance is not used (e.g. static protected fields, protected fields, ...)
           if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
             ((FieldDeclaration) determinedDecl).modifiers.isProtected() &&
             !parent.getPackageName().equals(node.getPackageName()) &&
@@ -360,12 +360,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
             throw new TypeCheckingVisitorException("Protected field " + determinedDecl.identifier.getLexeme() +
               " is accessed outside of hierarchy and package", token);
           }
-          if (parent == null &&
-            ((Name)token.children.get(0)).qualifiedName != null && ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
-            //throw new TypeCheckingVisitorException("faileddd" , token);
-          }
         }
         if (name != null) {
+          // Case where an instance is used (e.g.  A a = new A();  a.protected_field
           HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
           if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
             (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
@@ -511,7 +508,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, new Class [] {ConstructorDeclaration.class});
     Declaration constructorDeclaration = matchCall(matchingDeclarations, false, arguments, name);
 
-    Declaration classDecl = determineDeclaration(name, new Class [] {ClassDeclaration.class});
+    Declaration classDecl = determineDeclaration(name, new Class[]{ClassDeclaration.class});
 
     HierarchyGraphNode parent = hierarchyGraph.get(classDecl.getAbsolutePath());
     if (!parent.getFullname().equals(node.getFullname()) &&
@@ -688,7 +685,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
         if (name != null && name.getDeclarationPath() != null && name.getDeclarationPath().get(name.getDeclarationPath().size() - 1).type != null) {
           HierarchyGraphNode parent = hierarchyGraph.get(name.getDeclarationPath().get(name.getDeclarationPath().size() - 1).type.getType().getLexeme());
-
+          // Case where an instance is not used (e.g. static protected fields, protected fields, ...)
           if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
             ((FieldDeclaration) determinedDecl).modifiers.isProtected() &&
             !parent.getPackageName().equals(node.getPackageName()) &&
@@ -697,12 +694,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
             throw new TypeCheckingVisitorException("Protected field " + determinedDecl.identifier.getLexeme() +
               " is accessed outside of hierarchy and package", token);
           }
-          if (parent == null &&
-            ((Name)token.children.get(0)).qualifiedName != null && ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
-            //throw new TypeCheckingVisitorException("faileddd" , token);
-          }
         }
         if (name != null) {
+          // Case where an instance is used (e.g.  A a = new A();  a.protected_field
           HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
           if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
             (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
@@ -819,7 +813,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
     if (token.name != null && token.name.getDeclarationPath() != null && token.name.getDeclarationPath().get(token.name.getDeclarationPath().size() - 1).type != null) {
       HierarchyGraphNode parent = hierarchyGraph.get(token.name.getDeclarationPath().get(token.name.getDeclarationPath().size() - 1).type.getType().getLexeme());
-
+      // Case where an instance is not used (e.g. static protected methods, protected methods, ...)
       if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
         ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isProtected() &&
         !parent.getPackageName().equals(node.getPackageName()) &&
@@ -831,6 +825,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
     if (token.name != null) {
       HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
+      // Case where an instance is used (e.g.  A a = new A();  a.protected_method();
       if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
         (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
           !parent.getPackageName().equals(node.getPackageName())) &&
