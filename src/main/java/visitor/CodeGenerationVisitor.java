@@ -1013,7 +1013,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) token.classType.classOrInterfaceType.name.getDeterminedDeclaration();
     ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
-    CodeGenUtils.genPushRegisters(output, false);
+    CodeGenUtils.genPushRegisters(output, true);
     output.println(String.format("mov eax, %d", classDeclaration.classSize));
     output.println("call __malloc");
     // Push "this" on the stack.
@@ -1025,7 +1025,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
     }
     output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
-    CodeGenUtils.genPopRegisters(output, false);
+    CodeGenUtils.genPopRegisters(output, true);
     output.println("; END ClassInstanceCreationExpression");
   }
 

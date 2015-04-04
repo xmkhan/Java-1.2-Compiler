@@ -3,7 +3,6 @@ package token;
 import exception.VisitorException;
 import visitor.Visitor;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
