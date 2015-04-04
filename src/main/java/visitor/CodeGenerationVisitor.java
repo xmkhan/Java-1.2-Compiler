@@ -504,6 +504,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     offset = 0;
     token.body.traverse(this);
+    output.println("mov esp, ebp");
+    output.println("pop ebp");
+    output.println("ret");
     output.println("; END ConstructorDeclaration");
   }
 
@@ -608,6 +611,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     offset = 0;
     token.methodBody.traverse(this);
+    if (token.methodHeader.isVoid()) {
+      output.println("mov esp, ebp");
+      output.println("pop ebp");
+      output.println("ret");
+    }
     output.println("; END MethodDeclaration");
   }
 
