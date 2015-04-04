@@ -36,8 +36,7 @@ public class AdditiveExpression extends Token {
   }
 
   public boolean isAdd() {
-    assert(isDefined());
-    return children.get(1).getTokenType() == TokenType.PLUS_OP;
+    return isDefined() ? children.get(1).getTokenType() == TokenType.PLUS_OP : false;
   }
 
   public void setLeftType(TypeCheckToken type) {
