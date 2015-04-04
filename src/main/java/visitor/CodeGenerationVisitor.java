@@ -960,7 +960,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("jmp %s", CodeGenUtils.getCurrentElseStmtLabel()));
 
     // else
-    output.print(ifLabel);
+    output.println(ifLabel);
     visit(token.getElseStatement());
     if (!(token.getElseStatement() instanceof BaseIfThenElse)) {
       addComment("escape label for the entire if-else-then " + CodeGenUtils.getCurrentElseStmtLabel());
