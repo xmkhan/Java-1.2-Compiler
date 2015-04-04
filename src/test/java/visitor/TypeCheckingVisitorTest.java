@@ -7,6 +7,7 @@ import org.junit.Test;
 import util.CompilationUnitGenerator;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

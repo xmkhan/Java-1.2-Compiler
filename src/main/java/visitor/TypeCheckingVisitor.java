@@ -26,14 +26,18 @@ public class TypeCheckingVisitor extends BaseVisitor {
   private HierarchyGraphNode node;
   private CompilationUnit unit;
 
+  private boolean explicitThisUsedInContext;
+
   public TypeCheckingVisitor(SymbolTable symbolTable, HierarchyGraph hierarchyGraph, Map<CompilationUnit, HierarchyGraphNode> compilationUnitToNode) {
     this.symbolTable = symbolTable;
     this.compilationUnitToNode = compilationUnitToNode;
     this.hierarchyGraph = hierarchyGraph;
+    explicitThisUsedInContext = false;
   }
 
   public void typeCheckUnits(List<CompilationUnit> units) throws VisitorException {
     for(CompilationUnit unit : units) {
+      explicitThisUsedInContext = false;
       // we don't need to type check interfaces
       if (unit.typeDeclaration.classDeclaration == null) {
         continue;
@@ -323,6 +327,55 @@ public class TypeCheckingVisitor extends BaseVisitor {
       Declaration determinedDecl = determineDeclaration(name, new Class[] {FormalParameter.class,
                                                                            FieldDeclaration.class,
                                                                            LocalVariableDeclaration.class});
+
+
+
+      if (determinedDecl instanceof FieldDeclaration) {
+        if (name != null && name.classifiedType == Name.ClassifiedType.Type &&
+          determinedDecl instanceof FieldDeclaration &&
+          !((FieldDeclaration) determinedDecl).modifiers.isStatic()) {
+          throw new TypeCheckingVisitorException("Non static field " + ((FieldDeclaration) determinedDecl).identifier.getLexeme() +
+            " of class " + determinedDecl.identifier.getLexeme() + " is used as static", token);
+        } else if (name != null && name.classifiedType == Name.ClassifiedType.NonStaticExpr &&
+          ((FieldDeclaration) determinedDecl).modifiers.isStatic()) {
+          throw new TypeCheckingVisitorException("static filed " + ((FieldDeclaration) determinedDecl).identifier.getLexeme() +
+            " of class " + determinedDecl.identifier.getLexeme() + " is used as non static", token);
+        }
+
+        Declaration clazz = symbolTable.getClass(determinedDecl);
+
+        if (clazz.getAbsolutePath().equals(node.getFullname()) &&
+          !((FieldDeclaration) determinedDecl).modifiers.isStatic() &&
+          !(token.children.get(0) instanceof Primary) &&
+          token.children.get(0) instanceof Name && ((Name)token.children.get(0)).qualifiedName == null) {
+          explicitThisUsedInContext = true;
+        }
+        if (name != null && name.getDeclarationPath() != null && name.getDeclarationPath().get(name.getDeclarationPath().size() - 1).type != null) {
+          HierarchyGraphNode parent = hierarchyGraph.get(name.getDeclarationPath().get(name.getDeclarationPath().size()-1).type.getType().getLexeme());
+          // Case where an instance is not used (e.g. static protected fields, protected fields, ...)
+          if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+            ((FieldDeclaration) determinedDecl).modifiers.isProtected() &&
+            !parent.getPackageName().equals(node.getPackageName()) &&
+            !hierarchyGraph.nodeAIsParentOfNodeB(node, parent)) {
+            throw new TypeCheckingVisitorException("Protected field " + determinedDecl.identifier.getLexeme() +
+              " is accessed outside of hierarchy and package", token);
+          }
+        }
+        if (name != null) {
+          // Case where an instance is used (e.g.  A a = new A();  a.protected_field
+          HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
+          if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+            (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
+              !parent.getPackageName().equals(node.getPackageName())) &&
+            ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
+            throw new TypeCheckingVisitorException("Protected field " +
+              determinedDecl.getLexeme() +
+              "accessed from outside of package or class hierarchy. Violating class: " +
+              node.getFullname(), token);
+          }
+        }
+      }
+
       String determinedAbsolutePath = determinedDecl.getAbsolutePath();
       String originalPath = name.getLexeme();
       String [] determinedAbsolutePathArr = determinedAbsolutePath.split("\\.");
@@ -371,6 +424,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(MethodDeclaration token) throws VisitorException {
     super.visit(token);
+    if (token.methodHeader.modifiers.isStatic() && explicitThisUsedInContext) {
+      throw new TypeCheckingVisitorException("explicit this used in static context. Class: " + node.getFullname() + " Method: " + token.methodHeader.identifier.getLexeme(), token);
+    }
     while(!returnCallStack.isEmpty()) {
       TypeCheckToken returnToken = returnCallStack.pop();
       if(token.methodHeader.voidType != null) {
@@ -399,6 +455,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
         }
       }
     }
+    // reset the this used in method body check, as we will be visiting another method.
+    explicitThisUsedInContext = false;
   }
 
   @Override
@@ -450,7 +508,19 @@ public class TypeCheckingVisitor extends BaseVisitor {
     List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, new Class [] {ConstructorDeclaration.class});
     Declaration constructorDeclaration = matchCall(matchingDeclarations, false, arguments, name);
 
-    Declaration classDecl = determineDeclaration(name, new Class [] {ClassDeclaration.class});
+    Declaration classDecl = determineDeclaration(name, new Class[]{ClassDeclaration.class});
+
+    HierarchyGraphNode parent = hierarchyGraph.get(classDecl.getAbsolutePath());
+    if (!parent.getFullname().equals(node.getFullname()) &&
+      (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) ||
+      !parent.getPackageName().equals(node.getPackageName())) &&
+      ((ConstructorDeclaration)constructorDeclaration).modifiers.isProtected()) {
+      throw new TypeCheckingVisitorException("Protected constructor " +
+        constructor +
+        "accessed from outside of package or class hierarchy. Violating class: " +
+        node.getFullname(), token);
+    }
+
     tokenStack.push(new TypeCheckToken(classDecl));
   }
 
@@ -484,6 +554,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
     // If variable isn't initialized, no need to check
     if(decl.expr == null) {
       return;
+    }
+
+    if (decl.modifiers.isStatic() && explicitThisUsedInContext) {
+      throw new TypeCheckingVisitorException("explicit this used in static context. Class: " + node.getFullname() + " FieldDeclaration: " + decl.identifier.getLexeme(), decl);
+    } else {
+      explicitThisUsedInContext = false;
     }
 
     TypeCheckToken assignedType = tokenStack.pop();
@@ -556,14 +632,6 @@ public class TypeCheckingVisitor extends BaseVisitor {
       Declaration determined = determineDeclaration(token.name, new Class[] {ClassDeclaration.class});
       tokenStack.push(new TypeCheckToken(determined, true));
     }
-
-    //TODO: Figure out what this was for
-    //? Cant it be initiated
-    // call shah's function on token.classType....
-    /*if (false) {
-      // ClassType was abstract
-      throw new VisitorException("Abstract class " + " cannot be instantiated", token);
-    }*/
   }
 
   @Override
@@ -607,6 +675,40 @@ public class TypeCheckingVisitor extends BaseVisitor {
       Declaration determinedDecl = determineDeclaration(name, new Class[] {LocalVariableDeclaration.class,
                                                                            FieldDeclaration.class,
                                                                            FormalParameter.class});
+
+      if (determinedDecl instanceof FieldDeclaration) {
+        Declaration clazz = symbolTable.getClass(determinedDecl);
+
+        if (clazz.getAbsolutePath().equals(node.getFullname())) {
+          //explicitThisUsedInContext = true;
+        }
+
+        if (name != null && name.getDeclarationPath() != null && name.getDeclarationPath().get(name.getDeclarationPath().size() - 1).type != null) {
+          HierarchyGraphNode parent = hierarchyGraph.get(name.getDeclarationPath().get(name.getDeclarationPath().size() - 1).type.getType().getLexeme());
+          // Case where an instance is not used (e.g. static protected fields, protected fields, ...)
+          if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+            ((FieldDeclaration) determinedDecl).modifiers.isProtected() &&
+            !parent.getPackageName().equals(node.getPackageName()) &&
+            !hierarchyGraph.nodeAIsParentOfNodeB(node, parent) &&
+            ((Name)token.children.get(0)).qualifiedName != null) {
+            throw new TypeCheckingVisitorException("Protected field " + determinedDecl.identifier.getLexeme() +
+              " is accessed outside of hierarchy and package", token);
+          }
+        }
+        if (name != null) {
+          // Case where an instance is used (e.g.  A a = new A();  a.protected_field
+          HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
+          if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+            (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
+              !parent.getPackageName().equals(node.getPackageName())) &&
+            ((FieldDeclaration) determinedDecl).modifiers.isProtected()) {
+            throw new TypeCheckingVisitorException("Protected field " +
+              determinedDecl.getLexeme() +
+              "accessed from outside of package or class hierarchy. Violating class: " +
+              node.getFullname(), token);
+          }
+        }
+      }
       tokenStack.push(new TypeCheckToken(determinedDecl));
     }
   }
@@ -650,6 +752,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
 
     if (token.children.get(0).getTokenType() == TokenType.THIS) {
+      explicitThisUsedInContext = true;
       tokenStack.push(new TypeCheckToken((unit.typeDeclaration.getDeclaration())));
     }
   }
@@ -674,6 +777,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
 
       matchingDeclarations = new ArrayList<Token>();
       List<BaseMethodDeclaration> allMethods = hierarchyGraph.get(primary.getAbsolutePath()).getAllMethods();
+
       for (Iterator<BaseMethodDeclaration> it = allMethods.listIterator(); it.hasNext(); ) {
         BaseMethodDeclaration method = it.next();
         if(method instanceof MethodDeclaration && ((MethodDeclaration) method).methodHeader.identifier.getLexeme().equals(token.identifier.getLexeme())
@@ -687,6 +791,52 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
 
     Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name == null ? token.identifier : token.name);
+      Declaration clazz = symbolTable.getClass(methodDeclaration);
+
+      if (token.name != null && token.name.classifiedType == Name.ClassifiedType.Type &&
+        !((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
+        throw new TypeCheckingVisitorException("Non static method " + ((MethodDeclaration) methodDeclaration).methodHeader.identifier.getLexeme() +
+          " of class " + clazz.identifier.getLexeme() + " is used as static", token);
+
+      } else if (token.name != null && token.name.classifiedType == Name.ClassifiedType.NonStaticExpr &&
+        ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
+        throw new TypeCheckingVisitorException("static method " + ((MethodDeclaration) methodDeclaration).methodHeader.identifier.getLexeme() +
+          " of class " + clazz.identifier.getLexeme() + " is used as non static", token);
+      } else if (token.name != null && token.name.simpleName != null && token.name.classifiedType == Name.ClassifiedType.Ambiguous &&
+        ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
+        throw new TypeCheckingVisitorException("Calls a static method without naming the class. ", token);
+      }
+
+      if (clazz.getAbsolutePath().equals(node.getFullname()) && !((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic() && token.primary == null && token.name.qualifiedName == null) {
+        explicitThisUsedInContext = true;
+      }
+
+    if (token.name != null && token.name.getDeclarationPath() != null && token.name.getDeclarationPath().get(token.name.getDeclarationPath().size() - 1).type != null) {
+      HierarchyGraphNode parent = hierarchyGraph.get(token.name.getDeclarationPath().get(token.name.getDeclarationPath().size() - 1).type.getType().getLexeme());
+      // Case where an instance is not used (e.g. static protected methods, protected methods, ...)
+      if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+        ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isProtected() &&
+        !parent.getPackageName().equals(node.getPackageName()) &&
+        !hierarchyGraph.nodeAIsParentOfNodeB(node, parent) &&
+        ((Name)token.children.get(0)).qualifiedName != null) {
+        throw new TypeCheckingVisitorException("Protected field " + methodDeclaration.identifier.getLexeme() +
+          " is accessed outside of hierarchy and package", token);
+      }
+    }
+    if (token.name != null) {
+      HierarchyGraphNode parent = hierarchyGraph.get(clazz.getAbsolutePath());
+      // Case where an instance is used (e.g.  A a = new A();  a.protected_method();
+      if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
+        (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
+          !parent.getPackageName().equals(node.getPackageName())) &&
+        ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isProtected()) {
+        throw new TypeCheckingVisitorException("Protected method " +
+          methodDeclaration.getLexeme() +
+          "accessed from outside of package or class hierarchy. Violating class: " +
+          node.getFullname(), token);
+      }
+    }
+
     if(methodDeclaration.type == null) {
       tokenStack.push(new TypeCheckToken(TokenType.VOID, false));
     } else if(methodDeclaration.type.isPrimitiveType()) {
