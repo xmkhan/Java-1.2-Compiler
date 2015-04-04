@@ -3,7 +3,7 @@ package token;
 import java.util.ArrayList;
 
 /**
- * Represents a base elseStatement, that encapsulates in/out reachable.
+ * Represents a base statement, that encapsulates in/out reachable.
  */
 public class BaseStatement extends Token {
 

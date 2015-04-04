@@ -904,7 +904,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void visitEveryChild(Token token) throws VisitorException {
     for (Token child : token.children) {
-      visit(token);
+      child.traverse(this);
     }
   }
 

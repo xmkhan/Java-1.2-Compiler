@@ -172,12 +172,12 @@ public class ReachabilityVisitor extends BaseVisitor {
             token.methodHeader.modifiers.containsModifier("abstract");
 
         if (!token.methodHeader.isVoid() && token.methodBody.isEmpty() && !containsNative && !containsAbstract) {
-          throw new ReachabilityVisitorException("Missing return elseStatement", token);
+          throw new ReachabilityVisitorException("Missing return statement", token);
         }
       break;
       case MODE_OUT:
         if (!token.methodHeader.isVoid() && !token.methodBody.isEmpty() && token.methodBody.block.out) {
-          throw new ReachabilityVisitorException("Non-executed return elseStatement", token);
+          throw new ReachabilityVisitorException("Non-executed return statement", token);
         }
       break;
     }
