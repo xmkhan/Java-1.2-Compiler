@@ -386,7 +386,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Literal token) throws VisitorException {
     super.visit(token);
-    output.println("; Literal");
+    output.println("; CODE GENERATION: Literal");
 
     Token literal = token.getLiteral();
 
@@ -425,6 +425,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
       output.println(String.format("mov eax, %d", value));
     }
+
+    output.println("; END: Literal");
   }
 
   @Override
@@ -445,14 +447,16 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Expression token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: Expression");
     token.children.get(0).traverse(this);
+    output.println("; END: Expression");
   }
 
   @Override
   public void visit(MultiplicativeExpression token) throws VisitorException {
     super.visit(token);
     if(token.isDefined()) {
-      output.println("; MultiplicativeExpression");
+      output.println("; CODE GENERATION: MultiplicativeExpression");
       token.expr1.traverse(this);
       output.println("push eax");
       token.expr.traverse(this);
@@ -477,6 +481,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
           output.println("mov eax, edx");
         }
       }
+      output.println("; END: MultiplicativeExpression");
     } else {
       token.expr1.traverse(this);
     }
@@ -487,7 +492,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     //TODO: Handle strings
     if(token.isDefined()) {
-      output.println("; AdditiveExpression");
+      output.println("; CODE GENERATION: AdditiveExpression");
       token.leftExpr.traverse(this);
       output.println("push eax");
       token.rightExpr.traverse(this);
@@ -498,6 +503,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println("subl ebx, eax");
         output.println("mov eax, ebx");
       }
+      output.println("; END: AdditiveExpression");
     } else {
       token.rightExpr.traverse(this);
     }
@@ -507,7 +513,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(RelationalExpression token) throws VisitorException {
     super.visit(token);
     if(token.isDefined()) {
-      output.println("; RelationalExpression");
+      output.println("; CODE GENERATION: RelationalExpression");
       token.leftExpr.traverse(this);
 
       if(token.getOperator().getTokenType().equals(TokenType.INSTANCEOF)) {
@@ -569,6 +575,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println("mov eax, 1");
         output.println(endLabel);
       }
+      output.println("; END: RelationalExpression");
     } else {
       token.rightExpr.traverse(this);
     }
@@ -580,7 +587,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if(token.isDefined()) {
       String endLabel = CodeGenUtils.genNextTempLabel();
 
-      output.println("; EqualityExpression");
+      output.println("; CODE GENERATION: EqualityExpression");
       token.leftExpr.traverse(this);
       output.println("push eax");
       token.rightExpr.traverse(this);
@@ -595,6 +602,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
       output.println("mov eax, 1");
       output.println(endLabel);
+      output.println("; END: EqualityExpression");
     } else {
       token.rightExpr.traverse(this);
     }
@@ -606,7 +614,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if(token.isDefined()) {
 //      String endLabel = CodeGenUtils.genNextTempLabel();
 
-      output.println("; AndExpression");
+      output.println("; CODE GENERATION: AndExpression");
       token.leftExpr.traverse(this);
       output.println("push eax");
       token.rightExpr.traverse(this);
@@ -618,6 +626,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 //      output.println(String.format("jne %s", endLabel));
 //      output.println("mov eax, 1");
 //      output.println(endLabel);
+      output.println("; END: AndExpression");
     } else {
       token.rightExpr.traverse(this);
     }
@@ -629,7 +638,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.isDefined()) {
 //      String endLabel = CodeGenUtils.genNextTempLabel();
 
-      output.println("; InclusiveOrExpression");
+      output.println("; CODE GENERATION: InclusiveOrExpression");
       token.leftExpr.traverse(this);
       output.println("push eax");
       token.rightExpr.traverse(this);
@@ -640,6 +649,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 //      output.println(String.format("jne %s", endLabel));
 //      output.println("mov eax, 1");
 //      output.println(endLabel);
+      output.println("; END: InclusiveOrExpression");
     } else {
       token.rightExpr.traverse(this);
     }
@@ -651,12 +661,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if(token.isDefined()) {
       String endLabel = CodeGenUtils.genNextTempLabel();
 
-      output.println("; ConditionalOrExpression");
+      output.println("; CODE GENERATION: ConditionalOrExpression");
       token.leftExpr.traverse(this);
       output.println("cmp eax, 1");
       output.println(String.format("je %s", endLabel));
       token.rightExpr.traverse(this);
       output.println(endLabel);
+      output.println("; END: ConditionalOrExpression");
     } else {
       token.rightExpr.traverse(this);
     }
@@ -668,12 +679,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if(token.isDefined()) {
       String endLabel = CodeGenUtils.genNextTempLabel();
 
-      output.println("; ConditionalAndExpression");
+      output.println("; CODE GENERATION: ConditionalAndExpression");
       token.leftExpr.traverse(this);
       output.println("cmp eax, 0");
       output.println(String.format("je %s", endLabel));
       token.rightExpr.traverse(this);
       output.println(endLabel);
+      output.println("; END: ConditionalAndExpression");
     } else {
       token.rightExpr.traverse(this);
     }
@@ -684,7 +696,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     if(token.children.size() == 1) {
       if(token.children.get(0).getTokenType() == TokenType.THIS) {
+        output.println("; CODE GENERATION: Primary");
         output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+        output.println("; END: Primary");
       } else {
         token.children.get(0).traverse(this);
       }
@@ -696,6 +710,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(FieldAccess token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: FieldAccess");
     token.primary.traverse(this);
     checkForNull("eax");
 
@@ -705,12 +720,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
       FieldDeclaration decl = (FieldDeclaration) token.getDeterminedDeclaration();
       output.println(String.format("mov eax, [eax + %d]", decl.offset));
     }
+    output.println("; END: FieldAccess");
   }
 
   @Override
   public void visit(ArrayAccess token) throws VisitorException {
     super.visit(token);
-    output.println("; ArrayAccess start");
+    output.println("; CODE GENERATION: ArrayAccess");
     if(token.isAccessOnPrimary()) {
       token.primary.traverse(this);
     } else {
@@ -727,12 +743,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("call __exception");
     output.println(label);
     output.println("mov eax, [ebx + eax * 4 + 8]");
-    output.println("; ArrayAccess end");
+    output.println("; END: ArrayAccess");
   }
 
   @Override
   public void visit(MethodInvocation token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: MethodInvocation");
     CodeGenUtils.genPushRegisters(output, true);
     if(token.isOnPrimary()) {
       token.primary.traverse(this);
@@ -779,11 +796,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     CodeGenUtils.genPopRegisters(output, true);
     // eax should have return value
+    output.println("; END: MethodInvocation");
   }
 
   @Override
   public void visit(LeftHandSide token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: LeftHandSide");
     Token child = token.children.get(0);
     if(child instanceof Name) {
       generateNameAccessForReference((Name) child);
@@ -818,6 +837,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(label);
       output.println("lea eax, [ebx + eax * 4 + 8]");
     }
+    output.println("; END: LeftHandSide");
   }
 
   @Override
@@ -829,11 +849,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Assignment token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: Assignment");
     token.leftHandSide.traverse(this);
     output.println("push eax");
     token.assignmentExpression.traverse(this);
     output.println("pop ebx");
     output.println("mov [ebx], eax");
+    output.println("; END: Assignment");
   }
 
   @Override
@@ -876,6 +898,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(CastExpression token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: CastExpression");
     if(token.isArrayCast()) {
       token.children.get(5).traverse(this);
     } else {
@@ -923,6 +946,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
           break;
       }
     }
+    output.println("; END: CastExpression");
   }
 
   @Override
@@ -932,6 +956,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("; UnaryExpression");
       token.exp.traverse(this);
       output.println("neg eax");
+      output.println("; END: UnaryExpression");
     } else {
       token.posExp.traverse(this);
     }
@@ -944,9 +969,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("; UnaryExpressionNotMinus");
       token.unaryExpression.traverse(this);
       output.println("not eax");
+      output.println("; END: UnaryExpressionNotMinus");
     } else if(token.name != null) {
       output.println("; UnaryExpressionNotMinus");
       generateNameAccess(token.name, false);
+      output.println("; END: UnaryExpressionNotMinus");
     } else if(token.primary != null) {
       token.primary.traverse(this);
     } else if(token.castExpression != null) {
@@ -1084,7 +1111,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   private void generateNameAccess(Name name, boolean pushThisOnStackForMethod) {
-    output.println("; generateNameAccess start");
+    output.println("; CODE GENERATION: generateNameAccess");
     boolean thisKeptTrack = false;
     List<Declaration> declarationPaths = name.getDeclarationPath();
     declarationPaths.add(name.getDeterminedDeclaration());
@@ -1174,11 +1201,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if(thisKeptTrack) {
       output.println("push ecx");
     }
-    output.println("; generateNameAccess end");
+    output.println("; END: generateNameAccess");
   }
 
   private void generateNameAccessForReference(Name name) {
-    output.println("; generateNameAccessForReference start");
+    output.println("; CODE GENERATION: generateNameAccessForReference");
     List<Declaration> declarationPaths = name.getDeclarationPath();
     declarationPaths.add(name.getDeterminedDeclaration());
     int startIdx = 0;
@@ -1215,7 +1242,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
     }
 
-    output.println("; generateNameAccessForReference end");
+    output.println("; END: generateNameAccessForReference");
   }
 
   private boolean isTestMethod(MethodDeclaration token) {
@@ -1443,10 +1470,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   private void checkForNull(String register) {
+    output.println("; CODE GENERATION: checkForNull");
     String startLabel = CodeGenUtils.genNextTempLabel();
     output.println(String.format("cmp %s, 0", register));
     output.println(String.format("jne %s", startLabel));
     output.println("call __exception");
     output.println(startLabel);
+    output.println("; END: checkForNull");
   }
 }
