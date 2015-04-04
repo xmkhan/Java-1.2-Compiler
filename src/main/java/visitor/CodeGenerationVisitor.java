@@ -324,21 +324,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     Token literal = token.getLiteral();
 
     if(token.isStringLiteral()) {
-      //TODO: Handle Strings
-      /*
-      +    ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) token.classType.classOrInterfaceType.name.getDeterminedDeclaration();
-      +    ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
-      +    output.println(String.format("mov eax, %d", classDeclaration.classSize));
-      +    output.println("call __malloc");
-      +    // Push "this" on the stack.
-              +    output.println("push eax");
-      +    // For all non-static fields, initialize them before calling the specified constructor.
-              +    for (FieldDeclaration field : classDeclaration.fields) {
-        +      if (!field.containsModifier("static")) {
-          +        visit(field);
-          +      }
-        +    }
-*/
+      constructString(literal.getLexeme());
     } else if(token.isCharLiteral()) {
       char value = token.getLexeme().charAt(0);
       output.println(String.format("mov eax, '%c'", value));
@@ -418,7 +404,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(AdditiveExpression token) throws VisitorException {
     super.visit(token);
-    //TODO: Handle strings
     if(token.isDefined()) {
       output.println("; CODE GENERATION: AdditiveExpression");
       token.leftExpr.traverse(this);
@@ -426,7 +411,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
       token.rightExpr.traverse(this);
       output.println("pop ebx");
       if(token.isAdd()) {
-        output.println("addl eax, ebx");
+        if(token.isLeftString() || token.isRightString()) {
+          output.println("mov ecx, eax");
+          // result of concat will be in eax
+          concat("ebx", "ecx", token);
+        } else {
+          output.println("addl eax, ebx");
+        }
       } else {
         output.println("subl ebx, eax");
         output.println("mov eax, ebx");
@@ -682,6 +673,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if(token.isOnPrimary()) {
       token.primary.traverse(this);
       checkForNull("eax");
+      output.println("push eax");
 
       TypeCheckToken primaryType = token.primary.getDeterminedType();
       if(primaryType.declaration instanceof InterfaceDeclaration) {
@@ -700,7 +692,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       generateNameAccess(token.name, true);
     }
 
-    //eax now points to the method to call and this is on stack if non-static call
+    // eax now points to the method to call and this is on stack set to value if non-static call
+    // this on stack for static but is null
     output.println("mov ebx, eax");
 
     // push arguments - for native assume even though pushed eax still has value
@@ -721,6 +714,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println("pop ebx");
       }
     }
+    // pop this
+    output.println("pop ebx");
 
     CodeGenUtils.genPopRegisters(output, true);
     // eax should have return value
@@ -1146,8 +1141,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
     }
 
-    if(thisKeptTrack) {
-      output.println("push ecx");
+    if(pushThisOnStackForMethod) {
+      if (thisKeptTrack) {
+        output.println("push ecx");
+      } else {
+        output.println("push 0");
+      }
     }
     output.println("; END: generateNameAccess");
   }
@@ -1531,5 +1530,98 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void addComment(String comment) {
     output.println(";" + comment);
+  }
+
+  private void constructString(String value) {
+    constructCharArray(value);
+    output.println("; CODE GENERATION: constructString");
+    CodeGenUtils.genPushRegisters(output, true);
+    output.println("mov ebx, eax");
+    output.println(String.format("mov eax, %d", 8));
+    output.println("call __malloc");
+    // Push "this" on the stack.
+    output.println("push eax");
+    output.println("push ebx");
+    output.println(String.format("mov [eax], %s", "__vtable__java.lang.String"));
+    output.println(String.format("call %s", "java.lang.String.String#char[]"));
+    output.println("pop eax");
+    output.println("pop eax");
+    CodeGenUtils.genPopRegisters(output, true);
+    output.println("; END constructString");
+  }
+
+  private int constructCharArray(String value) {
+    output.println("; CODE GENERATION: constructCharArray");
+    output.println(String.format("mov eax, %d", value.length() * 4 + 8));
+    output.println("call __malloc");
+    // Initialize the array
+    String begin = CodeGenUtils.genUniqueLabel();
+    String end = CodeGenUtils.genUniqueLabel();
+    for (int a = 0; a < value.length(); a++) {
+      output.println(String.format("mov [eax + %d], '%c'", a * 4 + 8, value.charAt(a)));
+    }
+    // Move the address of the vtable as 0th index.
+    output.println("lea [eax], __vtable__char_array");
+    // Move length as 1st index.
+    output.println(String.format("mov [eax + 4], %d", value.length()));
+    output.println("; END constructCharArray");
+    return value.length() * 4 + 8;
+  }
+
+  // Do not use EAX or EDX
+  // Results are in EAX
+  private void concat(String leftRegister, String rightRegister, AdditiveExpression token) {
+    boolean isLeftString = token.isLeftString();
+    boolean isRightString = token.isRightString();
+
+    output.println("; CODE GENERATION: concat");
+    if(!isLeftString || !isRightString) {
+      String registerToConvert = isLeftString ? rightRegister : leftRegister;
+      TypeCheckToken type = isLeftString ? token.rightType : token.leftType;
+      String typeSuffix = type.isPrimitiveType() ? type.tokenType.toString() : "Object";
+
+      // static call
+      methodInvocation("java.lang.String.valueOf#" + typeSuffix, -1, null, registerToConvert);
+
+      // check if toString returned null, if so convert null to null string
+      String label = CodeGenUtils.genNextTempLabel();
+      output.println("cmp eax, 0");
+      output.println(String.format("jne %s", label));
+      methodInvocation("java.lang.String.valueOf#Object", -1, null, "eax");
+      output.println(label);
+      output.println(String.format("mov %s, eax", registerToConvert));
+    }
+
+    List<Token> declarations = this.table.findWithPrefixOfAnyType("java.lang.String.concat", new Class [] {MethodDeclaration.class});
+    int concatMethodId = ((MethodDeclaration) declarations.get(0)).methodId;
+    methodInvocation(null, concatMethodId, leftRegister, rightRegister);
+    output.println("; END: concat");
+  }
+
+  // Uses EDX, make sure to not use this as one of the input registers
+  private void methodInvocation(String methodName, int methodId, String thisRegister, String parameterRegister) {
+    output.println("; CODE GENERATION: CustomMethodInvocation");
+    CodeGenUtils.genPushRegisters(output, true);
+
+    // if null static call, else instance call
+    if(thisRegister == null) {
+      output.println(String.format("mov edx, %s", methodName));
+      output.println("push 0");
+    } else {
+      output.println(String.format("push %s", thisRegister));
+      output.println(String.format("mov edx, [%s]", thisRegister));
+      output.println(String.format("mov edx, [edx + %d]", methodId * 4 + 4));
+    }
+
+    output.println(String.format("push %s", parameterRegister));
+    output.println("call edx");
+
+    // pop off arguments
+    output.println("pop edx");
+    output.println("pop edx");
+
+    CodeGenUtils.genPopRegisters(output, true);
+    // eax should have return value
+    output.println("; END: CustomMethodInvocation");
   }
 }

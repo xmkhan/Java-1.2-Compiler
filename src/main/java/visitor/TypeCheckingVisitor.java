@@ -215,6 +215,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
     TypeCheckToken rightSide = tokenStack.pop();
     TypeCheckToken leftSide = tokenStack.pop();
 
+    token.setLeftType(leftSide);
+    token.setRightType(rightSide);
+
     // These types could be used with the '+' and '-' operators and the result is an int
     TokenType[]  validMinusPlusTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
 
