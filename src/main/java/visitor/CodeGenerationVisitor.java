@@ -546,7 +546,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     addComment("rtn statement " + token.getLexeme());
     // Executed the return expression
     if (token.children.size() == 2) visit(token.children.get(1));
-    output.println("mov esp ebp");
+    output.println("mov esp, ebp");
     output.println("pop ebp");
     output.println("ret");
   }
@@ -943,7 +943,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     addComment("if expression fails, go to this label " + ifLabel);
     if (token.expression != null) token.expression.traverse(this);
 
-    output.println("cmp eax 0");
+    output.println("cmp eax, 0");
     output.println("je " + ifLabel);
 
 
@@ -972,7 +972,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     addComment("for loop expression " + endForLabel);
     if (token.expression != null) token.expression.traverse(this);
 
-    output.println("cmp eax 0");
+    output.println("cmp eax, 0");
     output.println("je " + endForLabel);
 
     addComment("for loop statement " + endForLabel);
@@ -998,7 +998,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.children.get(2) != null) token.children.get(2).traverse(this);
 
     // Jump to end of while loop if expression failed
-    output.println("cmp eax 0");
+    output.println("cmp eax, 0");
     output.println("je " + whileLabel);
 
     // while loop content
