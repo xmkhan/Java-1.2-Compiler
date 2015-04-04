@@ -380,6 +380,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassBodyDeclaration token) throws VisitorException {
     super.visit(token);
+    if (token.declaration instanceof FieldDeclaration) {
+      FieldDeclaration field = (FieldDeclaration) token.declaration;
+      if (field.containsModifier("static")) {
+        field.traverse(this);
+      }
+    } else {
+      token.declaration.traverse(this);
+    }
   }
 
   @Override
@@ -411,6 +419,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassBody token) throws VisitorException {
     super.visit(token);
+    if (token.bodyDeclarations != null) token.bodyDeclarations.traverse(this);
   }
 
   @Override
@@ -502,6 +511,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(TypeDeclaration token) throws VisitorException {
     super.visit(token);
+    if (token.classDeclaration != null) token.classDeclaration.traverse(this);
   }
 
   @Override
@@ -544,7 +554,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("mov eax, __vtable__%s", classDeclaration.getAbsolutePath()));
     output.println(String.format("mov [eax], %d", classDeclaration.classId));
     offset = 0;
+    token.newScope.traverse(this);
     token.body.traverse(this);
+    token.closeScope.traverse(this);
     output.println("mov esp, ebp");
     output.println("pop ebp");
     output.println("ret");
@@ -671,7 +683,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
       paramOffset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
     offset = 0;
+    token.newScope.traverse(this);
     token.methodBody.traverse(this);
+    token.closeScope.traverse(this);
     if (token.methodHeader.isVoid()) {
       output.println("mov esp, ebp");
       output.println("pop ebp");
@@ -763,6 +777,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(CompilationUnit token) throws VisitorException {
     super.visit(token);
     output.println("section .text");
+    if (token.importDeclarations != null) token.importDeclarations.traverse(this);
+    token.typeDeclaration.traverse(this);
   }
 
   @Override
@@ -835,6 +851,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ImportDeclarations token) throws VisitorException {
     super.visit(token);
+    for (ImportDeclaration importDeclaration : token.importDeclarations) {
+      importDeclaration.traverse(this);
+    }
   }
 
   @Override
@@ -894,6 +913,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassBodyDeclarations token) throws VisitorException {
     super.visit(token);
+    for (ClassBodyDeclaration bodyDeclaration : token.bodyDeclarations) {
+      bodyDeclaration.traverse(this);
+    }
   }
 
   @Override
@@ -905,6 +927,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(ClassDeclaration token) throws VisitorException {
     super.visit(token);
     output.println("; CODE GENERATION: ClassDeclaration");
+
+    token.classBody.traverse(this);
 
     // After generating code for the class subtree, at the end we create the vtable entry.
     output.println(String.format("; Generating code for %s vtable", token.getAbsolutePath()));
@@ -1006,6 +1030,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     String forLabel = CodeGenUtils.genNextForStatementLabel();
     String endForLabel = "end#" + forLabel;
 
+    token.newScope.traverse(this);
     if (token.forInit != null) visit(token.forInit);
 
     addComment("for loop start " + forLabel);
@@ -1026,6 +1051,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("jmp " + forLabel);
     addComment("for loop end " + endForLabel);
     output.println(endForLabel);
+    token.closeScope.traverse(this);
   }
 
   private void whileStatementHelper(BaseWhileStatement token) throws VisitorException {
