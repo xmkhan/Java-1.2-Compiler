@@ -43,10 +43,9 @@ public class CodeGenUtils {
       } else {
         for (FormalParameter param : parameters) {
           sb.append('#');
-          sb.append(param.getAbsolutePath());
+          sb.append(param.getTypeString());
         }
       }
-      sb.append(":");
     }
     return sb.toString();
   }
@@ -59,7 +58,7 @@ public class CodeGenUtils {
     sb.append(methodDeclaration.getIdentifier());
     for (FormalParameter parameter : methodDeclaration.getParameters()) {
       sb.append('#');
-      sb.append(parameter.getAbsolutePath());
+      sb.append(parameter.getTypeString());
     }
     if (methodDeclaration.getParameters().isEmpty()) {
       sb.append('#');
@@ -73,7 +72,7 @@ public class CodeGenUtils {
     sb.append(methodDeclaration.getIdentifier());
     for (FormalParameter parameter : methodDeclaration.getParameters()) {
       sb.append('#');
-      sb.append(parameter.getAbsolutePath());
+      sb.append(parameter.getTypeString());
     }
     if (methodDeclaration.getParameters().isEmpty()) {
       sb.append('#');

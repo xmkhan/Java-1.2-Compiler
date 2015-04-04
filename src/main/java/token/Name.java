@@ -75,6 +75,14 @@ public class Name extends Token {
   public Name(ArrayList<Token> children) {
     super(children.get(0).getLexeme(), TokenType.Name, children);
     usedInCast = false;
+
+    for (Token child : children) {
+      if (child instanceof SimpleName) {
+        this.simpleName = (SimpleName) child;
+      } else if (child instanceof QualifiedName) {
+        this.qualifiedName = (QualifiedName) child;
+      }
+    }
   }
 
   @Override

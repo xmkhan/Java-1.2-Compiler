@@ -11,6 +11,9 @@ public abstract class BaseForStatement extends BaseStatement {
   public ForUpdate forUpdate;
   public Expression expression;
 
+  public Token newScope;
+  public Token closeScope;
+
   public BaseForStatement(String lexeme, TokenType tokenType, ArrayList<Token> children) {
     super(lexeme, tokenType, children);
     for (Token token : children) {
@@ -19,6 +22,8 @@ public abstract class BaseForStatement extends BaseStatement {
     // To handle implicit scopes, we explicitly add the scope.
     children.add(0, new Token("{", TokenType.LEFT_BRACE));
     children.add(new Token("}", TokenType.RIGHT_BRACE));
+    newScope = children.get(0);
+    closeScope = children.get(children.size() - 1);
   }
 
   private void assignType(Token token) {
