@@ -5,33 +5,19 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class ForStatementNoShortIf extends BaseStatement {
-
-  public ForInit forInit;
-  public ForUpdate forUpdate;
+public class ForStatementNoShortIf extends BaseForStatement {
   public StatementNoShortIf statement;
-  public Expression expression;
 
   public ForStatementNoShortIf(ArrayList<Token> children) {
     super("", TokenType.ForStatementNoShortIf, children);
     for (Token token : children) {
       assignType(token);
     }
-
-    // To handle implicit scopes, we explicitly add the scope.
-    children.add(0, new Token("{", TokenType.LEFT_BRACE));
-    children.add(new Token("}", TokenType.RIGHT_BRACE));
   }
 
   private void assignType(Token token) {
-    if (token instanceof ForInit) {
-      forInit = (ForInit) token;
-    } else if (token instanceof ForUpdate) {
-      forUpdate = (ForUpdate) token;
-    } else if (token instanceof Statement) {
+    if (token instanceof StatementNoShortIf) {
       statement = (StatementNoShortIf) token;
-    } else if(token instanceof Expression) {
-      expression = (Expression) token;
     }
   }
 
@@ -54,5 +40,10 @@ public class ForStatementNoShortIf extends BaseStatement {
   @Override
   public void traverse(Visitor v) throws VisitorException {
     v.visit(this);
+  }
+
+  @Override
+  public Token getStatement() {
+    return statement;
   }
 }

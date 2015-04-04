@@ -5,10 +5,12 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class IfThenElseStatement extends BaseStatement {
+public class IfThenElseStatement extends BaseIfThenElse {
+  public Statement elseStatement;
 
   public IfThenElseStatement(ArrayList<Token> children) {
     super("", TokenType.IfThenElseStatement, children);
+    elseStatement = (Statement) children.get(6);
   }
 
   @Override
@@ -30,5 +32,10 @@ public class IfThenElseStatement extends BaseStatement {
   @Override
   public void traverse(Visitor v) throws VisitorException {
     v.visit(this);
+  }
+
+  @Override
+  public BaseStatement getElseStatement() {
+    return elseStatement;
   }
 }

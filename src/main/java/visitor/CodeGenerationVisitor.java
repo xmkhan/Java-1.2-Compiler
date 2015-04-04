@@ -12,6 +12,9 @@ import token.ArrayType;
 import token.Assignment;
 import token.AssignmentExpression;
 import token.AssignmentOperator;
+import token.BaseForStatement;
+import token.BaseIfThenElse;
+import token.BaseWhileStatement;
 import token.Block;
 import token.BlockStatement;
 import token.BlockStatements;
@@ -32,7 +35,6 @@ import token.ConditionalOrExpression;
 import token.ConstructorBody;
 import token.ConstructorDeclaration;
 import token.ConstructorDeclarator;
-import token.Declaration;
 import token.EmptyStatement;
 import token.EqualityExpression;
 import token.Expression;
@@ -247,6 +249,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ExpressionStatement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -300,6 +303,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(WhileStatement token) throws VisitorException {
     super.visit(token);
+    whileStatementHelper(token);
   }
 
   @Override
@@ -315,6 +319,16 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(IfThenStatement token) throws VisitorException {
     super.visit(token);
+    String ifLabel = CodeGenUtils.genNextIfStatementLabel();
+
+    visit(token.expression);
+
+    output.println("cmp eax 0");
+    output.println("je " + ifLabel);
+
+    visit(token.statement);
+
+    output.println(String.format("%s:", ifLabel));
   }
 
   @Override
@@ -360,6 +374,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(IfThenElseStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    ifThenElseVisitHelper(token);
   }
 
   @Override
@@ -380,6 +395,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForStatement token) throws VisitorException {
     super.visit(token);
+    forLoopVisitHelper(token);
   }
 
   @Override
@@ -459,6 +475,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(IfThenElseStatement token) throws VisitorException {
     super.visit(token);
+    ifThenElseVisitHelper(token);
   }
 
   @Override
@@ -529,6 +546,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ReturnStatement token) throws VisitorException {
     super.visit(token);
+    addComment("rtn statement " + token.getLexeme());
+    // Executed the return expression
+    if (token.children.size() == 2) visit(token.children.get(1));
+    output.println("mov esp, ebp");
+    output.println("pop ebp");
+    output.println("ret");
   }
 
   @Override
@@ -544,11 +567,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    addComment("StatementNoShortIf " + token.getLexeme());
+    visit(token);
   }
 
   @Override
   public void visit(BlockStatement token) throws VisitorException {
     super.visit(token);
+    addComment("BlockStatement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
@@ -645,6 +672,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(WhileStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    addComment("WhileStatementNoShortIf " + token.getLexeme());
+    whileStatementHelper(token);
   }
 
   @Override
@@ -660,6 +689,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementWithoutTrailingSubstatement token) throws VisitorException {
     super.visit(token);
+    addComment("StatementWithoutTrailingSubstatement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
@@ -675,6 +706,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Statement token) throws VisitorException {
     super.visit(token);
+    addComment("Statement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
@@ -726,6 +759,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(BlockStatements token) throws VisitorException {
     super.visit(token);
+    addComment("BlockStatement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
@@ -736,16 +771,21 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementExpression token) throws VisitorException {
     super.visit(token);
+    addComment("StatementExpression " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
   public void visit(ForInit token) throws VisitorException {
     super.visit(token);
+    visit(token.children.get(0));
   }
 
   @Override
   public void visit(LocalVariableDeclarationStatement token) throws VisitorException {
     super.visit(token);
+    addComment("LocalVariableDeclarationStatement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
@@ -766,6 +806,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Block token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -786,11 +827,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForUpdate token) throws VisitorException {
     super.visit(token);
+    visit(token.children.get(0));
   }
 
   @Override
   public void visit(EmptyStatement token) throws VisitorException {
     super.visit(token);
+    addComment("EmptyStatement " + token.getLexeme());
+    return;
   }
 
   @Override
@@ -867,6 +911,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    addComment("ForStatementNoShortIf " + token.getLexeme());
+    forLoopVisitHelper(token);
   }
 
   @Override
@@ -891,11 +937,97 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.getLexeme().equals("{")) {
       declStack.push(new Stack<LocalVariableDeclaration>());
     } else if (token.getLexeme().equals("}")) {
-      while(!declStack.peek().empty()) {
+      while (!declStack.peek().empty()) {
         LocalVariableDeclaration decl = declStack.peek().pop();
         offset -= CodeGenUtils.getSize(decl.type.getType().getLexeme());
       }
       declStack.pop();
     }
+  }
+
+  private void ifThenElseVisitHelper(BaseIfThenElse token) throws VisitorException {
+    String ifLabel = CodeGenUtils.genNextIfStatementLabel();
+
+    addComment("if expression fails, go to this label " + ifLabel);
+    if (token.expression != null) token.expression.traverse(this);
+
+    output.println("cmp eax, 0");
+    output.println("je " + ifLabel);
+
+
+    addComment("if statement " + ifLabel);
+    visit(token.statementNoShortIf);
+    output.println(String.format("jmp %s", CodeGenUtils.getCurrentElseStmtLabel()));
+
+    // else
+    output.print(ifLabel);
+    visit(token.getElseStatement());
+    if (!(token.getElseStatement() instanceof BaseIfThenElse)) {
+      addComment("escape label for the entire if-else-then " + CodeGenUtils.getCurrentElseStmtLabel());
+      output.println(String.format("%s:", CodeGenUtils.genNextElseStmtLabel()));
+    }
+  }
+
+  private void forLoopVisitHelper(BaseForStatement token) throws VisitorException {
+    String forLabel = CodeGenUtils.genNextForStatementLabel();
+    String endForLabel = "end#" + forLabel;
+
+    if (token.forInit != null) visit(token.forInit);
+
+    addComment("for loop start " + forLabel);
+    output.println(String.format("%s:", forLabel));
+
+    addComment("for loop expression " + endForLabel);
+    if (token.expression != null) token.expression.traverse(this);
+
+    output.println("cmp eax, 0");
+    output.println("je " + endForLabel);
+
+    addComment("for loop statement " + endForLabel);
+    if (token.getStatement() != null) visit(token.getStatement());
+
+    addComment("for loop update " + endForLabel);
+    if (token.forUpdate != null) visit(token.forUpdate);
+
+    output.println("jmp " + forLabel);
+    addComment("for loop end " + endForLabel);
+    output.println(endForLabel);
+  }
+
+  private void whileStatementHelper(BaseWhileStatement token) throws VisitorException {
+    String whileLabel = CodeGenUtils.genNextWhileStmtLabel();
+    String endLabel = "end#" + whileLabel;
+
+    addComment("while loop start " + endLabel);
+    output.println(String.format("%s:", whileLabel));
+
+    addComment("while loop expression " + endLabel);
+    // Test the expression
+    if (token.children.get(2) != null) token.children.get(2).traverse(this);
+
+    // Jump to end of while loop if expression failed
+    output.println("cmp eax, 0");
+    output.println("je " + whileLabel);
+
+    // while loop content
+    addComment("while loop content " + endLabel);
+    visit(token.children.get(4));
+
+    // jump back to expression check
+    output.println("jmp " + whileLabel);
+
+    // end of while loop label; use to exit
+    output.println(endLabel);
+    addComment("while loop end " + endLabel);
+  }
+
+  private void visitEveryChild(Token token) throws VisitorException {
+    for (Token child : token.children) {
+      child.traverse(this);
+    }
+  }
+
+  private void addComment(String comment) {
+    output.println(";" + comment);
   }
 }
