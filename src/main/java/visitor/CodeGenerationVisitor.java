@@ -405,21 +405,17 @@ public class CodeGenerationVisitor extends BaseVisitor {
       token.expr1.traverse(this);
       output.println("push eax");
       token.expr.traverse(this);
-      output.println("pop ebx");
+      output.println("mov ebx, eax");
+      output.println("pop eax");
       if(token.operator.getTokenType().equals(TokenType.MULT_OP)) {
         output.println("imul eax, ebx");
       } else {
         String startLabel = CodeGenUtils.genNextTempLabel();
-        String endLabel = CodeGenUtils.genNextTempLabel();
         output.println("cmp ebx, 0");
         output.println(String.format("jne %s", startLabel));
         output.println("call __exception");
         output.println(startLabel);
-        output.println("mov edx, 0");
-        output.println("cmp eax, 0");
-        output.println(String.format("jge %s", endLabel));
-        output.println("mov edx, -1");
-        output.println(endLabel);
+        output.println("cdq");
         output.println("idiv ebx");
 
         if(token.operator.getTokenType().equals(TokenType.MOD_OP)) {
@@ -428,7 +424,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
       output.println("; END: MultiplicativeExpression");
     } else {
-      token.expr1.traverse(this);
+      token.expr.traverse(this);
     }
   }
 
