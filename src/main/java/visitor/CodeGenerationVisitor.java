@@ -354,6 +354,27 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ImportDeclaration token) throws VisitorException {
     super.visit(token);
+    // General idea: We only fetch "Class" methods and static field labels. This excludes interfaces.
+    List<Token> classWithPrefixes;
+    if (token.isOnDemand()) {
+      classWithPrefixes = table.findWithPrefixOfAnyType(token.getLexeme(), new Class[] {ClassDeclaration.class});
+    } else {
+      classWithPrefixes = table.find(token.getLexeme());
+    }
+    if (classWithPrefixes == null || classWithPrefixes.isEmpty()) {
+      throw new VisitorException("Import Decl code gen, no class found for single import", token);
+    }
+    for (Token clazz : classWithPrefixes) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) clazz;
+      for (MethodDeclaration method : classDeclaration.methods) {
+        output.println(String.format("extern %s", method.getAbsolutePath()));
+      }
+      for (FieldDeclaration field : classDeclaration.fields) {
+        if (field.containsModifier("static")) {
+          output.println(String.format("extern %s", field.getAbsolutePath()));
+        }
+      }
+    }
   }
 
   @Override
