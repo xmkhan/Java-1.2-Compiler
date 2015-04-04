@@ -243,8 +243,8 @@ public class HierarchyChecker {
     if (currentNode.classOrInterface instanceof InterfaceBody) {
       throw new DeadCodeException("interface " + currentNode.getFullname() + " has implemented methods");
     }
-    boolean found = false;
     for (int i = 0; i < implementedMethods.size(); i++) {
+      boolean found = false;
       for (int j = i+1; j < implementedMethods.size(); j++) {
         if (implementedMethods.get(i).signaturesMatch(implementedMethods.get(j)) &&
           !implementedMethods.get(i).returnType.equals(implementedMethods.get(j).returnType) &&
@@ -347,7 +347,7 @@ public class HierarchyChecker {
     }
     if ((currentNode.extendsList.size() == 0 && !currentNode.getFullname().equals(OBJECT_CLASS) &&
       currentNode.classOrInterface instanceof ClassDeclaration) ||
-      (currentNode.children.size() == 0 && currentNode.classOrInterface instanceof InterfaceDeclaration)) {
+      (currentNode.extendsList.size() == 0 && currentNode.classOrInterface instanceof InterfaceDeclaration)) {
 
       currentNode.extendsList.add(hierarchyGraph.get(OBJECT_CLASS));
       hierarchyGraph.get(OBJECT_CLASS).children.add(currentNode);
