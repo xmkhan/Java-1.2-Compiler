@@ -126,6 +126,15 @@ public class CodeGenUtils {
     return 4;
   }
 
+  public static int getActualSize(String type) {
+    if (type.equals("boolean")) return 1;
+    else if (type.equals("int")) return 4;
+    else if (type.equals("char")) return 1;
+    else if (type.equals("byte")) return 1;
+    else if (type.equals("short")) return 2;
+    return 4;
+  }
+
   public static String getReserveSize(int size) {
     switch (size) {
       case 1:

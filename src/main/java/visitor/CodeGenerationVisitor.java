@@ -509,14 +509,47 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if(token.isDefined()) {
       output.println("; RelationalExpression");
       token.leftExpr.traverse(this);
-      output.println("push eax");
-      token.rightExpr.traverse(this);
-      output.println("pop ebx");
-      output.println("mov ecx, eax");
-      output.println("mov eax, 0");
+
       if(token.getOperator().getTokenType().equals(TokenType.INSTANCEOF)) {
-        //TODO: handle instanceof
+        output.println("mov ecx, eax");
+        output.println("mov eax, 0");
+
+        int classId;
+        if(token.referenceType.isReferenceType()) {
+          Declaration decl = token.referenceType.getReferenceName().getDeterminedDeclaration();
+          if(decl instanceof ClassDeclaration) {
+            classId = ((ClassDeclaration) decl).classId;
+          } else {
+            classId = ((InterfaceDeclaration) decl).classId;
+          }
+
+          if(token.referenceType.isArray()) {
+            classId += numUnits;
+          }
+        } else {
+          classId = CodeGenUtils.getArrayPrimitiveClassId(numUnits, token.referenceType.getType().getLexeme());
+        }
+
+        String endLabel = CodeGenUtils.genNextTempLabel();
+        output.println("cmp ecx, 0");
+        output.println(String.format("je %s", endLabel));
+        output.println("mov ecx, [ecx]");
+        output.println("mov ecx, [ecx]");
+        output.println("mul ecx, 4");
+        output.println("add ecx, __subtype_table");
+        output.println("mov ecx, [ecx]");
+        output.println(String.format("mov ecx, [ecx + %d]", classId * 4));
+        output.println("cmp ecx, 0");
+        output.println(String.format("je %s", endLabel));
+        output.println("mov eax, 1");
+        output.println(endLabel);
       } else {
+        output.println("push eax");
+        token.rightExpr.traverse(this);
+        output.println("pop ebx");
+        output.println("mov ecx, eax");
+        output.println("mov eax, 0");
+
         String endLabel = CodeGenUtils.genNextTempLabel();
         output.println("cmp ebx, ecx");
         switch (token.getOperator().getTokenType()) {
@@ -866,9 +899,29 @@ public class CodeGenerationVisitor extends BaseVisitor {
         classId = CodeGenUtils.getArrayPrimitiveClassId(numUnits, token.primitiveType.getType().getLexeme());
       }
 
-      output.println();
+      String endLabel = CodeGenUtils.genNextTempLabel();
+      output.println("cmp eax, 0");
+      output.println(String.format("je %s", endLabel));
+      output.println("mov ebx, [eax]");
+      output.println("mov ebx, [ebx]");
+      output.println("mul ebx, 4");
+      output.println("add ebx, __subtype_table");
+      output.println("mov ebx, [ebx]");
+      output.println(String.format("mov ebx, [ebx + %d]", classId * 4));
+      output.println("cmp ebx, 1");
+      output.println(String.format("je %s", endLabel));
+      output.println("call __exception");
+      output.println(endLabel);
     } else {
-
+      int size = CodeGenUtils.getActualSize(token.primitiveType.getType().getLexeme());
+      switch (size) {
+        case 2:
+          output.println("movs eax, ax");
+          break;
+        case 1:
+          output.println("movs eax, al");
+          break;
+      }
     }
   }
 
