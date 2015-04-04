@@ -427,6 +427,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     CodeGenUtils.genPushRegisters(output);
     token.expression.traverse(this);
     output.println("mov ebx, eax");
+    output.println("lea ebx, [ebx + 2]");
     // Expression should have returned an integer for the size, we add 8 for the vtable_ptr and length.
     output.println("lea eax, [eax * 4 + 8]");
     output.println("call __malloc");
@@ -444,6 +445,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Move the address of the vtable as 0th index.
     output.println(String.format("lea [eax], __vtable__%s_array", vTableName));
     // Move length as 1st index.
+    output.println("lea ebx, [ebx - 2]");
     output.println("mov [eax + 4], ebx");
     CodeGenUtils.genPopRegisters(output);
     output.println("; END ArrayCreationExpression");
