@@ -1,105 +1,8 @@
 package visitor;
 
-import algorithm.base.Pair;
-import exception.TypeCheckingVisitorException;
 import exception.VisitorException;
 import symbol.SymbolTable;
-import token.AbstractMethodDeclaration;
-import token.AdditiveExpression;
-import token.AndExpression;
-import token.ArgumentList;
-import token.ArrayAccess;
-import token.ArrayCreationExpression;
-import token.ArrayType;
-import token.Assignment;
-import token.AssignmentExpression;
-import token.AssignmentOperator;
-import token.Block;
-import token.BlockStatement;
-import token.BlockStatements;
-import token.BooleanLiteral;
-import token.CastExpression;
-import token.CharLiteral;
-import token.ClassBody;
-import token.ClassBodyDeclaration;
-import token.ClassBodyDeclarations;
-import token.ClassDeclaration;
-import token.ClassInstanceCreationExpression;
-import token.ClassMemberDeclaration;
-import token.ClassOrInterfaceType;
-import token.ClassType;
-import token.CompilationUnit;
-import token.ConditionalAndExpression;
-import token.ConditionalOrExpression;
-import token.ConstructorBody;
-import token.ConstructorDeclaration;
-import token.ConstructorDeclarator;
-import token.Declaration;
-import token.EmptyStatement;
-import token.EqualityExpression;
-import token.Expression;
-import token.ExpressionStatement;
-import token.ExtendsInterfaces;
-import token.FieldAccess;
-import token.FieldDeclaration;
-import token.ForInit;
-import token.ForStatement;
-import token.ForStatementNoShortIf;
-import token.ForUpdate;
-import token.FormalParameter;
-import token.FormalParameterList;
-import token.IfThenElseStatement;
-import token.IfThenElseStatementNoShortIf;
-import token.IfThenStatement;
-import token.ImportDeclaration;
-import token.ImportDeclarations;
-import token.InclusiveOrExpression;
-import token.IntLiteral;
-import token.InterfaceBody;
-import token.InterfaceDeclaration;
-import token.InterfaceMemberDeclaration;
-import token.InterfaceMemberDeclarations;
-import token.InterfaceType;
-import token.InterfaceTypeList;
-import token.Interfaces;
-import token.LeftHandSide;
-import token.Literal;
-import token.LocalVariableDeclaration;
-import token.LocalVariableDeclarationStatement;
-import token.MethodBody;
-import token.MethodDeclaration;
-import token.MethodDeclarator;
-import token.MethodHeader;
-import token.MethodInvocation;
-import token.Modifier;
-import token.Modifiers;
-import token.MultiplicativeExpression;
-import token.Name;
-import token.PackageDeclaration;
-import token.Primary;
-import token.PrimitiveType;
-import token.QualifiedName;
-import token.ReferenceType;
-import token.RelationalExpression;
-import token.ReturnStatement;
-import token.SimpleName;
-import token.SingleTypeImportDeclaration;
-import token.Statement;
-import token.StatementExpression;
-import token.StatementNoShortIf;
-import token.StatementWithoutTrailingSubstatement;
-import token.StringLiteral;
-import token.Super;
-import token.Token;
-import token.TokenType;
-import token.Type;
-import token.TypeDeclaration;
-import token.TypeImportOnDemandDeclaration;
-import token.UnaryExpression;
-import token.UnaryExpressionNotMinus;
-import token.VariableDeclarator;
-import token.WhileStatement;
-import token.WhileStatementNoShortIf;
+import token.*;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 import util.CodeGenUtils;
@@ -169,6 +72,22 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output = new PrintStream(new FileOutputStream("output/__program.o"));
     genSubtypeTable();
     genSelectorIndexTable();
+    genPrimitiveArrayVTable();
+    output.println(".section data");
+    output.println("global _start");
+    output.println("_start:");
+    // Initialization code for all static methods.
+    for (CompilationUnit unit : units) {
+      if (unit.typeDeclaration.getDeclaration() instanceof ClassDeclaration) {
+        ClassDeclaration classDeclaration = (ClassDeclaration) unit.typeDeclaration.getDeclaration();
+        for (FieldDeclaration field : classDeclaration.fields) {
+          if (field.containsModifier("static")) {
+            field.traverse(this);
+          }
+        }
+      }
+    }
+    output.println(String.format("call %s", testMainMethod.getAbsolutePath()));
   }
 
   private void genSubtypeTable() {
@@ -216,14 +135,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
       String[] primitiveNames = new String[]{"boolean", "int", "char", "byte", "short"};
       for (int i = 0; i < primitiveNames.length; ++i) {
         String name = primitiveNames[i];
-        output.println(String.format("global __vtable_%s_array", name));
-        output.println(String.format("__vtable_%s_array: dd", name));
+        output.println(String.format("global __vtable__%s_array", name));
+        output.println(String.format("__vtable__%s_array: dd", name));
         output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
         output.println("call __malloc");
-        output.println(String.format("mov __vtable_%s_array, eax", name));
-        output.println(String.format("mov [__vtable_%s_array], %d", name, numUnits + i));
-        for (int j = 1; j < objectDeclaration.methods.size(); ++j) {
-          output.println(String.format("lea [__vtable_%s_array + %d], %s", name, 4 * j,
+        output.println(String.format("mov __vtable__%s_array, eax", name));
+        output.println(String.format("mov [__vtable__%s_array], %d", name, numUnits + i));
+        for (int j = 0; j < objectDeclaration.methods.size(); ++j) {
+          output.println(String.format("lea [__vtable__%s_array + %d], %s", name, 4 * (j+1),
               CodeGenUtils.genLabel(objectDeclaration.methods.get(j))));
         }
       }
@@ -234,6 +153,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ExpressionStatement token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -282,6 +202,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(WhileStatement token) throws VisitorException {
     super.visit(token);
+    whileStatementHelper(token);
   }
 
   @Override
@@ -292,6 +213,16 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(IfThenStatement token) throws VisitorException {
     super.visit(token);
+    String ifLabel = CodeGenUtils.genNextIfStatementLabel();
+
+    visit(token.expression);
+
+    output.println("cmp eax 0");
+    output.println("je " + ifLabel);
+
+    visit(token.statement);
+
+    output.println(String.format("%s:", ifLabel));
   }
 
   @Override
@@ -332,6 +263,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(IfThenElseStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    ifThenElseVisitHelper(token);
   }
 
   @Override
@@ -347,6 +279,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForStatement token) throws VisitorException {
     super.visit(token);
+    forLoopVisitHelper(token);
   }
 
   @Override
@@ -431,11 +364,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(SimpleName token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(IfThenElseStatement token) throws VisitorException {
     super.visit(token);
   }
 
@@ -873,6 +801,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     CodeGenUtils.genPushRegisters(output, true);
     token.expression.traverse(this);
     output.println("mov ebx, eax");
+    output.println("lea ebx, [ebx + 2]");
     // Expression should have returned an integer for the size, we add 8 for the vtable_ptr and length.
     output.println("lea eax, [eax * 4 + 8]");
     output.println("call __malloc");
@@ -888,8 +817,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("jmp %s", begin));
     output.println(String.format("%s:", end));
     // Move the address of the vtable as 0th index.
-    output.println(String.format("lea [eax], __vtable_%s_array", vTableName));
+    output.println(String.format("lea [eax], __vtable__%s_array", vTableName));
     // Move length as 1st index.
+    output.println("lea ebx, [ebx - 2]");
     output.println("mov [eax + 4], ebx");
     CodeGenUtils.genPopRegisters(output, true);
     output.println("; END ArrayCreationExpression");
@@ -899,23 +829,23 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(CastExpression token) throws VisitorException {
     super.visit(token);
     output.println("; CODE GENERATION: CastExpression");
-    if(token.isArrayCast()) {
+    if (token.isArrayCast()) {
       token.children.get(5).traverse(this);
     } else {
       token.children.get(3).traverse(this);
     }
 
-    if(token.isArrayCast() || token.isName()) {
+    if (token.isArrayCast() || token.isName()) {
       int classId;
-      if(token.isName()) {
+      if (token.isName()) {
         Declaration decl = token.name.getDeterminedDeclaration();
-        if(decl instanceof ClassDeclaration) {
+        if (decl instanceof ClassDeclaration) {
           classId = ((ClassDeclaration) decl).classId;
         } else {
           classId = ((InterfaceDeclaration) decl).classId;
         }
 
-        if(token.isArrayCast()) {
+        if (token.isArrayCast()) {
           classId += numUnits;
         }
       } else {
@@ -947,6 +877,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
     }
     output.println("; END: CastExpression");
+  }
+
+  @Override
+  public void visit(IfThenElseStatement token) throws VisitorException {
+    super.visit(token);
+    ifThenElseVisitHelper(token);
   }
 
   @Override
@@ -1015,6 +951,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     offset = 0;
     token.body.traverse(this);
+    output.println("mov esp, ebp");
+    output.println("pop ebp");
+    output.println("ret");
     output.println("; END ConstructorDeclaration");
   }
 
@@ -1037,16 +976,26 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ReturnStatement token) throws VisitorException {
     super.visit(token);
+    addComment("rtn statement " + token.getLexeme());
+    // Executed the return expression
+    if (token.children.size() == 2) visit(token.children.get(1));
+    output.println("mov esp, ebp");
+    output.println("pop ebp");
+    output.println("ret");
   }
 
   @Override
   public void visit(StatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    addComment("StatementNoShortIf " + token.getLexeme());
+    visit(token);
   }
 
   @Override
   public void visit(BlockStatement token) throws VisitorException {
     super.visit(token);
+    addComment("BlockStatement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
@@ -1065,20 +1014,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
     ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) token.classType.classOrInterfaceType.name.getDeterminedDeclaration();
     ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
     CodeGenUtils.genPushRegisters(output, false);
-    if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
-      for (Expression expr : token.argumentList.argumentList) {
-        expr.traverse(this);
-        output.println("push eax");
-      }
-    }
     output.println(String.format("mov eax, %d", classDeclaration.classSize));
     output.println("call __malloc");
     // Push "this" on the stack.
     output.println("push eax");
-    // For all non-static fields, initialize them before calling the specified constructor.
-    for (FieldDeclaration field : classDeclaration.fields) {
-      if (!field.containsModifier("static")) {
-        field.traverse(this);
+    if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
+      for (Expression expr : token.argumentList.argumentList) {
+        expr.traverse(this);
+        output.println("push eax");
       }
     }
     output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
@@ -1107,6 +1050,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     offset = 0;
     token.methodBody.traverse(this);
+    if (token.methodHeader.isVoid()) {
+      output.println("mov esp, ebp");
+      output.println("pop ebp");
+      output.println("ret");
+    }
     output.println("; END MethodDeclaration");
   }
 
@@ -1266,6 +1214,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(WhileStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    addComment("WhileStatementNoShortIf " + token.getLexeme());
+    whileStatementHelper(token);
   }
 
   @Override
@@ -1276,6 +1226,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementWithoutTrailingSubstatement token) throws VisitorException {
     super.visit(token);
+    addComment("StatementWithoutTrailingSubstatement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
@@ -1291,6 +1243,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Statement token) throws VisitorException {
     super.visit(token);
+    addComment("Statement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
@@ -1327,21 +1281,28 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(BlockStatements token) throws VisitorException {
     super.visit(token);
+    addComment("BlockStatement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
   public void visit(StatementExpression token) throws VisitorException {
     super.visit(token);
+    addComment("StatementExpression " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
   public void visit(ForInit token) throws VisitorException {
     super.visit(token);
+    visit(token.children.get(0));
   }
 
   @Override
   public void visit(LocalVariableDeclarationStatement token) throws VisitorException {
     super.visit(token);
+    addComment("LocalVariableDeclarationStatement " + token.getLexeme());
+    visitEveryChild(token);
   }
 
   @Override
@@ -1352,6 +1313,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Block token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
@@ -1367,11 +1329,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForUpdate token) throws VisitorException {
     super.visit(token);
+    visit(token.children.get(0));
   }
 
   @Override
   public void visit(EmptyStatement token) throws VisitorException {
     super.visit(token);
+    addComment("EmptyStatement " + token.getLexeme());
+    return;
   }
 
   @Override
@@ -1406,28 +1371,29 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     // After generating code for the class subtree, at the end we create the vtable entry.
     output.println(String.format("; Generating code for %s vtable", token.getAbsolutePath()));
-    output.println(String.format("global __vtable_%s", token.getAbsolutePath()));
-    output.println(String.format("__vtable_%s: dd", token.getAbsolutePath()));
+    output.println(String.format("global __vtable__%s", token.getAbsolutePath()));
+    output.println(String.format("__vtable__%s: dd", token.getAbsolutePath()));
     output.println(String.format("mov eax, %d", token.vTableSize));
     output.println("call __malloc");
-    output.println(String.format("mov __vtable_%s, eax", token.getAbsolutePath()));
-    output.println(String.format("mov [__vtable_%s], %d", token.getAbsolutePath(), token.classId));
-    for (int i = 1; i < token.methods.size(); ++i) {
+    output.println(String.format("mov __vtable__%s, eax", token.getAbsolutePath()));
+    output.println(String.format("mov [__vtable__%s], %d", token.getAbsolutePath(), token.classId));
+    for (int i = 0; i < token.methods.size(); ++i) {
       output.println(String.format("; Loading address of method decl: %s", token.methods.get(i).getAbsolutePath()));
-      output.println(String.format("lea [__vtable_%s + %d], %s", token.getAbsolutePath(), 4 * i, CodeGenUtils.genLabel(token.methods.get(i))));
+      output.println(String.format("lea [__vtable__%s + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
+          CodeGenUtils.genLabel(token.methods.get(i))));
     }
     // Additionally, we generate the vtable for the Array type.
     if (objectDeclaration != null) {
       output.println(String.format("; Generating code for the %s array vtable", token.getAbsolutePath()));
-      output.println(String.format("global __vtable_%s_array", token.getAbsolutePath()));
-      output.println(String.format("__vtable_%s_array: dd", token.getAbsolutePath()));
+      output.println(String.format("global __vtable__%s_array", token.getAbsolutePath()));
+      output.println(String.format("__vtable__%s_array: dd", token.getAbsolutePath()));
       output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
       output.println("call __malloc");
-      output.println(String.format("mov __vtable_%s_array, eax", token.getAbsolutePath()));
+      output.println(String.format("mov __vtable__%s_array, eax", token.getAbsolutePath()));
 
-      output.println(String.format("mov [__vtable_%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
-      for (int i = 1; i < objectDeclaration.methods.size(); ++i) {
-        output.println(String.format("lea [__vtable_%s_array + %d], %s", token.getAbsolutePath(), 4 * i,
+      output.println(String.format("mov [__vtable__%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
+      for (int i = 0; i < objectDeclaration.methods.size(); ++i) {
+        output.println(String.format("lea [__vtable__%s_array + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
             CodeGenUtils.genLabel(objectDeclaration.methods.get(i))));
       }
     }
@@ -1442,6 +1408,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    addComment("ForStatementNoShortIf " + token.getLexeme());
+    forLoopVisitHelper(token);
   }
 
   @Override
@@ -1461,7 +1429,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.getLexeme().equals("{")) {
       declStack.push(new Stack<LocalVariableDeclaration>());
     } else if (token.getLexeme().equals("}")) {
-      while(!declStack.peek().empty()) {
+      while (!declStack.peek().empty()) {
         LocalVariableDeclaration decl = declStack.peek().pop();
         offset -= CodeGenUtils.getSize(decl.type.getType().getLexeme());
       }
@@ -1477,5 +1445,91 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("call __exception");
     output.println(startLabel);
     output.println("; END: checkForNull");
+  }
+
+  private void ifThenElseVisitHelper(BaseIfThenElse token) throws VisitorException {
+    String ifLabel = CodeGenUtils.genNextIfStatementLabel();
+
+    addComment("if expression fails, go to this label " + ifLabel);
+    if (token.expression != null) token.expression.traverse(this);
+
+    output.println("cmp eax, 0");
+    output.println("je " + ifLabel);
+
+
+    addComment("if statement " + ifLabel);
+    visit(token.statementNoShortIf);
+    output.println(String.format("jmp %s", CodeGenUtils.getCurrentElseStmtLabel()));
+
+    // else
+    output.println(ifLabel);
+    visit(token.getElseStatement());
+    if (!(token.getElseStatement() instanceof BaseIfThenElse)) {
+      addComment("escape label for the entire if-else-then " + CodeGenUtils.getCurrentElseStmtLabel());
+      output.println(String.format("%s:", CodeGenUtils.genNextElseStmtLabel()));
+    }
+  }
+
+  private void forLoopVisitHelper(BaseForStatement token) throws VisitorException {
+    String forLabel = CodeGenUtils.genNextForStatementLabel();
+    String endForLabel = "end#" + forLabel;
+
+    if (token.forInit != null) visit(token.forInit);
+
+    addComment("for loop start " + forLabel);
+    output.println(String.format("%s:", forLabel));
+
+    addComment("for loop expression " + endForLabel);
+    if (token.expression != null) token.expression.traverse(this);
+
+    output.println("cmp eax, 0");
+    output.println("je " + endForLabel);
+
+    addComment("for loop statement " + endForLabel);
+    if (token.getStatement() != null) visit(token.getStatement());
+
+    addComment("for loop update " + endForLabel);
+    if (token.forUpdate != null) visit(token.forUpdate);
+
+    output.println("jmp " + forLabel);
+    addComment("for loop end " + endForLabel);
+    output.println(endForLabel);
+  }
+
+  private void whileStatementHelper(BaseWhileStatement token) throws VisitorException {
+    String whileLabel = CodeGenUtils.genNextWhileStmtLabel();
+    String endLabel = "end#" + whileLabel;
+
+    addComment("while loop start " + endLabel);
+    output.println(String.format("%s:", whileLabel));
+
+    addComment("while loop expression " + endLabel);
+    // Test the expression
+    if (token.children.get(2) != null) token.children.get(2).traverse(this);
+
+    // Jump to end of while loop if expression failed
+    output.println("cmp eax, 0");
+    output.println("je " + whileLabel);
+
+    // while loop content
+    addComment("while loop content " + endLabel);
+    visit(token.children.get(4));
+
+    // jump back to expression check
+    output.println("jmp " + whileLabel);
+
+    // end of while loop label; use to exit
+    output.println(endLabel);
+    addComment("while loop end " + endLabel);
+  }
+
+  private void visitEveryChild(Token token) throws VisitorException {
+    for (Token child : token.children) {
+      child.traverse(this);
+    }
+  }
+
+  private void addComment(String comment) {
+    output.println(";" + comment);
   }
 }

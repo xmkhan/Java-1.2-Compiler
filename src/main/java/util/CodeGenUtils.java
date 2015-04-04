@@ -18,6 +18,9 @@ public class CodeGenUtils {
   public static AtomicInteger ifStatementCount = new AtomicInteger(0);
   public static AtomicInteger tempCount = new AtomicInteger(0);
 
+  public static AtomicInteger elseStatementCount = new AtomicInteger(0);
+  public static AtomicInteger forStatementCount = new AtomicInteger(0);
+  public static AtomicInteger whileStmtCount = new AtomicInteger(0);
 
   public static AtomicInteger labelCounter = new AtomicInteger(0);
 
@@ -80,7 +83,7 @@ public class CodeGenUtils {
   }
 
   /**
-   * Generates a throwaway label to use for handling if-statement jmps.
+   * Generates a throwaway label to use for handling if-elseStatement jmps.
    */
   public static String genNextIfStatementLabel() {
     return String.format("if#%d", ifStatementCount.getAndIncrement());
@@ -91,6 +94,35 @@ public class CodeGenUtils {
 
   public static String genNextTempLabel() {
     return String.format("temp#%d:", tempCount.getAndIncrement());
+  }
+
+  /**
+   * used for jumping to the end of if-else-then statements
+   */
+  public static String getCurrentElseStmtLabel() {
+    return String.format("else#%d", elseStatementCount.get());
+  }
+
+  /**
+   * Use for creating the final else label for exiting
+   * if-else-then statements
+   */
+  public static String genNextElseStmtLabel() {
+    return String.format("else#%d", elseStatementCount.getAndIncrement());
+  }
+
+  /**
+   * Generates a throwaway label to use for handling for-loop jmps.
+   */
+  public static String genNextForStatementLabel() {
+    return String.format("for#%d", forStatementCount.getAndIncrement());
+  }
+
+  /*
+   * Generates a throwaway label to use for handling if-statement jmps.
+   */
+  public static String genNextWhileStmtLabel() {
+    return String.format("while#%d", whileStmtCount.getAndIncrement());
   }
 
   public static void genPushRegisters(PrintStream output, boolean excludeEax) {

@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class WhileStatementNoShortIf extends BaseStatement {
+public class WhileStatementNoShortIf extends BaseWhileStatement {
 
   public WhileStatementNoShortIf(ArrayList<Token> children) {
     super("", TokenType.WhileStatementNoShortIf, children);
