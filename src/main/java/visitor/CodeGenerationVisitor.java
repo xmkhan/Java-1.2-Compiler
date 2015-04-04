@@ -667,7 +667,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     checkForNull("eax");
 
     if(token.primary.getDeterminedType().isArray) {
-      //TODO: length
+      output.println("mov eax, [eax + 4]");
     } else {
       FieldDeclaration decl = (FieldDeclaration) token.getDeterminedDeclaration();
       output.println(String.format("mov eax, [eax + %d]", decl.offset));
@@ -677,6 +677,24 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ArrayAccess token) throws VisitorException {
     super.visit(token);
+    output.println("; ArrayAccess start");
+    if(token.isAccessOnPrimary()) {
+      token.primary.traverse(this);
+    } else {
+      generateNameAccess(token.name, false);
+    }
+
+    checkForNull("eax");
+    String label = CodeGenUtils.genNextTempLabel();
+    output.println("push eax");
+    token.expression.traverse(this);
+    output.println("pop ebx");
+    output.println("cmp eax, [ebx + 4]");
+    output.println(String.format("jl %s", label));
+    output.println("call __exception");
+    output.println(label);
+    output.println("mov eax, [ebx + eax * 4 + 8]");
+    output.println("; ArrayAccess end");
   }
 
   @Override
@@ -698,7 +716,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       } else {
         MethodDeclaration methodDecl = (MethodDeclaration) token.getDeterminedDeclaration();
         output.println("mov eax, [eax]");
-        output.println(String.format("mov eax, [eax + %d]", methodDecl.methodId * 4));
+        output.println(String.format("mov eax, [eax + %d]", methodDecl.methodId * 4 + 4));
       }
     } else {
       generateNameAccess(token.name, true);
@@ -742,13 +760,30 @@ public class CodeGenerationVisitor extends BaseVisitor {
       checkForNull("eax");
 
       if(fieldAccess.primary.getDeterminedType().isArray) {
-        // TODO: Not sure what there is to handle in this case
+        // TODO: catch this earlier
       } else {
         FieldDeclaration decl = (FieldDeclaration) fieldAccess.getDeterminedDeclaration();
         output.println(String.format("lea eax, [eax + %d]", decl.offset));
       }
     } else if(child instanceof ArrayAccess) {
-      //TODO: once done array
+      ArrayAccess arrayAccess = (ArrayAccess) child;
+
+      if(arrayAccess.isAccessOnPrimary()) {
+        arrayAccess.primary.traverse(this);
+      } else {
+        generateNameAccess(arrayAccess.name, false);
+      }
+
+      checkForNull("eax");
+      String label = CodeGenUtils.genNextTempLabel();
+      output.println("push eax");
+      arrayAccess.expression.traverse(this);
+      output.println("pop ebx");
+      output.println("cmp eax, [ebx + 4]");
+      output.println(String.format("jl %s", label));
+      output.println("call __exception");
+      output.println(label);
+      output.println("lea eax, [ebx + eax * 4 + 8]");
     }
   }
 
@@ -780,7 +815,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
 
     output.println("; CODE GENERATION: ArrayCreationExpression");
-    CodeGenUtils.genPushRegisters(output, false);
+    CodeGenUtils.genPushRegisters(output, true);
     token.expression.traverse(this);
     output.println("mov ebx, eax");
     // Expression should have returned an integer for the size, we add 8 for the vtable_ptr and length.
@@ -801,13 +836,40 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("lea [eax], __vtable_%s_array", vTableName));
     // Move length as 1st index.
     output.println("mov [eax + 4], ebx");
-    CodeGenUtils.genPopRegisters(output, false);
+    CodeGenUtils.genPopRegisters(output, true);
     output.println("; END ArrayCreationExpression");
   }
 
   @Override
   public void visit(CastExpression token) throws VisitorException {
     super.visit(token);
+    if(token.isArrayCast()) {
+      token.children.get(5).traverse(this);
+    } else {
+      token.children.get(3).traverse(this);
+    }
+
+    if(token.isArrayCast() || token.isName()) {
+      int classId;
+      if(token.isName()) {
+        Declaration decl = token.name.getDeterminedDeclaration();
+        if(decl instanceof ClassDeclaration) {
+          classId = ((ClassDeclaration) decl).classId;
+        } else {
+          classId = ((InterfaceDeclaration) decl).classId;
+        }
+
+        if(token.isArrayCast()) {
+          classId += numUnits;
+        }
+      } else {
+        classId = CodeGenUtils.getArrayPrimitiveClassId(numUnits, token.primitiveType.getType().getLexeme());
+      }
+
+      output.println();
+    } else {
+
+    }
   }
 
   @Override
@@ -1005,7 +1067,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
             thisKeptTrack = true;
           }
           output.println("mov eax, [eax]");
-          output.println(String.format("mov eax, [eax + %d]", methodDeclaration.methodId * 4));
+          output.println(String.format("mov eax, [eax + %d]", methodDeclaration.methodId * 4 + 4));
         }
       } else if (curr instanceof AbstractMethodDeclaration) {
         AbstractMethodDeclaration methodDeclaration = (AbstractMethodDeclaration) curr;
@@ -1027,6 +1089,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
       checkForNull("eax");
 
       Declaration curr = declarationPaths.get(startIdx);
+
+      // Special case for array.length
+      if(curr == null && startIdx == declarationPaths.size() - 1 && name.getLexeme().endsWith(".length")) {
+        output.println("mov eax, [eax + 4]");
+        continue;
+      }
+
       if(curr instanceof FieldDeclaration) {
         output.println(String.format("mov eax, [eax + %d]", ((FieldDeclaration) curr).offset));
       } else if(curr instanceof MethodDeclaration) {
@@ -1035,7 +1104,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
           thisKeptTrack = true;
         }
         output.println("mov eax, [eax]");
-        output.println(String.format("mov eax, [eax + %d]", ((MethodDeclaration) curr).methodId * 4));
+        output.println(String.format("mov eax, [eax + %d]", ((MethodDeclaration) curr).methodId * 4 + 4));
       } else if(curr instanceof AbstractMethodDeclaration) {
         if(pushThisOnStackForMethod) {
           output.println("mov ecx, eax");

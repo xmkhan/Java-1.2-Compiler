@@ -341,7 +341,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
         if(determinedDecl.type.isArray() && originalPathArr[originalPathArr.length - 1].equals("length") &&
                 originalPathArr[originalPathArr.length - 2].equals(determinedAbsolutePathArr[determinedAbsolutePathArr.length - 1])) {
           tokenStack.push(new TypeCheckToken(TokenType.INT));
-          name.setDeterminedDeclaration(determinedDecl);
+          //TODO: test this out
+          name.setDeterminedDeclaration(null);
 
         } else {
           throw new TypeCheckingVisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);

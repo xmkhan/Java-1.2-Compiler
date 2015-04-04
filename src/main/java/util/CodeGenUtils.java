@@ -138,4 +138,12 @@ public class CodeGenUtils {
     }
   }
 
+  public static int getArrayPrimitiveClassId(int numUnits, String type) {
+    if (type.equals("boolean")) return 2 * numUnits;
+    else if (type.equals("int")) return 2 * numUnits + 1;
+    else if (type.equals("char")) return 2 * numUnits + 2;
+    else if (type.equals("byte")) return 2 * numUnits + 3;
+    else if (type.equals("short")) return 2 * numUnits + 4;
+    return -1;
+  }
 }
