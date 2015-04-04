@@ -448,6 +448,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ReturnStatement token) throws VisitorException {
     super.visit(token);
+    addComment("rtn statement " + token.getLexeme());
     // Executed the return expression
     if (token.children.size() == 2) visit(token.children.get(1));
     output.println("mov esp ebp");
@@ -468,12 +469,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    addComment("StatementNoShortIf " + token.getLexeme());
     visit(token);
   }
 
   @Override
   public void visit(BlockStatement token) throws VisitorException {
     super.visit(token);
+    addComment("BlockStatement " + token.getLexeme());
     visitEveryChild(token);
   }
 
@@ -558,6 +561,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(WhileStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    addComment("WhileStatementNoShortIf " + token.getLexeme());
     whileStatementHelper(token);
   }
 
@@ -574,6 +578,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementWithoutTrailingSubstatement token) throws VisitorException {
     super.visit(token);
+    addComment("StatementWithoutTrailingSubstatement " + token.getLexeme());
     visitEveryChild(token);
   }
 
@@ -590,6 +595,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(Statement token) throws VisitorException {
     super.visit(token);
+    addComment("Statement " + token.getLexeme());
     visitEveryChild(token);
   }
 
@@ -642,6 +648,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(BlockStatements token) throws VisitorException {
     super.visit(token);
+    addComment("BlockStatement " + token.getLexeme());
     visitEveryChild(token);
   }
 
@@ -653,6 +660,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(StatementExpression token) throws VisitorException {
     super.visit(token);
+    addComment("StatementExpression " + token.getLexeme());
     visitEveryChild(token);
   }
 
@@ -665,6 +673,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(LocalVariableDeclarationStatement token) throws VisitorException {
     super.visit(token);
+    addComment("LocalVariableDeclarationStatement " + token.getLexeme());
     visitEveryChild(token);
   }
 
@@ -713,6 +722,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(EmptyStatement token) throws VisitorException {
     super.visit(token);
+    addComment("EmptyStatement " + token.getLexeme());
     return;
   }
 
@@ -769,6 +779,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForStatementNoShortIf token) throws VisitorException {
     super.visit(token);
+    addComment("ForStatementNoShortIf " + token.getLexeme());
     forLoopVisitHelper(token);
   }
 
