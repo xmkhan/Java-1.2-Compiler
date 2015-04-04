@@ -655,7 +655,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Pop off arguments.
     if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
       for (Expression expr : token.argumentList.argumentList) {
-        expr.traverse(this);
         output.println("pop eax");
       }
     }
