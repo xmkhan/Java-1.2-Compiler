@@ -519,6 +519,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
         field.traverse(this);
       }
     }
+    // Set the vtpr and classId
+    output.println(String.format("mov eax, __vtable__%s", classDeclaration.getAbsolutePath()));
+    output.println(String.format("mov [eax], %d", classDeclaration.classId));
     offset = 0;
     token.body.traverse(this);
     output.println("mov esp, ebp");
@@ -608,6 +611,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("call __malloc");
     // Push "this" on the stack.
     output.println("push eax");
+    // Push on arguments.
     if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
       for (Expression expr : token.argumentList.argumentList) {
         expr.traverse(this);
@@ -615,6 +619,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
     }
     output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
+    // Pop off arguments.
+    if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
+      for (Expression expr : token.argumentList.argumentList) {
+        expr.traverse(this);
+        output.println("pop eax");
+      }
+    }
+    // Pop "this" from the stack
+    output.println("pop eax");
     CodeGenUtils.genPopRegisters(output);
     output.println("; END ClassInstanceCreationExpression");
   }

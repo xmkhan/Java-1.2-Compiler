@@ -55,4 +55,14 @@ public class FormalParameter extends Declaration {
   public Token getType() {
     return type != null ? type.getType() : null;
   }
+
+  public String getTypeString() {
+    String prefix;
+    if (type.isPrimitiveType()) {
+      prefix = getType().getLexeme();
+    } else {
+      prefix = type.referenceType.getReferenceName().getAbsolutePath();
+    }
+    return isArray() ? prefix + "[]" : prefix;
+  }
 }
