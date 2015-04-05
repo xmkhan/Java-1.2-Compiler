@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
@@ -28,7 +29,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   // Temporary data structures.
   private int numUnits;
   private int offset;
-  public PrintStream output;
+  private PrintStream output;
+  private HashSet<String> importSet;
   private Stack<Stack<LocalVariableDeclaration>> declStack;
   private MethodDeclaration[][] selectorIndexTable;
   private MethodDeclaration testMainMethod;
@@ -69,6 +71,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     for (CompilationUnit unit : units) {
       output = new PrintStream(new FileOutputStream(String.format("output/%s.s",unit.typeDeclaration.getDeclaration().getIdentifier())));
+      importSet = new HashSet<String>();
       unit.traverse(this);
       output.close();
     }
@@ -268,11 +271,20 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for (Token clazz : classWithPrefixes) {
       ClassDeclaration classDeclaration = (ClassDeclaration) clazz;
       for (MethodDeclaration method : classDeclaration.methods) {
-        output.println(String.format("extern %s", method.getAbsolutePath()));
+        String label = CodeGenUtils.genLabel(method);
+        if (!importSet.contains(label)) {
+          output.println(String.format("extern %s", label));
+          importSet.add(label);
+        }
       }
       for (FieldDeclaration field : classDeclaration.fields) {
         if (field.containsModifier("static")) {
+          String label = CodeGenUtils.genLabel(field);
           output.println(String.format("extern %s", field.getAbsolutePath()));
+          if (!importSet.contains(label)) {
+            output.println(String.format("extern %s", label));
+            importSet.add(label);
+          }
         }
       }
     }
@@ -1366,11 +1378,20 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for (Token javaLangClass : javaLangClasses) {
       ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
       for (MethodDeclaration method : classDeclaration.methods) {
-        output.println(String.format("extern %s", method.getAbsolutePath()));
+        String label = CodeGenUtils.genLabel(method);
+        if (!importSet.contains(label)) {
+          output.println(String.format("extern %s", label));
+          importSet.add(label);
+        }
       }
       for (FieldDeclaration field : classDeclaration.fields) {
         if (field.containsModifier("static")) {
+          String label = CodeGenUtils.genLabel(field);
           output.println(String.format("extern %s", field.getAbsolutePath()));
+          if (!importSet.contains(label)) {
+            output.println(String.format("extern %s", label));
+            importSet.add(label);
+          }
         }
       }
     }
