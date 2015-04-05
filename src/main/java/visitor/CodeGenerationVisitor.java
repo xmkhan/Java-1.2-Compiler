@@ -95,8 +95,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
         }
       }
     }
-    output.println(String.format("extern %s", testMainMethod.getAbsolutePath() + "#void"));
-    output.println(String.format("call %s", testMainMethod.getAbsolutePath() + "#void"));
+    output.println(String.format("extern %s", CodeGenUtils.genLabel(testMainMethod)));
+    output.println(String.format("call %s", CodeGenUtils.genLabel(testMainMethod)));
     output.close();
   }
 
@@ -1135,7 +1135,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       } else if(curr instanceof FieldDeclaration) {
         FieldDeclaration fieldDeclaration = (FieldDeclaration) curr;
         if(fieldDeclaration.containsModifier("static")) {
-          output.println(String.format("mov eax, [%s]", fieldDeclaration.getAbsolutePath()));
+          genUniqueImport(fieldDeclaration);
+          output.println(String.format("mov eax, [%s]", CodeGenUtils.genLabel(fieldDeclaration)));
         } else {
           output.println(String.format("mov eax, [ebp + %d]", thisOffset));
           output.println(String.format("mov eax, [eax + %d]", fieldDeclaration.offset));
@@ -1144,8 +1145,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       } else if (curr instanceof MethodDeclaration) {
         MethodDeclaration methodDeclaration = (MethodDeclaration) curr;
         if(methodDeclaration.methodHeader.containsModifier("static")) {
-          String nativePrefix = methodDeclaration.methodHeader.containsModifier("native") ? "NATIVE" : "";
-          output.println(String.format("mov eax, %s", nativePrefix + CodeGenUtils.genLabel(methodDeclaration)));
+          genUniqueImport(methodDeclaration);
+          output.println(String.format("mov eax, %s", CodeGenUtils.genLabel(methodDeclaration)));
         } else {
           output.println(String.format("mov eax, [ebp + %d]", thisOffset));
           if(pushThisOnStackForMethod) {
@@ -1217,6 +1218,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private void generateNameAccessForReference(Name name) {
     output.println("; CODE GENERATION: generateNameAccessForReference");
     List<Declaration> declarationPaths = name.getDeclarationPath();
+    if(declarationPaths == null) declarationPaths = new ArrayList<Declaration>();
     declarationPaths.add(name.getDeterminedDeclaration());
     int startIdx = 0;
     for (; startIdx < declarationPaths.size(); startIdx++) {
@@ -1232,7 +1234,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       } else if(curr instanceof FieldDeclaration) {
         FieldDeclaration fieldDeclaration = (FieldDeclaration) curr;
         if(fieldDeclaration.containsModifier("static")) {
-          output.println(String.format("lea eax, [%s]", fieldDeclaration.getAbsolutePath()));
+          genUniqueImport(fieldDeclaration);
+          output.println(String.format("lea eax, [%s]", CodeGenUtils.genLabel(fieldDeclaration)));
         } else {
           output.println(String.format("mov eax, [ebp + %d]", thisOffset));
           output.println(String.format("lea eax, [eax + %d]", fieldDeclaration.offset));

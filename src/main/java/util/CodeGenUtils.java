@@ -29,6 +29,11 @@ public class CodeGenUtils {
    */
   public static String genLabel(Declaration declaration) {
     StringBuilder sb = new StringBuilder();
+
+    if(declaration instanceof MethodDeclaration && ((MethodDeclaration) declaration).methodHeader.containsModifier("native")) {
+      sb.append("NATIVE");
+    }
+
     sb.append(declaration.getAbsolutePath());
     if (declaration instanceof MethodDeclaration || declaration instanceof ConstructorDeclaration) {
       List<FormalParameter> parameters;
