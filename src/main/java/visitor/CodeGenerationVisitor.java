@@ -1332,6 +1332,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("extern __malloc");
     output.println("extern __exception");
     output.println("extern NATIVEjava.io.OutputStream.nativeWrite");
+    genUniqueImport("__selector_index_table");
+    genUniqueImport("__subtype_table");
 
     if (token.importDeclarations != null) token.importDeclarations.traverse(this);
     token.typeDeclaration.traverse(this);
