@@ -32,6 +32,8 @@ public class CodeGenUtils {
 
     if(declaration instanceof MethodDeclaration && ((MethodDeclaration) declaration).methodHeader.containsModifier("native")) {
       sb.append("NATIVE");
+      sb.append(declaration.getAbsolutePath());
+      return sb.toString();
     }
 
     sb.append(declaration.getAbsolutePath());

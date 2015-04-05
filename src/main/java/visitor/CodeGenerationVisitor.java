@@ -1059,10 +1059,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(LocalVariableDeclaration token) throws VisitorException {
     super.visit(token);
     output.println("; CODE GENERATION: LocalVariableDeclaration");
+    offset += CodeGenUtils.getSize(token.type.getType().getLexeme());
     token.offset = offset;
     token.expression.traverse(this);
     output.println("push eax");
-    offset += CodeGenUtils.getSize(token.type.getType().getLexeme());
     output.println("; END LocalVariableDeclaration");
   }
 
@@ -1141,6 +1141,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(MethodDeclaration token) throws VisitorException {
     super.visit(token);
+    if(token.methodHeader.modifiers.containsModifier("native")) return;
+
     output.println("; CODE GENERATION: MethodDeclaration");
     // Keep track of test method to generate starting point.
     if (testMainMethod == null && isTestMethod(token)) testMainMethod = token;
@@ -1582,6 +1584,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       while (!declStack.peek().empty()) {
         LocalVariableDeclaration decl = declStack.peek().pop();
         offset -= CodeGenUtils.getSize(decl.type.getType().getLexeme());
+        output.println("pop ebx");
       }
       declStack.pop();
     }

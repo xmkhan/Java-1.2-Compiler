@@ -831,6 +831,11 @@ public class TypeCheckingVisitor extends BaseVisitor {
     Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name == null ? token.identifier : token.name);
     Declaration clazz = symbolTable.getClass(methodDeclaration);
 
+    token.setDeterminedDeclaration(methodDeclaration);
+    if(token.name != null) {
+      token.name.setDeterminedDeclaration(methodDeclaration);
+    }
+
     if (token.name != null && token.name.classifiedType == Name.ClassifiedType.Type &&
       !((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
       throw new TypeCheckingVisitorException("Non static method " + ((MethodDeclaration) methodDeclaration).methodHeader.identifier.getLexeme() +
