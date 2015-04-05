@@ -1413,6 +1413,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ConstructorBody token) throws VisitorException {
     super.visit(token);
+    visitEveryChild(token);
   }
 
   @Override
