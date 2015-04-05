@@ -1728,7 +1728,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if(!isLeftString || !isRightString) {
       String registerToConvert = isLeftString ? rightRegister : leftRegister;
       TypeCheckToken type = isLeftString ? token.rightType : token.leftType;
-      String typeSuffix = type.isPrimitiveType() ? type.tokenType.toString() : "Object";
+      String typeSuffix = type.isPrimitiveType() ? type.tokenType.toString() : "java.lang.Object";
 
       // static call
       genUniqueImport("java.lang.String.valueOf#" + typeSuffix);
@@ -1738,8 +1738,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       String label = CodeGenUtils.genNextTempLabel();
       output.println("cmp eax, 0");
       output.println(String.format("jne %s", label));
-      genUniqueImport("java.lang.String.valueOf#Object");
-      methodInvocation("java.lang.String.valueOf#Object", -1, null, "eax");
+      genUniqueImport("java.lang.String.valueOf#java.lang.Object");
+      methodInvocation("java.lang.String.valueOf#java.lang.Object", -1, null, "eax");
       output.println(label + ":");
       output.println(String.format("mov %s, eax", registerToConvert));
     }
