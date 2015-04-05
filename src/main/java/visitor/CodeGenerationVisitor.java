@@ -1660,7 +1660,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     // Move the address of the vtable as 0th index.
     genUniqueImport("__vtable__char_array");
-    output.println("lea [eax], __vtable__char_array");
+    output.println("mov dword [eax], __vtable__char_array");
     // Move length as 1st index.
     output.println(String.format("mov dword [eax + 4], %d", value.length()));
     output.println("; END constructCharArray");
