@@ -1465,7 +1465,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("__vtable__%s: dd 0", token.getAbsolutePath()));
     output.println(String.format("mov eax, %d", token.vTableSize));
     output.println("call __malloc");
-    output.println(String.format("mov [_vtable__%s], eax", token.getAbsolutePath()));
+    output.println(String.format("mov [__vtable__%s], eax", token.getAbsolutePath()));
     output.println(String.format("mov dword [__vtable__%s], %d", token.getAbsolutePath(), token.classId));
     for (int i = 0; i < token.methods.size(); ++i) {
       output.println(String.format("; Loading address of method decl: %s", token.methods.get(i).getAbsolutePath()));
