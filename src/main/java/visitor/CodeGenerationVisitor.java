@@ -1644,7 +1644,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("push eax");
     output.println("push ebx");
     output.println(String.format("mov dword [eax], %s", "__vtable__java.lang.String"));
-    output.println(String.format("call %s", "java.lang.String.String#char[]"));
+    output.println(String.format("call %s", "java.lang.String.String#char@"));
     output.println("pop eax");
     output.println("pop eax");
     CodeGenUtils.genPopRegisters(output, true);

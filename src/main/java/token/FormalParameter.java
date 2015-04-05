@@ -63,6 +63,6 @@ public class FormalParameter extends Declaration {
     } else {
       prefix = type.referenceType.getReferenceName().getAbsolutePath();
     }
-    return isArray() ? prefix + "[]" : prefix;
+    return isArray() ? prefix + "@" : prefix;
   }
 }
