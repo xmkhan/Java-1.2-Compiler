@@ -160,6 +160,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
   }
 
+  private void genUniqueImport(Declaration declaration) {
+    String label = CodeGenUtils.genLabel(declaration);
+    if (!importSet.contains(label)) {
+      output.println(String.format("extern %s", label));
+      importSet.add(label);
+    }
+  }
+
   @Override
   public void visit(ExpressionStatement token) throws VisitorException {
     super.visit(token);
@@ -274,19 +282,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for (Token clazz : classWithPrefixes) {
       ClassDeclaration classDeclaration = (ClassDeclaration) clazz;
       for (MethodDeclaration method : classDeclaration.methods) {
-        String label = CodeGenUtils.genLabel(method);
-        if (!importSet.contains(label)) {
-          output.println(String.format("extern %s", label));
-          importSet.add(label);
-        }
+        genUniqueImport(method);
       }
       for (FieldDeclaration field : classDeclaration.fields) {
         if (field.containsModifier("static")) {
-          String label = CodeGenUtils.genLabel(field);
-          if (!importSet.contains(label)) {
-            output.println(String.format("extern %s", label));
-            importSet.add(label);
-          }
+          genUniqueImport(field);
         }
       }
     }
@@ -1384,19 +1384,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for (Token javaLangClass : javaLangClasses) {
       ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
       for (MethodDeclaration method : classDeclaration.methods) {
-        String label = CodeGenUtils.genLabel(method);
-        if (!importSet.contains(label)) {
-          output.println(String.format("extern %s", label));
-          importSet.add(label);
-        }
+        genUniqueImport(method);
       }
       for (FieldDeclaration field : classDeclaration.fields) {
         if (field.containsModifier("static")) {
-          String label = CodeGenUtils.genLabel(field);
-          if (!importSet.contains(label)) {
-            output.println(String.format("extern %s", label));
-            importSet.add(label);
-          }
+          genUniqueImport(field);
         }
       }
     }
