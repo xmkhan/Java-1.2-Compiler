@@ -979,10 +979,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       // Call the default constructor for the base class.
       ClassDeclaration baseClass = (ClassDeclaration) node.extendsList.get(0).classOrInterface;
       String baseLabel = String.format("%s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier());
-      if (!importSet.contains(baseLabel)) {
-        output.println(String.format("extern %s", baseLabel));
-        importSet.add(baseLabel);
-      }
+      genUniqueImport(baseLabel);
       output.println(String.format("call %s", baseLabel));
     }
 
@@ -1083,6 +1080,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println("push eax");
       }
     }
+    genUniqueImport(constructorDeclaration);
     output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
     // Pop off arguments.
     if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
