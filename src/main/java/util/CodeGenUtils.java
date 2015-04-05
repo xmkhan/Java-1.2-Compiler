@@ -92,7 +92,7 @@ public class CodeGenUtils {
   }
 
   public static String genNextTempLabel() {
-    return String.format("temp#%d:", tempCount.getAndIncrement());
+    return String.format("temp#%d", tempCount.getAndIncrement());
   }
 
   /**
