@@ -1546,64 +1546,55 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   private void ifThenElseVisitHelper(BaseIfThenElse token) throws VisitorException {
+    output.println("; CODE GENERATION: ifThenElseVisitHelper");
     String ifLabel = CodeGenUtils.genNextIfStatementLabel();
 
-    addComment("if expression fails, go to this label " + ifLabel);
     if (token.expression != null) token.expression.traverse(this);
 
     output.println("cmp eax, 0");
     output.println("je " + ifLabel);
 
-
-    addComment("if statement " + ifLabel);
     visit(token.statementNoShortIf);
     output.println(String.format("jmp %s", CodeGenUtils.getCurrentElseStmtLabel()));
 
     // else
-    output.println(ifLabel);
+    output.println(String.format("%s:", ifLabel));
     visit(token.getElseStatement());
     if (!(token.getElseStatement() instanceof BaseIfThenElse)) {
-      addComment("escape label for the entire if-else-then " + CodeGenUtils.getCurrentElseStmtLabel());
       output.println(String.format("%s:", CodeGenUtils.genNextElseStmtLabel()));
     }
+    output.println("; END: ifThenElseVisitHelper");
   }
 
   private void forLoopVisitHelper(BaseForStatement token) throws VisitorException {
+    output.println("; CODE GENERATION: forLoopVisitHelper");
     String forLabel = CodeGenUtils.genNextForStatementLabel();
     String endForLabel = "end#" + forLabel;
 
     token.newScope.traverse(this);
     if (token.forInit != null) visit(token.forInit);
 
-    addComment("for loop start " + forLabel);
     output.println(String.format("%s:", forLabel));
-
-    addComment("for loop expression " + endForLabel);
     if (token.expression != null) token.expression.traverse(this);
 
     output.println("cmp eax, 0");
     output.println("je " + endForLabel);
 
-    addComment("for loop statement " + endForLabel);
     if (token.getStatement() != null) visit(token.getStatement());
 
-    addComment("for loop update " + endForLabel);
     if (token.forUpdate != null) visit(token.forUpdate);
 
     output.println("jmp " + forLabel);
-    addComment("for loop end " + endForLabel);
-    output.println(endForLabel);
+    output.println(String.format("%s:", endForLabel));
     token.closeScope.traverse(this);
+    output.println("; END: forLoopVisitHelper");
   }
 
   private void whileStatementHelper(BaseWhileStatement token) throws VisitorException {
+    output.println("; CODE GENERATION: whileStatementHelper");
     String whileLabel = CodeGenUtils.genNextWhileStmtLabel();
     String endLabel = "end#" + whileLabel;
-
-    addComment("while loop start " + endLabel);
     output.println(String.format("%s:", whileLabel));
-
-    addComment("while loop expression " + endLabel);
     // Test the expression
     if (token.children.get(2) != null) token.children.get(2).traverse(this);
 
@@ -1612,15 +1603,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("je " + whileLabel);
 
     // while loop content
-    addComment("while loop content " + endLabel);
     visit(token.children.get(4));
-
     // jump back to expression check
     output.println("jmp " + whileLabel);
-
     // end of while loop label; use to exit
-    output.println(endLabel);
-    addComment("while loop end " + endLabel);
+    output.println(String.format("%s:", endLabel));
+    output.println("; END: whileStatementHelper");
   }
 
   private void visitEveryChild(Token token) throws VisitorException {
