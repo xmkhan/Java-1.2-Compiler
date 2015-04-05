@@ -8,9 +8,11 @@ import type.hierarchy.CompilationUnitsToHierarchyGraphConverter;
 import type.hierarchy.HierarchyChecker;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
+import visitor.CodeGenerationVisitor;
 import visitor.DisambiguityVisitor;
 import visitor.EnvironmentBuildingVisitor;
 import visitor.GenericCheckVisitor;
+import visitor.PreliminaryCodeGenerationVisitor;
 import visitor.TypeCheckingVisitor;
 import visitor.ReachabilityVisitor;
 import visitor.SelfAssignmentVisitor;
@@ -71,6 +73,15 @@ public class Main {
 
       SelfAssignmentVisitor selfAssignmentVisitor = new SelfAssignmentVisitor();
       selfAssignmentVisitor.checkSelfAssignment(compilationUnits);
+
+      // 5. Phase 5: Code generation
+      int numInterfaceMethods = environmentVisitor.getInterfaceMethodCount();
+      PreliminaryCodeGenerationVisitor preliminaryVisitor =
+          new PreliminaryCodeGenerationVisitor(graph, numInterfaceMethods);
+      preliminaryVisitor.setupClassMetadata(compilationUnits);
+      CodeGenerationVisitor codeGenerationVisitor =
+          new CodeGenerationVisitor(preliminaryVisitor.exportSubclassTable(), numInterfaceMethods, table, graph);
+      codeGenerationVisitor.generateCode(compilationUnits);
 
     } catch (CompilerException e) {
       e.printStackTrace();
