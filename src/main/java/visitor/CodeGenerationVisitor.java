@@ -77,12 +77,25 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.close();
     }
     output = new PrintStream(new FileOutputStream("output/__program.s"));
+    output.println("section .data");
+    for (CompilationUnit unit : units) {
+      if (unit.typeDeclaration.getDeclaration() instanceof ClassDeclaration) {
+        ClassDeclaration classDeclaration = (ClassDeclaration) unit.typeDeclaration.getDeclaration();
+        for (FieldDeclaration field : classDeclaration.fields) {
+          if (field.containsModifier("static")) {
+            int fieldSize = CodeGenUtils.getSize(field.type.getType().getLexeme());
+            output.println(String.format("global %s", field.getAbsolutePath()));
+            output.println(String.format("%s: %s 0", field.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
+          }
+        }
+      }
+    }
+
     output.println("section .text");
     output.println("extern __malloc");
     genSubtypeTable();
     genSelectorIndexTable();
     genPrimitiveArrayVTable();
-    output.println("section .data");
     output.println("global _start");
     output.println("_start:");
     // Initialization code for all static methods.
@@ -188,10 +201,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(FieldDeclaration token) throws VisitorException {
     super.visit(token);
     output.println("; CODE GENERATION: FieldDeclaration");
-    int fieldSize = CodeGenUtils.getSize(token.type.getType().getLexeme());
     if (token.containsModifier("static")) {
-      output.println(String.format("global %s", token.getAbsolutePath()));
-      output.println(String.format("%s: %s 0", token.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
       if (token.expr != null) token.expr.traverse(this);
       else output.println("mov eax, 0");
       output.println(String.format("mov [%s], eax", token.getAbsolutePath()));
@@ -227,7 +237,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     if (token.children.get(0) instanceof FieldDeclaration) {
       FieldDeclaration field = (FieldDeclaration) token.children.get(0);
-      if (field.containsModifier("static")) {
+      if (!field.containsModifier("static")) {
         field.traverse(this);
       }
     } else {
@@ -971,6 +981,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     String label = CodeGenUtils.genLabel(token);
     output.println(String.format("global %s", label));
     output.println(String.format("%s:", label));
+    output.println("push ebp");
+    output.println("mov ebp, esp");
+
     ClassDeclaration classDeclaration = (ClassDeclaration) table.getClass(token);
     HierarchyGraphNode node = graph.get(classDeclaration.getAbsolutePath());
     List<Token> classTokens = node.getAllBaseClasses();
@@ -1103,6 +1116,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     output.println(String.format("global %s", CodeGenUtils.genLabel(token)));
     output.println(String.format("%s:", CodeGenUtils.genLabel(token)));
+    output.println("push ebp");
+    output.println("mov ebp, esp");
+
     int paramOffset = 8; // Accounts for [ebp, eip] on stack.
     // Setup the offsets for the function parameter offsets.
     List<FormalParameter> parameters = token.getParameters();
