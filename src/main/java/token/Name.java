@@ -19,6 +19,8 @@ public class Name extends Token {
   private List<Declaration> declarationTypes;
   private String absolutePath;
 
+  private Declaration determinedDeclaration;
+
   private boolean usedInCast;
 
   public enum ClassifiedType { Ambiguous, NonStaticExpr, StaticExpr, Type, Package}
@@ -39,6 +41,14 @@ public class Name extends Token {
 
   public void setDeclarationTypes(List<Declaration> declarationTypes) {
     this.declarationTypes = declarationTypes;
+  }
+
+  public Declaration getDeterminedDeclaration() {
+    return determinedDeclaration;
+  }
+
+  public void setDeterminedDeclaration(Declaration declaration) {
+    this.determinedDeclaration = declaration;
   }
 
   public List<Declaration> getDeclarationPath() {
@@ -82,6 +92,11 @@ public class Name extends Token {
 
   @Override
   public void acceptReverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
     v.visit(this);
   }
 

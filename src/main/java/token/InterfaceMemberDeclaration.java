@@ -6,7 +6,7 @@ import visitor.Visitor;
 import java.util.ArrayList;
 
 public class InterfaceMemberDeclaration extends Token {
-  AbstractMethodDeclaration abstractMethodDeclaration;
+  public AbstractMethodDeclaration abstractMethodDeclaration;
 
   public InterfaceMemberDeclaration(ArrayList<Token> children) {
     super("", TokenType.InterfaceMemberDeclaration, children);
@@ -27,6 +27,11 @@ public class InterfaceMemberDeclaration extends Token {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 
   public MethodHeader getMethodHeader() {

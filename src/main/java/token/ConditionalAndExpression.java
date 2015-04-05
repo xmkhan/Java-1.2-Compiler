@@ -7,8 +7,27 @@ import java.util.ArrayList;
 
 public class ConditionalAndExpression extends Token {
 
+  public ConditionalAndExpression leftExpr;
+  public InclusiveOrExpression rightExpr;
+
   public ConditionalAndExpression(ArrayList<Token> children) {
     super("", TokenType.ConditionalAndExpression, children);
+
+    for(Token token : children) {
+      assignType(token);
+    }
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof ConditionalAndExpression) {
+      leftExpr = (ConditionalAndExpression) token;
+    } else if (token instanceof InclusiveOrExpression) {
+      rightExpr = (InclusiveOrExpression) token;
+    }
+  }
+
+  public boolean isDefined() {
+    return leftExpr != null && rightExpr != null;
   }
 
   @Override
@@ -25,5 +44,10 @@ public class ConditionalAndExpression extends Token {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

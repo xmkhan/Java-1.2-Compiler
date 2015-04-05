@@ -27,6 +27,7 @@ public class BlockStatements extends BaseStatement {
     }
   }
 
+  @Override
   public void accept(Visitor v) throws VisitorException {
     for (BlockStatement token : blockStatements) {
       token.accept(v);
@@ -40,5 +41,10 @@ public class BlockStatements extends BaseStatement {
     for (BlockStatement token : blockStatements) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

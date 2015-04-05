@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class ArgumentList extends Token {
 
-  ArrayList<Expression> argumentList;
+  public ArrayList<Expression> argumentList;
 
   public ArgumentList(ArrayList<Token> children) {
     super("", TokenType.ArgumentList, children);
@@ -44,5 +44,10 @@ public class ArgumentList extends Token {
     for (Expression expression : argumentList) {
       expression.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

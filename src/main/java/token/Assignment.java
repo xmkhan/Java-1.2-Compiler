@@ -7,8 +7,22 @@ import java.util.ArrayList;
 
 public class Assignment extends Token {
 
+  public LeftHandSide leftHandSide;
+  public AssignmentExpression assignmentExpression;
+
   public Assignment(ArrayList<Token> children) {
     super("", TokenType.Assignment, children);
+    for (Token token : children) {
+      assignType(token);
+    }
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof LeftHandSide) {
+      leftHandSide = (LeftHandSide) token;
+    } else if (token instanceof AssignmentExpression) {
+      assignmentExpression = (AssignmentExpression) token;
+    }
   }
 
   public void accept(Visitor v) throws VisitorException {
@@ -24,5 +38,10 @@ public class Assignment extends Token {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

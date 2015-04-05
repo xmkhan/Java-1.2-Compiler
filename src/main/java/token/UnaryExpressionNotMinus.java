@@ -7,21 +7,42 @@ import java.util.ArrayList;
 
 public class UnaryExpressionNotMinus extends Token {
 
-
+  public Primary primary;
   public Literal literal;
   public Name name;
+  public UnaryExpression unaryExpression;
+  public CastExpression castExpression;
 
   public UnaryExpressionNotMinus(ArrayList<Token> children) {
     super("", TokenType.UnaryExpressionNotMinus, children);
-    if (isLiteral()) {
-      literal = (Literal) ((Primary) children.get(0)).children.get(0);
-    } else if (children.get(0) instanceof Name) {
-      name = (Name) children.get(0);
+
+    for(Token token : children) {
+      assignType(token);
+    }
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof Primary) {
+      primary = (Primary) token;
+
+      if (isLiteral()) {
+        literal = (Literal) primary.children.get(0);
+      }
+    } else if (token instanceof Name) {
+      name = (Name) token;
+    } else if (token instanceof UnaryExpression) {
+      unaryExpression = (UnaryExpression) token;
+    } else if (token instanceof CastExpression) {
+      castExpression = (CastExpression) token;
     }
   }
 
   public boolean isLiteral() {
     return children.get(0) instanceof Primary && ((Primary) children.get(0)).children.get(0) instanceof Literal;
+  }
+
+  public boolean isNeg() {
+    return children.size() == 2;
   }
 
   @Override
@@ -38,5 +59,10 @@ public class UnaryExpressionNotMinus extends Token {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

@@ -46,6 +46,11 @@ public class Modifiers extends Token {
     v.visit(this);
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public boolean isStatic() {
     for (Modifier modifier : modifiers) {
       if (modifier.getModifier().getTokenType() == TokenType.STATIC) return true;

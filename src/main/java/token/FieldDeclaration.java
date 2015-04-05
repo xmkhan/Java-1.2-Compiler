@@ -11,6 +11,8 @@ public class FieldDeclaration extends Declaration {
   public Expression expr;
   public Token delimiter;
 
+  public int offset = -1;
+
   public FieldDeclaration(ArrayList<Token> children) {
     super("", TokenType.FieldDeclaration, children);
     for (Token token : children) {
@@ -52,5 +54,10 @@ public class FieldDeclaration extends Declaration {
     if (type != null) type.acceptReverse(v);
     if (expr != null) expr.acceptReverse(v);
     v.visit(delimiter);
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

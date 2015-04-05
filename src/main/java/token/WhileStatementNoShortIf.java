@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class WhileStatementNoShortIf extends BaseStatement {
+public class WhileStatementNoShortIf extends BaseWhileStatement {
 
   public WhileStatementNoShortIf(ArrayList<Token> children) {
     super("", TokenType.WhileStatementNoShortIf, children);
@@ -25,5 +25,10 @@ public class WhileStatementNoShortIf extends BaseStatement {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

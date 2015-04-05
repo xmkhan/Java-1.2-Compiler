@@ -29,6 +29,11 @@ public class Modifier extends Token {
   }
 
   @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
+  @Override
   public int hashCode() {
     return modifier.getTokenType().hashCode();
   }

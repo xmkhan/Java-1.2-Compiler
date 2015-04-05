@@ -27,6 +27,11 @@ public class SimpleName extends Token {
     }
   }
 
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
   public Token getIdentifier() {
     return children.get(0);
   }

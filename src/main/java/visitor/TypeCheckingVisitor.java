@@ -219,6 +219,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
     TypeCheckToken rightSide = tokenStack.pop();
     TypeCheckToken leftSide = tokenStack.pop();
 
+    token.setLeftType(leftSide);
+    token.setRightType(rightSide);
+
     // These types could be used with the '+' and '-' operators and the result is an int
     TokenType[]  validMinusPlusTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
 
@@ -313,8 +316,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
   @Override
   public void visit(UnaryExpressionNotMinus token) throws VisitorException {
     super.visit(token);
-    if (token.children.get(0).getTokenType() == TokenType.Primary ||
-      token.children.get(0).getTokenType() == TokenType.CastExpression) return;
+    if (token.children.get(0).getTokenType() == TokenType.Primary) {
+      ((Primary)token.children.get(0)).setDeterminedType(tokenStack.peek());
+    } else if(token.children.get(0).getTokenType() == TokenType.CastExpression) return;
 
     if(token.children.get(0).getTokenType() == TokenType.Name) {
       Name name = (Name) token.children.get(0);
@@ -393,11 +397,15 @@ public class TypeCheckingVisitor extends BaseVisitor {
         if(determinedDecl.type.isArray() && originalPathArr[originalPathArr.length - 1].equals("length") &&
                 originalPathArr[originalPathArr.length - 2].equals(determinedAbsolutePathArr[determinedAbsolutePathArr.length - 1])) {
           tokenStack.push(new TypeCheckToken(TokenType.INT));
-        } else  {
+          //TODO: test this out
+          name.setDeterminedDeclaration(null);
+
+        } else {
           throw new TypeCheckingVisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);
         }
       } else {
         tokenStack.push(new TypeCheckToken(determinedDecl));
+        name.setDeterminedDeclaration(determinedDecl);
       }
     } else if(token.children.size() == 2) {
       // No need to pop since if the type is valid we would've to push it back on the stack anyways
@@ -507,6 +515,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     String constructor = name.getAbsolutePath() + "." + nameParts[nameParts.length - 1];
     List<Token> matchingDeclarations = symbolTable.findWithPrefixOfAnyType(constructor, new Class [] {ConstructorDeclaration.class});
     Declaration constructorDeclaration = matchCall(matchingDeclarations, false, arguments, name);
+    name.setDeterminedDeclaration(constructorDeclaration);
 
     Declaration classDecl = determineDeclaration(name, new Class[]{ClassDeclaration.class});
 
@@ -605,8 +614,10 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
 
       tokenStack.push(new TypeCheckToken(determinedDecalaration, false));
+      name.setDeterminedDeclaration(determinedDecalaration);
     } else {
       TypeCheckToken primaryAccess = tokenStack.pop();
+      token.primary.setDeterminedType(primaryAccess);
 
       if(!primaryAccess.isArray) {
         throw new TypeCheckingVisitorException("Trying to dereference an array with an index: name=" + primaryAccess.tokenType, token);
@@ -631,6 +642,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
     } else {
       Declaration determined = determineDeclaration(token.name, new Class[] {ClassDeclaration.class});
       tokenStack.push(new TypeCheckToken(determined, true));
+      token.name.setDeterminedDeclaration(determined);
     }
   }
 
@@ -638,6 +650,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
   public void visit(FieldAccess token) throws VisitorException {
     super.visit(token);
     TypeCheckToken firstIdentifier = tokenStack.pop();
+    token.primary.setDeterminedType(firstIdentifier);
+
     if (firstIdentifier.isArray) {
       if (token.identifier.getLexeme().equals("length")) {
         tokenStack.push(new TypeCheckToken(TokenType.INT));
@@ -664,6 +678,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       throw new TypeCheckingVisitorException("No field could be resolved for field: " + token.identifier.getLexeme(), token);
     }
     tokenStack.push(new TypeCheckToken((Declaration)potentialFields.get(0)));
+    token.setDeterminedDeclaration((Declaration)potentialFields.get(0));
   }
 
   @Override
@@ -710,6 +725,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
         }
       }
       tokenStack.push(new TypeCheckToken(determinedDecl));
+      name.setDeterminedDeclaration(determinedDecl);
     }
   }
 
@@ -724,6 +740,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       Declaration determinedNameDecl = determineDeclaration(token.name, new Class[]{ClassDeclaration.class,
                                                                                     InterfaceDeclaration.class});
       cast = new TypeCheckToken(determinedNameDecl, token.isArrayCast());
+      token.name.setDeterminedDeclaration(determinedNameDecl);
     }
 
     try {
@@ -771,6 +788,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
     List<Token> matchingDeclarations;
     if(token.isOnPrimary()) {
       TypeCheckToken primary = tokenStack.pop();
+      token.primary.setDeterminedType(primary);
+
       if(primary.tokenType != TokenType.OBJECT) {
         throw new TypeCheckingVisitorException("Expected object when calling method " + token.identifier.getLexeme() + " but found " + primary.tokenType, token);
       }
@@ -787,29 +806,29 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     } else {
       Name name = (Name) token.name;
-      matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class});
+      matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class, AbstractMethodDeclaration.class});
     }
 
     Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name == null ? token.identifier : token.name);
-      Declaration clazz = symbolTable.getClass(methodDeclaration);
+    Declaration clazz = symbolTable.getClass(methodDeclaration);
 
-      if (token.name != null && token.name.classifiedType == Name.ClassifiedType.Type &&
-        !((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
-        throw new TypeCheckingVisitorException("Non static method " + ((MethodDeclaration) methodDeclaration).methodHeader.identifier.getLexeme() +
-          " of class " + clazz.identifier.getLexeme() + " is used as static", token);
+    if (token.name != null && token.name.classifiedType == Name.ClassifiedType.Type &&
+      !((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
+      throw new TypeCheckingVisitorException("Non static method " + ((MethodDeclaration) methodDeclaration).methodHeader.identifier.getLexeme() +
+        " of class " + clazz.identifier.getLexeme() + " is used as static", token);
 
-      } else if (token.name != null && token.name.classifiedType == Name.ClassifiedType.NonStaticExpr &&
-        ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
-        throw new TypeCheckingVisitorException("static method " + ((MethodDeclaration) methodDeclaration).methodHeader.identifier.getLexeme() +
-          " of class " + clazz.identifier.getLexeme() + " is used as non static", token);
-      } else if (token.name != null && token.name.simpleName != null && token.name.classifiedType == Name.ClassifiedType.Ambiguous &&
-        ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
-        throw new TypeCheckingVisitorException("Calls a static method without naming the class. ", token);
-      }
+    } else if (token.name != null && token.name.classifiedType == Name.ClassifiedType.NonStaticExpr &&
+      ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
+      throw new TypeCheckingVisitorException("static method " + ((MethodDeclaration) methodDeclaration).methodHeader.identifier.getLexeme() +
+        " of class " + clazz.identifier.getLexeme() + " is used as non static", token);
+    } else if (token.name != null && token.name.simpleName != null && token.name.classifiedType == Name.ClassifiedType.Ambiguous &&
+      ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
+      throw new TypeCheckingVisitorException("Calls a static method without naming the class. ", token);
+    }
 
-      if (clazz.getAbsolutePath().equals(node.getFullname()) && !((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic() && token.primary == null && token.name.qualifiedName == null) {
-        explicitThisUsedInContext = true;
-      }
+    if (clazz.getAbsolutePath().equals(node.getFullname()) && !((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic() && token.primary == null && token.name.qualifiedName == null) {
+      explicitThisUsedInContext = true;
+    }
 
     if (token.name != null && token.name.getDeclarationPath() != null && token.name.getDeclarationPath().get(token.name.getDeclarationPath().size() - 1).type != null) {
       HierarchyGraphNode parent = hierarchyGraph.get(token.name.getDeclarationPath().get(token.name.getDeclarationPath().size() - 1).type.getType().getLexeme());

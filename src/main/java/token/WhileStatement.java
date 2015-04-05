@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class WhileStatement extends BaseStatement {
+public class WhileStatement extends BaseWhileStatement {
 
   public WhileStatement(ArrayList<Token> children) {
     super("", TokenType.WhileStatement, children);
@@ -25,5 +25,10 @@ public class WhileStatement extends BaseStatement {
     for (Token token : children) {
       token.acceptReverse(v);
     }
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

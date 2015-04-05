@@ -11,6 +11,8 @@ public class InterfaceDeclaration extends Declaration {
   public ExtendsInterfaces extendsInterfaces;
   public InterfaceBody interfaceBody;
 
+  public int classId = -1;
+
   public InterfaceDeclaration(ArrayList<Token> children) {
     super("", TokenType.InterfaceDeclaration, children);
     for (Token token : children) {
@@ -43,5 +45,10 @@ public class InterfaceDeclaration extends Declaration {
     v.visit(this);
     if (interfaceBody != null) interfaceBody.acceptReverse(v);
     if (modifiers != null) modifiers.acceptReverse(v);
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

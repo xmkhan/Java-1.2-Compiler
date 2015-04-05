@@ -11,6 +11,7 @@ public class MethodInvocation extends Token {
   public ArgumentList argumentList;
   public Primary primary;
   public Token identifier;
+  private Declaration determinedDeclaration;
 
   public MethodInvocation(ArrayList<Token> children) {
     super("", TokenType.MethodInvocation, children);
@@ -39,6 +40,14 @@ public class MethodInvocation extends Token {
     return argumentList != null;
   }
 
+  public Declaration getDeterminedDeclaration() {
+    return determinedDeclaration;
+  }
+
+  public void setDeterminedDeclaration(Declaration declaration) {
+    this.determinedDeclaration = declaration;
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     if (name != null) name.accept(v);
@@ -54,5 +63,11 @@ public class MethodInvocation extends Token {
     if (name != null) name.acceptReverse(v);
     if (primary != null) primary.acceptReverse(v);
     if (identifier != null) identifier.acceptReverse(v);
-    if (argumentList != null) argumentList.acceptReverse(v);  }
+    if (argumentList != null) argumentList.acceptReverse(v);
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }

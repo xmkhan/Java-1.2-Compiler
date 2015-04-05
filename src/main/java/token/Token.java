@@ -64,6 +64,13 @@ public class Token {
   }
 
   /**
+   * Allows visitor to control traversal of visitees.
+   */
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
+
+  /**
    * construct an error msg from the location of the token
    */
   public String getErrMsgLocation() {

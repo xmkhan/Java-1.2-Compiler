@@ -37,6 +37,10 @@ public class MethodHeader extends Token {
     return voidType != null;
   }
 
+  public boolean containsModifier(String modifier) {
+    return modifiers != null && modifiers.containsModifier(modifier);
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     v.visit(modifiers);
@@ -51,5 +55,10 @@ public class MethodHeader extends Token {
     v.visit(modifiers);
     if (type != null) type.acceptReverse(v);
     if (paramList != null) paramList.acceptReverse(v);
+  }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
   }
 }

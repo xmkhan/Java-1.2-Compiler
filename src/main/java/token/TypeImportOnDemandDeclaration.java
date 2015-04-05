@@ -26,4 +26,9 @@ public class TypeImportOnDemandDeclaration extends Token {
       token.acceptReverse(v);
     }
   }
+
+  @Override
+  public void traverse(Visitor v) throws VisitorException {
+    v.visit(this);
+  }
 }
