@@ -243,7 +243,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     visit(token.expression);
 
-    output.println("cmp eax 0");
+    output.println("cmp eax, 0");
     output.println("je " + ifLabel);
 
     visit(token.statement);
