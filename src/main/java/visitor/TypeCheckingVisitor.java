@@ -145,11 +145,14 @@ public class TypeCheckingVisitor extends BaseVisitor {
     TypeCheckToken leftSide = tokenStack.pop();
 
     TokenType [] validTypes = {TokenType.BOOLEAN, TokenType.INT, TokenType.CHAR, TokenType.BYTE, TokenType.SHORT};
+    TokenType[]  validUnaryExpressionTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
 
     try {
       if(rightSide.isArray == leftSide.isArray && validType(rightSide.tokenType, validTypes) && rightSide.tokenType == leftSide.tokenType) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
-      }  else if(rightSide.isArray == leftSide.isArray && rightSide.tokenType == TokenType.OBJECT && leftSide.tokenType == TokenType.OBJECT &&
+      } else if(validTypes(leftSide.tokenType, rightSide.tokenType, validUnaryExpressionTypes)) {
+        tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
+      } else if(rightSide.isArray == leftSide.isArray && rightSide.tokenType == TokenType.OBJECT && leftSide.tokenType == TokenType.OBJECT &&
               (leftSide.getAbsolutePath().equals(rightSide.getAbsolutePath()) || hierarchyGraph.areNodesConnected(rightSide.getAbsolutePath(), leftSide.getAbsolutePath()))) {
         tokenStack.push(new TypeCheckToken(TokenType.BOOLEAN));
       } else if (leftSide.tokenType == TokenType.OBJECT && rightSide.tokenType == TokenType.NULL) {
@@ -760,6 +763,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
                                                                                     InterfaceDeclaration.class});
       cast = new TypeCheckToken(determinedNameDecl, token.isArrayCast());
       token.name.setDeterminedDeclaration(determinedNameDecl);
+    } else if(token.isArrayCast()) {
+      cast = new TypeCheckToken(token.primitiveType.getType().getTokenType(), token.isArrayCast());
     }
 
     try {
