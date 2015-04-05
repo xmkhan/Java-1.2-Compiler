@@ -31,6 +31,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private int offset;
   private PrintStream output;
   private HashSet<String> importSet;
+  private ClassDeclaration clazzDecclaration;
   private Stack<Stack<LocalVariableDeclaration>> declStack;
   private MethodDeclaration[][] selectorIndexTable;
   private MethodDeclaration testMainMethod;
@@ -162,6 +163,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void genUniqueImport(Declaration declaration) {
     String label = CodeGenUtils.genLabel(declaration);
+    if (label.startsWith(clazzDecclaration.getAbsolutePath())) return;
+    if (!importSet.contains(label)) {
+      output.println(String.format("extern %s", label));
+      importSet.add(label);
+    }
+  }
+
+  private void genUniqueImport(String label) {
+    if (label.startsWith(clazzDecclaration.getAbsolutePath())) return;
     if (!importSet.contains(label)) {
       output.println(String.format("extern %s", label));
       importSet.add(label);
@@ -855,7 +865,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("jmp %s", begin));
     output.println(String.format("%s:", end));
     // Move the address of the vtable as 0th index.
-    output.println(String.format("lea [eax], __vtable__%s_array", vTableName));
+    output.println(String.format("mov dword [eax], __vtable__%s_array", vTableName));
     // Move length as 1st index.
     output.println("lea ebx, [ebx - 2]");
     output.println("mov [eax + 4], ebx");
@@ -968,10 +978,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       // Call the default constructor for the base class.
       ClassDeclaration baseClass = (ClassDeclaration) node.extendsList.get(0).classOrInterface;
       String baseLabel = String.format("%s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier());
-      if (!importSet.contains(baseLabel)) {
-        output.println(String.format("extern %s", baseLabel));
-        importSet.add(baseLabel);
-      }
+      genUniqueImport(baseLabel);
       output.println(String.format("call %s", baseLabel));
     }
 
@@ -1072,6 +1079,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println("push eax");
       }
     }
+
+    genUniqueImport(constructorDeclaration);
     output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
     // Pop off arguments.
     if (token.argumentList != null && !token.argumentList.argumentList.isEmpty()) {
@@ -1457,8 +1466,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassDeclaration token) throws VisitorException {
     super.visit(token);
+    clazzDecclaration = token;
     output.println("; CODE GENERATION: ClassDeclaration");
-
     token.classBody.traverse(this);
 
     // After generating code for the class subtree, at the end we create the vtable entry.
@@ -1625,7 +1634,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Push "this" on the stack.
     output.println("push eax");
     output.println("push ebx");
+    if (!clazzDecclaration.getAbsolutePath().equals("java.lang.String")) {
+      genUniqueImport("__vtable__java.lang.String");
+    }
     output.println(String.format("mov dword [eax], %s", "__vtable__java.lang.String"));
+    genUniqueImport("java.lang.String.String#char@");
     output.println(String.format("call %s", "java.lang.String.String#char@"));
     output.println("pop eax");
     output.println("pop eax");
@@ -1644,7 +1657,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("mov dword [eax + %d], '%c'", a * 4 + 8, value.charAt(a)));
     }
     // Move the address of the vtable as 0th index.
-    output.println("lea [eax], __vtable__char_array");
+    genUniqueImport("__vtable__char_array");
+    output.println("mov dword [eax], __vtable__char_array");
     // Move length as 1st index.
     output.println(String.format("mov dword [eax + 4], %d", value.length()));
     output.println("; END constructCharArray");
@@ -1664,12 +1678,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
       String typeSuffix = type.isPrimitiveType() ? type.tokenType.toString() : "Object";
 
       // static call
+      genUniqueImport("java.lang.String.valueOf#" + typeSuffix);
       methodInvocation("java.lang.String.valueOf#" + typeSuffix, -1, null, registerToConvert);
 
       // check if toString returned null, if so convert null to null string
       String label = CodeGenUtils.genNextTempLabel();
       output.println("cmp eax, 0");
       output.println(String.format("jne %s", label));
+      genUniqueImport("java.lang.String.valueOf#Object");
       methodInvocation("java.lang.String.valueOf#Object", -1, null, "eax");
       output.println(label + ":");
       output.println(String.format("mov %s, eax", registerToConvert));
