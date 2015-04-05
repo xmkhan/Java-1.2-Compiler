@@ -865,7 +865,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("jmp %s", begin));
     output.println(String.format("%s:", end));
     // Move the address of the vtable as 0th index.
-    output.println(String.format("lea [eax], __vtable__%s_array", vTableName));
+    output.println(String.format("mov dword [eax], __vtable__%s_array", vTableName));
     // Move length as 1st index.
     output.println("lea ebx, [ebx - 2]");
     output.println("mov [eax + 4], ebx");
