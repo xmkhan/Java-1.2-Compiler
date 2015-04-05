@@ -415,7 +415,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println("cmp ebx, 0");
         output.println(String.format("jne %s", startLabel));
         output.println("call __exception");
-        output.println(startLabel);
+        output.println(startLabel + ":");
         output.println("cdq");
         output.println("idiv ebx");
 
@@ -495,7 +495,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println("cmp ecx, 0");
         output.println(String.format("je %s", endLabel));
         output.println("mov eax, 1");
-        output.println(endLabel);
+        output.println(endLabel + ":");
       } else {
         output.println("push eax");
         token.rightExpr.traverse(this);
@@ -520,7 +520,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
             break;
         }
         output.println("mov eax, 1");
-        output.println(endLabel);
+        output.println(endLabel + ":");
       }
       output.println("; END: RelationalExpression");
     } else {
@@ -548,7 +548,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println(String.format("je %s", endLabel));
       }
       output.println("mov eax, 1");
-      output.println(endLabel);
+      output.println(endLabel + ":");
       output.println("; END: EqualityExpression");
     } else {
       token.rightExpr.traverse(this);
@@ -572,7 +572,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 //      output.println("cmp ebx, 2");
 //      output.println(String.format("jne %s", endLabel));
 //      output.println("mov eax, 1");
-//      output.println(endLabel);
+//      output.println(endLabel + ":");
       output.println("; END: AndExpression");
     } else {
       token.rightExpr.traverse(this);
@@ -595,7 +595,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 //      output.println("cmp eax, 2");
 //      output.println(String.format("jne %s", endLabel));
 //      output.println("mov eax, 1");
-//      output.println(endLabel);
+//      output.println(endLabel + ":");
       output.println("; END: InclusiveOrExpression");
     } else {
       token.rightExpr.traverse(this);
@@ -613,7 +613,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("cmp eax, 1");
       output.println(String.format("je %s", endLabel));
       token.rightExpr.traverse(this);
-      output.println(endLabel);
+      output.println(endLabel + ":");
       output.println("; END: ConditionalOrExpression");
     } else {
       token.rightExpr.traverse(this);
@@ -631,7 +631,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("cmp eax, 0");
       output.println(String.format("je %s", endLabel));
       token.rightExpr.traverse(this);
-      output.println(endLabel);
+      output.println(endLabel + ":");
       output.println("; END: ConditionalAndExpression");
     } else {
       token.rightExpr.traverse(this);
@@ -688,7 +688,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("cmp eax, [ebx + 4]");
     output.println(String.format("jl %s", label));
     output.println("call __exception");
-    output.println(label);
+    output.println(label + ":");
     output.println("mov eax, [ebx + eax * 4 + 8]");
     output.println("; END: ArrayAccess");
   }
@@ -785,7 +785,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("cmp eax, [ebx + 4]");
       output.println(String.format("jl %s", label));
       output.println("call __exception");
-      output.println(label);
+      output.println(label + ":");
       output.println("lea eax, [ebx + eax * 4 + 8]");
     }
     output.println("; END: LeftHandSide");
@@ -887,7 +887,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("cmp ebx, 1");
       output.println(String.format("je %s", endLabel));
       output.println("call __exception");
-      output.println(endLabel);
+      output.println(endLabel + ":");
     } else {
       int size = CodeGenUtils.getActualSize(token.primitiveType.getType().getLexeme());
       switch (size) {
@@ -1496,7 +1496,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("cmp %s, 0", register));
     output.println(String.format("jne %s", startLabel));
     output.println("call __exception");
-    output.println(startLabel);
+    output.println(startLabel + ":");
     output.println("; END: checkForNull");
   }
 
@@ -1644,7 +1644,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("cmp eax, 0");
       output.println(String.format("jne %s", label));
       methodInvocation("java.lang.String.valueOf#Object", -1, null, "eax");
-      output.println(label);
+      output.println(label + ":");
       output.println(String.format("mov %s, eax", registerToConvert));
     }
 
