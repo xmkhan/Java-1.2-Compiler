@@ -448,10 +448,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
           // result of concat will be in eax
           concat("ebx", "ecx", token);
         } else {
-          output.println("addl eax, ebx");
+          output.println("add eax, ebx");
         }
       } else {
-        output.println("subl ebx, eax");
+        output.println("sub ebx, eax");
         output.println("mov eax, ebx");
       }
       output.println("; END: AdditiveExpression");
@@ -545,7 +545,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("pop ebx");
       output.println("mov ecx, eax");
       output.println("mov eax, 0");
-      output.println("cmpl ebx, ecx");
+      output.println("cmp ebx, ecx");
       if (token.isEqualCheck()) {
         output.println(String.format("jne %s", endLabel));
       } else {
@@ -1087,7 +1087,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       param.offset = paramOffset;
       paramOffset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
-    thisOffset = token.methodHeader.modifiers.containsModifier("static") ? paramOffset : 0;
+    thisOffset = !token.methodHeader.modifiers.containsModifier("static") ? paramOffset : 0;
 
     offset = 0;
     token.newScope.traverse(this);
