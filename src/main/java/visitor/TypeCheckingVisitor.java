@@ -198,6 +198,12 @@ public class TypeCheckingVisitor extends BaseVisitor {
       } catch (TypeHierarchyException e) {
         throw new TypeCheckingVisitorException(e.getMessage(), token);
       }
+
+      if(reference.isReferenceType()) {
+        Declaration determinedNameDecl = determineDeclaration(token.referenceType.getReferenceName(), new Class[]{ClassDeclaration.class,
+                                                                                                                  InterfaceDeclaration.class});
+        reference.getReferenceName().setDeterminedDeclaration(determinedNameDecl);
+      }
     } else {
       TypeCheckToken rightType = tokenStack.pop();
       TypeCheckToken leftType = tokenStack.pop();
