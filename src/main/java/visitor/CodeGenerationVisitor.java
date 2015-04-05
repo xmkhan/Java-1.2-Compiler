@@ -38,6 +38,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private int thisOffset;
   private ClassDeclaration objectDeclaration;
 
+  // Static fields.
+  private static String[] primitiveNames = new String[]{"boolean", "int", "char", "byte", "short"};
+
   public CodeGenerationVisitor(boolean[][] subclassTable, int numInterfaceMethods, SymbolTable table, HierarchyGraph graph) {
     this.subclassTable = subclassTable;
     this.numInterfaceMethods = numInterfaceMethods;
@@ -179,7 +182,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   private void declarePrimitiveArrayVTable() {
-    String[] primitiveNames = new String[]{"boolean", "int", "char", "byte", "short"};
     for (String name : primitiveNames) {
       output.println(String.format("global __vtable__%s_array", name));
       output.println(String.format("__vtable__%s_array: dd 0", name));
@@ -189,13 +191,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private void genPrimitiveArrayVTable() {
     if (objectDeclaration != null) {
       output.println("; CODE GENERATION: genPrimitiveArrayVTable");
-      String[] primitiveNames = new String[]{"boolean", "int", "char", "byte", "short"};
       for (int i = 0; i < primitiveNames.length; ++i) {
         String name = primitiveNames[i];
         output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
         output.println("call __malloc");
         output.println(String.format("mov [__vtable__%s_array], eax", name));
-        output.println(String.format("mov dword [__vtable__%s_array], %d", name, numUnits + i));
+        output.println(String.format("mov dword [__vtable__%s_array], %d", name, 2 * numUnits + i));
         for (int j = 0; j < objectDeclaration.methods.size(); ++j) {
           output.println(String.format("lea [__vtable__%s_array + %d], %s", name, 4 * (j+1),
               CodeGenUtils.genLabel(objectDeclaration.methods.get(j))));
@@ -1521,8 +1522,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     clazzDecclaration = token;
     output.println("; CODE GENERATION: ClassDeclaration");
     // Declare vtable and array vtable.
-    output.println(String.format("extern __vtable__%s", token.getAbsolutePath()));
-    output.println(String.format("extern __vtable__%s_array", token.getAbsolutePath()));
+    genUniqueImport(String.format("__vtable__%s", token.getAbsolutePath()));
+    genUniqueImport(String.format("__vtable__%s_array", token.getAbsolutePath()));
+    for (String primtiveName : primitiveNames) {
+      genUniqueImport(String.format("__vtable__%s_array", primtiveName));
+    }
 
     token.classBody.traverse(this);
 
@@ -1624,23 +1628,17 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void forLoopVisitHelper(BaseForStatement token) throws VisitorException {
     output.println("; CODE GENERATION: forLoopVisitHelper");
-    String forLabel = CodeGenUtils.genNextForStatementLabel();
-    String endForLabel = "end#" + forLabel;
-
+    String startLabel = CodeGenUtils.genNextForStatementLabel();
+    String endForLabel = "end#" + startLabel;
     token.newScope.traverse(this);
     if (token.forInit != null) visit(token.forInit);
-
-    output.println(String.format("%s:", forLabel));
+    output.println(String.format("%s:", startLabel));
     if (token.expression != null) token.expression.traverse(this);
-
     output.println("cmp eax, 0");
-    output.println("je " + endForLabel);
-
+    output.println(String.format("je %s", endForLabel));
     if (token.getStatement() != null) visit(token.getStatement());
-
     if (token.forUpdate != null) visit(token.forUpdate);
-
-    output.println("jmp " + forLabel);
+    output.println("jmp " + startLabel);
     output.println(String.format("%s:", endForLabel));
     token.closeScope.traverse(this);
     output.println("; END: forLoopVisitHelper");
@@ -1648,21 +1646,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void whileStatementHelper(BaseWhileStatement token) throws VisitorException {
     output.println("; CODE GENERATION: whileStatementHelper");
-    String whileLabel = CodeGenUtils.genNextWhileStmtLabel();
-    String endLabel = "end#" + whileLabel;
-    output.println(String.format("%s:", whileLabel));
-    // Test the expression
+    String startLabel = CodeGenUtils.genNextWhileStmtLabel();
+    String endLabel = "end#" + startLabel;
+    output.println(String.format("%s:", startLabel));
     if (token.children.get(2) != null) token.children.get(2).traverse(this);
-
-    // Jump to end of while loop if expression failed
     output.println("cmp eax, 0");
-    output.println("je " + whileLabel);
-
-    // while loop content
+    output.println(String.format("je %s", endLabel));
     visit(token.children.get(4));
-    // jump back to expression check
-    output.println("jmp " + whileLabel);
-    // end of while loop label; use to exit
+    output.println(String.format("jmp %s", startLabel));
     output.println(String.format("%s:", endLabel));
     output.println("; END: whileStatementHelper");
   }

@@ -56,7 +56,6 @@ public class DisambiguityVisitor extends VariableScopeVisitor {
     try {
       resolutionAlgm.resolveName(unit, token);
     } catch (VariableNameResolutionException e) {
-      e.printStackTrace();
       throw new DisambiguityVisitorException(e.getMessage(), token);
     }
   }
