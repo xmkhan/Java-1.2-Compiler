@@ -63,6 +63,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
         break;
       case INT_LITERAL:
         literalToken = new TypeCheckToken(TokenType.INT);
+        literalToken.isIntLiteral = true;
         break;
       case BooleanLiteral:
         literalToken = new TypeCheckToken(TokenType.BOOLEAN);
@@ -276,14 +277,26 @@ public class TypeCheckingVisitor extends BaseVisitor {
     super.visit(token);
     if (token.children.size() == 1) return;
 
-    TokenType type = tokenStack.peek().tokenType;
+    TypeCheckToken typeCheck = tokenStack.peek();
+    TokenType type = typeCheck.tokenType;
     TokenType[]  validUnaryExpressionTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
 
-    assertNotArray(token, tokenStack.peek(), OperandSide.RIGHT, token.children.get(0).getLexeme());
+    assertNotArray(token, typeCheck, OperandSide.RIGHT, token.children.get(0).getLexeme());
     if (!validType(type, validUnaryExpressionTypes)) {
       throw new TypeCheckingVisitorException("Unary operator '- UnaryExpression' was expecting UnaryExpression to be of type short|int|byte|char but found " + type, token);
     } else {
       // we just peeked the stack so no need to push the type back on the stack again
+      if(typeCheck.isIntLiteral && token.children.size() == 2) {
+        if(token.exp.posExp != null && token.exp.posExp.primary != null && token.exp.posExp.primary.children.get(0) instanceof Literal) {
+          token.posExp = token.exp.posExp;
+          token.exp = null;
+          token.minus = null;
+          Literal literal = (Literal) token.posExp.primary.children.get(0);
+          String value = literal.getLiteral().getLexeme();
+          literal.getLiteral().setLexeme("-" + value);
+          literal.setLexeme("-" + value);
+        }
+      }
     }
   }
 

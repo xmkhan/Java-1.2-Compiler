@@ -40,6 +40,10 @@ public class Token {
     return lexeme;
   }
 
+  public void setLexeme(String lexeme) {
+    this.lexeme = lexeme;
+  }
+
   /**
    * Get the underlying tokenType type.
    */
