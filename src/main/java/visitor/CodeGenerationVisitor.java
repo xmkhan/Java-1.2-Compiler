@@ -971,7 +971,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (!node.extendsList.isEmpty()) {
       // Call the default constructor for the base class.
       ClassDeclaration baseClass = (ClassDeclaration) node.extendsList.get(0).classOrInterface;
-      output.println(String.format("call %s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier()));
+      String baseLabel = String.format("%s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier());
+      if (!importSet.contains(baseLabel)) {
+        output.println(String.format("extern %s", baseLabel));
+        importSet.add(baseLabel);
+      }
+      output.println(String.format("call %s", baseLabel));
     }
 
     int paramOffset = 8; // Accounts for [ebp, eip] on stack.
