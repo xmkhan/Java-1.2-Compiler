@@ -128,6 +128,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     output.println(String.format("extern %s", CodeGenUtils.genLabel(testMainMethod)));
     output.println(String.format("call %s", CodeGenUtils.genLabel(testMainMethod)));
+    output.println("mov ebx, eax");
+    output.println("mov eax, 1");
+    output.println("int 0x80");
     output.close();
   }
 
