@@ -2,104 +2,7 @@ package visitor;
 
 import exception.VisitorException;
 import symbol.SymbolTable;
-import token.AbstractMethodDeclaration;
-import token.AdditiveExpression;
-import token.AndExpression;
-import token.ArgumentList;
-import token.ArrayAccess;
-import token.ArrayCreationExpression;
-import token.ArrayType;
-import token.Assignment;
-import token.AssignmentExpression;
-import token.AssignmentOperator;
-import token.BaseForStatement;
-import token.BaseIfThenElse;
-import token.BaseWhileStatement;
-import token.Block;
-import token.BlockStatement;
-import token.BlockStatements;
-import token.BooleanLiteral;
-import token.CastExpression;
-import token.CharLiteral;
-import token.ClassBody;
-import token.ClassBodyDeclaration;
-import token.ClassBodyDeclarations;
-import token.ClassDeclaration;
-import token.ClassInstanceCreationExpression;
-import token.ClassMemberDeclaration;
-import token.ClassOrInterfaceType;
-import token.ClassType;
-import token.CompilationUnit;
-import token.ConditionalAndExpression;
-import token.ConditionalOrExpression;
-import token.ConstructorBody;
-import token.ConstructorDeclaration;
-import token.ConstructorDeclarator;
-import token.EmptyStatement;
-import token.EqualityExpression;
-import token.Expression;
-import token.ExpressionStatement;
-import token.ExtendsInterfaces;
-import token.FieldAccess;
-import token.FieldDeclaration;
-import token.ForInit;
-import token.ForStatement;
-import token.ForStatementNoShortIf;
-import token.ForUpdate;
-import token.FormalParameter;
-import token.FormalParameterList;
-import token.IfThenElseStatement;
-import token.IfThenElseStatementNoShortIf;
-import token.IfThenStatement;
-import token.ImportDeclaration;
-import token.ImportDeclarations;
-import token.InclusiveOrExpression;
-import token.IntLiteral;
-import token.InterfaceBody;
-import token.InterfaceDeclaration;
-import token.InterfaceMemberDeclaration;
-import token.InterfaceMemberDeclarations;
-import token.InterfaceType;
-import token.InterfaceTypeList;
-import token.Interfaces;
-import token.LeftHandSide;
-import token.Literal;
-import token.LocalVariableDeclaration;
-import token.LocalVariableDeclarationStatement;
-import token.MethodBody;
-import token.MethodDeclaration;
-import token.MethodDeclarator;
-import token.MethodHeader;
-import token.MethodInvocation;
-import token.Modifier;
-import token.Modifiers;
-import token.MultiplicativeExpression;
-import token.Name;
-import token.PackageDeclaration;
-import token.Primary;
-import token.PrimitiveType;
-import token.QualifiedName;
-import token.ReferenceType;
-import token.RelationalExpression;
-import token.ReturnStatement;
-import token.SimpleName;
-import token.SingleTypeImportDeclaration;
-import token.Statement;
-import token.StatementExpression;
-import token.StatementNoShortIf;
-import token.StatementWithoutTrailingSubstatement;
-import token.StringLiteral;
-import token.Super;
-import token.Token;
-import token.TokenType;
-import token.Type;
-import token.TypeDeclaration;
-import token.TypeImportOnDemandDeclaration;
-import token.UnaryExpression;
-import token.UnaryExpressionNotMinus;
-import token.VariableDeclarator;
-import token.WhileStatement;
-import token.WhileStatementNoShortIf;
+import token.*;
 import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 import util.CodeGenUtils;
@@ -128,6 +31,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private Stack<Stack<LocalVariableDeclaration>> declStack;
   private MethodDeclaration[][] selectorIndexTable;
   private MethodDeclaration testMainMethod;
+  private int thisOffset;
   private ClassDeclaration objectDeclaration;
 
   public CodeGenerationVisitor(boolean[][] subclassTable, int numInterfaceMethods, SymbolTable table, HierarchyGraph graph) {
@@ -286,11 +190,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(MethodInvocation token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(Interfaces token) throws VisitorException {
     super.visit(token);
   }
@@ -308,11 +207,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(Modifier token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(Primary token) throws VisitorException {
     super.visit(token);
   }
 
@@ -338,11 +232,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(InterfaceDeclaration token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(CastExpression token) throws VisitorException {
     super.visit(token);
   }
 
@@ -412,11 +301,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(InclusiveOrExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(ClassBody token) throws VisitorException {
     super.visit(token);
     if (token.bodyDeclarations != null) token.bodyDeclarations.traverse(this);
@@ -426,11 +310,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(ForStatement token) throws VisitorException {
     super.visit(token);
     forLoopVisitHelper(token);
-  }
-
-  @Override
-  public void visit(ConditionalAndExpression token) throws VisitorException {
-    super.visit(token);
   }
 
   @Override
@@ -444,18 +323,489 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(Literal token) throws VisitorException {
+  public void visit(CharLiteral token) throws VisitorException {
     super.visit(token);
+    // Handled in Literal
   }
 
   @Override
-  public void visit(AndExpression token) throws VisitorException {
+  public void visit(IntLiteral token) throws VisitorException {
     super.visit(token);
+    // Handled in Literal
+  }
+
+  @Override
+  public void visit(StringLiteral token) throws VisitorException {
+    super.visit(token);
+    // Handled in Literal
+  }
+
+  @Override
+  public void visit(BooleanLiteral token) throws VisitorException {
+    super.visit(token);
+    // Handled in Literal
+  }
+
+  @Override
+  public void visit(Literal token) throws VisitorException {
+    super.visit(token);
+    output.println("; CODE GENERATION: Literal");
+
+    Token literal = token.getLiteral();
+
+    if(token.isStringLiteral()) {
+      constructString(literal.getLexeme());
+    } else if(token.isCharLiteral()) {
+      char value = token.getLexeme().charAt(0);
+      output.println(String.format("mov eax, '%c'", value));
+    } else {
+      int value = 0;
+      switch (literal.getTokenType()) {
+        case INT_LITERAL:
+          value = Integer.parseInt(token.getLexeme());
+          break;
+        case BooleanLiteral:
+          value = Boolean.parseBoolean(token.getLexeme()) ? 1 : 0;
+          break;
+        case NULL:
+          value = 0;
+          break;
+      }
+
+      output.println(String.format("mov eax, %d", value));
+    }
+
+    output.println("; END: Literal");
   }
 
   @Override
   public void visit(SimpleName token) throws VisitorException {
     super.visit(token);
+  }
+
+  @Override
+  public void visit(TypeDeclaration token) throws VisitorException {
+    super.visit(token);
+    if (token.classDeclaration != null) token.classDeclaration.traverse(this);
+  }
+
+  @Override
+  public void visit(Expression token) throws VisitorException {
+    super.visit(token);
+    output.println("; CODE GENERATION: Expression");
+    token.children.get(0).traverse(this);
+    output.println("; END: Expression");
+  }
+
+  @Override
+  public void visit(MultiplicativeExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      output.println("; CODE GENERATION: MultiplicativeExpression");
+      token.expr1.traverse(this);
+      output.println("push eax");
+      token.expr.traverse(this);
+      output.println("mov ebx, eax");
+      output.println("pop eax");
+      if(token.operator.getTokenType().equals(TokenType.MULT_OP)) {
+        output.println("imul eax, ebx");
+      } else {
+        String startLabel = CodeGenUtils.genNextTempLabel();
+        output.println("cmp ebx, 0");
+        output.println(String.format("jne %s", startLabel));
+        output.println("call __exception");
+        output.println(startLabel);
+        output.println("cdq");
+        output.println("idiv ebx");
+
+        if(token.operator.getTokenType().equals(TokenType.MOD_OP)) {
+          output.println("mov eax, edx");
+        }
+      }
+      output.println("; END: MultiplicativeExpression");
+    } else {
+      token.expr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(AdditiveExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      output.println("; CODE GENERATION: AdditiveExpression");
+      token.leftExpr.traverse(this);
+      output.println("push eax");
+      token.rightExpr.traverse(this);
+      output.println("pop ebx");
+      if(token.isAdd()) {
+        if(token.isLeftString() || token.isRightString()) {
+          output.println("mov ecx, eax");
+          // result of concat will be in eax
+          concat("ebx", "ecx", token);
+        } else {
+          output.println("addl eax, ebx");
+        }
+      } else {
+        output.println("subl ebx, eax");
+        output.println("mov eax, ebx");
+      }
+      output.println("; END: AdditiveExpression");
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(RelationalExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      output.println("; CODE GENERATION: RelationalExpression");
+      token.leftExpr.traverse(this);
+
+      if(token.getOperator().getTokenType().equals(TokenType.INSTANCEOF)) {
+        output.println("mov ecx, eax");
+        output.println("mov eax, 0");
+
+        int classId;
+        if(token.referenceType.isReferenceType()) {
+          Declaration decl = token.referenceType.getReferenceName().getDeterminedDeclaration();
+          if(decl instanceof ClassDeclaration) {
+            classId = ((ClassDeclaration) decl).classId;
+          } else {
+            classId = ((InterfaceDeclaration) decl).classId;
+          }
+
+          if(token.referenceType.isArray()) {
+            classId += numUnits;
+          }
+        } else {
+          classId = CodeGenUtils.getArrayPrimitiveClassId(numUnits, token.referenceType.getType().getLexeme());
+        }
+
+        String endLabel = CodeGenUtils.genNextTempLabel();
+        output.println("cmp ecx, 0");
+        output.println(String.format("je %s", endLabel));
+        output.println("mov ecx, [ecx]");
+        output.println("mov ecx, [ecx]");
+        output.println("mul ecx, 4");
+        output.println("add ecx, __subtype_table");
+        output.println("mov ecx, [ecx]");
+        output.println(String.format("mov ecx, [ecx + %d]", classId * 4));
+        output.println("cmp ecx, 0");
+        output.println(String.format("je %s", endLabel));
+        output.println("mov eax, 1");
+        output.println(endLabel);
+      } else {
+        output.println("push eax");
+        token.rightExpr.traverse(this);
+        output.println("pop ebx");
+        output.println("mov ecx, eax");
+        output.println("mov eax, 0");
+
+        String endLabel = CodeGenUtils.genNextTempLabel();
+        output.println("cmp ebx, ecx");
+        switch (token.getOperator().getTokenType()) {
+          case LESS_THAN_OP_EQUAL:
+            output.println(String.format("jg %s", endLabel));
+            break;
+          case LESS_THAN_OP:
+            output.println(String.format("jge %s", endLabel));
+            break;
+          case MORE_THAN_OP:
+            output.println(String.format("jle %s", endLabel));
+            break;
+          case MORE_THAN_OP_EQUAL:
+            output.println(String.format("jl %s", endLabel));
+            break;
+        }
+        output.println("mov eax, 1");
+        output.println(endLabel);
+      }
+      output.println("; END: RelationalExpression");
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(EqualityExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; CODE GENERATION: EqualityExpression");
+      token.leftExpr.traverse(this);
+      output.println("push eax");
+      token.rightExpr.traverse(this);
+      output.println("pop ebx");
+      output.println("mov ecx, eax");
+      output.println("mov eax, 0");
+      output.println("cmpl ebx, ecx");
+      if (token.isEqualCheck()) {
+        output.println(String.format("jne %s", endLabel));
+      } else {
+        output.println(String.format("je %s", endLabel));
+      }
+      output.println("mov eax, 1");
+      output.println(endLabel);
+      output.println("; END: EqualityExpression");
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(AndExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+//      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; CODE GENERATION: AndExpression");
+      token.leftExpr.traverse(this);
+      output.println("push eax");
+      token.rightExpr.traverse(this);
+      output.println("pop ebx");
+      output.println("and eax ebx");
+//      output.println("add ebx, eax");
+//      output.println("mov eax, 0");
+//      output.println("cmp ebx, 2");
+//      output.println(String.format("jne %s", endLabel));
+//      output.println("mov eax, 1");
+//      output.println(endLabel);
+      output.println("; END: AndExpression");
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(InclusiveOrExpression token) throws VisitorException {
+    super.visit(token);
+    if (token.isDefined()) {
+//      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; CODE GENERATION: InclusiveOrExpression");
+      token.leftExpr.traverse(this);
+      output.println("push eax");
+      token.rightExpr.traverse(this);
+      output.println("pop ebx");
+      output.println("or eax, ebx");
+//      output.println("add eax, ebx");
+//      output.println("cmp eax, 2");
+//      output.println(String.format("jne %s", endLabel));
+//      output.println("mov eax, 1");
+//      output.println(endLabel);
+      output.println("; END: InclusiveOrExpression");
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(ConditionalOrExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; CODE GENERATION: ConditionalOrExpression");
+      token.leftExpr.traverse(this);
+      output.println("cmp eax, 1");
+      output.println(String.format("je %s", endLabel));
+      token.rightExpr.traverse(this);
+      output.println(endLabel);
+      output.println("; END: ConditionalOrExpression");
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(ConditionalAndExpression token) throws VisitorException {
+    super.visit(token);
+    if(token.isDefined()) {
+      String endLabel = CodeGenUtils.genNextTempLabel();
+
+      output.println("; CODE GENERATION: ConditionalAndExpression");
+      token.leftExpr.traverse(this);
+      output.println("cmp eax, 0");
+      output.println(String.format("je %s", endLabel));
+      token.rightExpr.traverse(this);
+      output.println(endLabel);
+      output.println("; END: ConditionalAndExpression");
+    } else {
+      token.rightExpr.traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(Primary token) throws VisitorException {
+    super.visit(token);
+    if(token.children.size() == 1) {
+      if(token.children.get(0).getTokenType() == TokenType.THIS) {
+        output.println("; CODE GENERATION: Primary");
+        output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+        output.println("; END: Primary");
+      } else {
+        token.children.get(0).traverse(this);
+      }
+    } else {
+     token.children.get(1).traverse(this);
+    }
+  }
+
+  @Override
+  public void visit(FieldAccess token) throws VisitorException {
+    super.visit(token);
+    output.println("; CODE GENERATION: FieldAccess");
+    token.primary.traverse(this);
+    checkForNull("eax");
+
+    if(token.primary.getDeterminedType().isArray) {
+      output.println("mov eax, [eax + 4]");
+    } else {
+      FieldDeclaration decl = (FieldDeclaration) token.getDeterminedDeclaration();
+      output.println(String.format("mov eax, [eax + %d]", decl.offset));
+    }
+    output.println("; END: FieldAccess");
+  }
+
+  @Override
+  public void visit(ArrayAccess token) throws VisitorException {
+    super.visit(token);
+    output.println("; CODE GENERATION: ArrayAccess");
+    if(token.isAccessOnPrimary()) {
+      token.primary.traverse(this);
+    } else {
+      generateNameAccess(token.name, false);
+    }
+
+    checkForNull("eax");
+    String label = CodeGenUtils.genNextTempLabel();
+    output.println("push eax");
+    token.expression.traverse(this);
+    output.println("pop ebx");
+    output.println("cmp eax, [ebx + 4]");
+    output.println(String.format("jl %s", label));
+    output.println("call __exception");
+    output.println(label);
+    output.println("mov eax, [ebx + eax * 4 + 8]");
+    output.println("; END: ArrayAccess");
+  }
+
+  @Override
+  public void visit(MethodInvocation token) throws VisitorException {
+    super.visit(token);
+    output.println("; CODE GENERATION: MethodInvocation");
+    CodeGenUtils.genPushRegisters(output, true);
+    if(token.isOnPrimary()) {
+      token.primary.traverse(this);
+      checkForNull("eax");
+      output.println("push eax");
+
+      TypeCheckToken primaryType = token.primary.getDeterminedType();
+      if(primaryType.declaration instanceof InterfaceDeclaration) {
+        AbstractMethodDeclaration methodDecl = (AbstractMethodDeclaration) token.getDeterminedDeclaration();
+        output.println("mov eax, [eax]");
+        output.println("mov eax, [eax]");
+        output.println("mul eax, 4");
+        output.println("mov eax, [__selector_index_table + eax]");
+        output.println(String.format("mov eax, [eax + %d]", methodDecl.interfaceMethodId * 4));
+      } else {
+        MethodDeclaration methodDecl = (MethodDeclaration) token.getDeterminedDeclaration();
+        output.println("mov eax, [eax]");
+        output.println(String.format("mov eax, [eax + %d]", methodDecl.methodId * 4 + 4));
+      }
+    } else {
+      generateNameAccess(token.name, true);
+    }
+
+    // eax now points to the method to call and this is on stack set to value if non-static call
+    // this on stack for static but is null
+    output.println("mov ebx, eax");
+
+    // push arguments - for native assume even though pushed eax still has value
+    if(token.hasArguments()) {
+      for (Expression expression : token.argumentList.getArgumentList()) {
+        output.println("push ebx");
+        expression.traverse(this);
+        output.println("pop ebx");
+        output.println("push eax");
+      }
+    }
+
+    output.println("call ebx");
+
+    // pop off arguments
+    if(token.hasArguments()) {
+      for (int a = 0; a < token.argumentList.numArguments(); a++) {
+        output.println("pop ebx");
+      }
+    }
+    // pop this
+    output.println("pop ebx");
+
+    CodeGenUtils.genPopRegisters(output, true);
+    // eax should have return value
+    output.println("; END: MethodInvocation");
+  }
+
+  @Override
+  public void visit(LeftHandSide token) throws VisitorException {
+    super.visit(token);
+    output.println("; CODE GENERATION: LeftHandSide");
+    Token child = token.children.get(0);
+    if(child instanceof Name) {
+      generateNameAccessForReference((Name) child);
+    } else if(child instanceof FieldAccess) {
+      FieldAccess fieldAccess = (FieldAccess) child;
+      fieldAccess.primary.traverse(this);
+      checkForNull("eax");
+
+      if(fieldAccess.primary.getDeterminedType().isArray) {
+        // TODO: catch this earlier
+      } else {
+        FieldDeclaration decl = (FieldDeclaration) fieldAccess.getDeterminedDeclaration();
+        output.println(String.format("lea eax, [eax + %d]", decl.offset));
+      }
+    } else if(child instanceof ArrayAccess) {
+      ArrayAccess arrayAccess = (ArrayAccess) child;
+
+      if(arrayAccess.isAccessOnPrimary()) {
+        arrayAccess.primary.traverse(this);
+      } else {
+        generateNameAccess(arrayAccess.name, false);
+      }
+
+      checkForNull("eax");
+      String label = CodeGenUtils.genNextTempLabel();
+      output.println("push eax");
+      arrayAccess.expression.traverse(this);
+      output.println("pop ebx");
+      output.println("cmp eax, [ebx + 4]");
+      output.println(String.format("jl %s", label));
+      output.println("call __exception");
+      output.println(label);
+      output.println("lea eax, [ebx + eax * 4 + 8]");
+    }
+    output.println("; END: LeftHandSide");
+  }
+
+  @Override
+  public void visit(AssignmentExpression token) throws VisitorException {
+    super.visit(token);
+    token.children.get(0).traverse(this);
+  }
+
+  @Override
+  public void visit(Assignment token) throws VisitorException {
+    super.visit(token);
+    output.println("; CODE GENERATION: Assignment");
+    token.leftHandSide.traverse(this);
+    output.println("push eax");
+    token.assignmentExpression.traverse(this);
+    output.println("pop ebx");
+    output.println("mov [ebx], eax");
+    output.println("; END: Assignment");
   }
 
   @Override
@@ -470,7 +820,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
 
     output.println("; CODE GENERATION: ArrayCreationExpression");
-    CodeGenUtils.genPushRegisters(output);
+    CodeGenUtils.genPushRegisters(output, true);
     token.expression.traverse(this);
     output.println("mov ebx, eax");
     output.println("lea ebx, [ebx + 2]");
@@ -493,13 +843,62 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Move length as 1st index.
     output.println("lea ebx, [ebx - 2]");
     output.println("mov [eax + 4], ebx");
-    CodeGenUtils.genPopRegisters(output);
+    CodeGenUtils.genPopRegisters(output, true);
     output.println("; END ArrayCreationExpression");
   }
 
   @Override
-  public void visit(CharLiteral token) throws VisitorException {
+  public void visit(CastExpression token) throws VisitorException {
     super.visit(token);
+    output.println("; CODE GENERATION: CastExpression");
+    if (token.isArrayCast()) {
+      token.children.get(5).traverse(this);
+    } else {
+      token.children.get(3).traverse(this);
+    }
+
+    if (token.isArrayCast() || token.isName()) {
+      int classId;
+      if (token.isName()) {
+        Declaration decl = token.name.getDeterminedDeclaration();
+        if (decl instanceof ClassDeclaration) {
+          classId = ((ClassDeclaration) decl).classId;
+        } else {
+          classId = ((InterfaceDeclaration) decl).classId;
+        }
+
+        if (token.isArrayCast()) {
+          classId += numUnits;
+        }
+      } else {
+        classId = CodeGenUtils.getArrayPrimitiveClassId(numUnits, token.primitiveType.getType().getLexeme());
+      }
+
+      String endLabel = CodeGenUtils.genNextTempLabel();
+      output.println("cmp eax, 0");
+      output.println(String.format("je %s", endLabel));
+      output.println("mov ebx, [eax]");
+      output.println("mov ebx, [ebx]");
+      output.println("mul ebx, 4");
+      output.println("add ebx, __subtype_table");
+      output.println("mov ebx, [ebx]");
+      output.println(String.format("mov ebx, [ebx + %d]", classId * 4));
+      output.println("cmp ebx, 1");
+      output.println(String.format("je %s", endLabel));
+      output.println("call __exception");
+      output.println(endLabel);
+    } else {
+      int size = CodeGenUtils.getActualSize(token.primitiveType.getType().getLexeme());
+      switch (size) {
+        case 2:
+          output.println("movs eax, ax");
+          break;
+        case 1:
+          output.println("movs eax, al");
+          break;
+      }
+    }
+    output.println("; END: CastExpression");
   }
 
   @Override
@@ -509,14 +908,35 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(TypeDeclaration token) throws VisitorException {
+  public void visit(UnaryExpression token) throws VisitorException {
     super.visit(token);
-    if (token.classDeclaration != null) token.classDeclaration.traverse(this);
+    if(token.isNegative()) {
+      output.println("; UnaryExpression");
+      token.exp.traverse(this);
+      output.println("neg eax");
+      output.println("; END: UnaryExpression");
+    } else {
+      token.posExp.traverse(this);
+    }
   }
 
   @Override
-  public void visit(ConditionalOrExpression token) throws VisitorException {
+  public void visit(UnaryExpressionNotMinus token) throws VisitorException {
     super.visit(token);
+    if(token.isNeg()) {
+      output.println("; UnaryExpressionNotMinus");
+      token.unaryExpression.traverse(this);
+      output.println("not eax");
+      output.println("; END: UnaryExpressionNotMinus");
+    } else if(token.name != null) {
+      output.println("; UnaryExpressionNotMinus");
+      generateNameAccess(token.name, false);
+      output.println("; END: UnaryExpressionNotMinus");
+    } else if(token.primary != null) {
+      token.primary.traverse(this);
+    } else if(token.castExpression != null) {
+      token.castExpression.traverse(this);
+    }
   }
 
   @Override
@@ -545,6 +965,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     // Initialize the non-static fields. Firstly, we put 'this' into eax.
     output.println(String.format("mov eax, [ebp + %d]", paramOffset));
+    thisOffset = paramOffset;
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
         field.traverse(this);
@@ -591,16 +1012,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(UnaryExpressionNotMinus token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(RelationalExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(StatementNoShortIf token) throws VisitorException {
     super.visit(token);
     addComment("StatementNoShortIf " + token.getLexeme());
@@ -620,16 +1031,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(UnaryExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(AdditiveExpression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(ClassInstanceCreationExpression token) throws VisitorException {
     super.visit(token);
     output.println("; CODE GENERATION: ClassInstanceCreationExpression");
@@ -639,7 +1040,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) token.classType.classOrInterfaceType.name.getDeterminedDeclaration();
     ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
-    CodeGenUtils.genPushRegisters(output);
+    CodeGenUtils.genPushRegisters(output, true);
     output.println(String.format("mov eax, %d", classDeclaration.classSize));
     output.println("call __malloc");
     // Push "this" on the stack.
@@ -660,7 +1061,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     // Pop "this" from the stack
     output.println("pop eax");
-    CodeGenUtils.genPopRegisters(output);
+    CodeGenUtils.genPopRegisters(output, true);
     output.println("; END ClassInstanceCreationExpression");
   }
 
@@ -681,6 +1082,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       param.offset = paramOffset;
       paramOffset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
+    thisOffset = token.methodHeader.modifiers.containsModifier("static") ? paramOffset : 0;
+
     offset = 0;
     token.newScope.traverse(this);
     token.methodBody.traverse(this);
@@ -693,6 +1096,145 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("; END MethodDeclaration");
   }
 
+  private void generateNameAccess(Name name, boolean pushThisOnStackForMethod) {
+    output.println("; CODE GENERATION: generateNameAccess");
+    boolean thisKeptTrack = false;
+    List<Declaration> declarationPaths = name.getDeclarationPath();
+    declarationPaths.add(name.getDeterminedDeclaration());
+    int startIdx = 0;
+    for (; startIdx < declarationPaths.size(); startIdx++) {
+      Declaration curr = declarationPaths.get(startIdx);
+      if(curr instanceof LocalVariableDeclaration) {
+        LocalVariableDeclaration localVariableDeclaration = (LocalVariableDeclaration) curr;
+        output.println(String.format("mov eax, [ebp - %d]", localVariableDeclaration.offset));
+        break;
+      } else if(curr instanceof FormalParameter) {
+        FormalParameter formalParameter = (FormalParameter) curr;
+        output.println(String.format("mov eax, [ebp + %d]", formalParameter.offset));
+        break;
+      } else if(curr instanceof FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = (FieldDeclaration) curr;
+        if(fieldDeclaration.containsModifier("static")) {
+          output.println(String.format("mov eax, [%s]", fieldDeclaration.getAbsolutePath()));
+        } else {
+          output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+          output.println(String.format("mov eax, [eax + %d]", fieldDeclaration.offset));
+        }
+        break;
+      } else if (curr instanceof MethodDeclaration) {
+        MethodDeclaration methodDeclaration = (MethodDeclaration) curr;
+        if(methodDeclaration.methodHeader.containsModifier("static")) {
+          String nativePrefix = methodDeclaration.methodHeader.containsModifier("native") ? "NATIVE" : "";
+          output.println(String.format("mov eax, %s", nativePrefix + CodeGenUtils.genLabel(methodDeclaration)));
+        } else {
+          output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+          if(pushThisOnStackForMethod) {
+            output.println("mov ecx, eax");
+            thisKeptTrack = true;
+          }
+          output.println("mov eax, [eax]");
+          output.println(String.format("mov eax, [eax + %d]", methodDeclaration.methodId * 4 + 4));
+        }
+      } else if (curr instanceof AbstractMethodDeclaration) {
+        AbstractMethodDeclaration methodDeclaration = (AbstractMethodDeclaration) curr;
+        output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+        if(pushThisOnStackForMethod) {
+          output.println("mov ecx, eax");
+          thisKeptTrack = true;
+        }
+        output.println("mov eax, [eax]");
+        output.println("mov eax, [eax]");
+        output.println("mul eax, 4");
+        output.println("mov eax, [__selector_index_table + eax]");
+        output.println(String.format("mov eax, [eax + %d]", methodDeclaration.interfaceMethodId * 4));
+      }
+    }
+
+    for(startIdx = startIdx + 1; startIdx < declarationPaths.size(); startIdx++) {
+      // Safe to assume that no static accesses here
+      checkForNull("eax");
+
+      Declaration curr = declarationPaths.get(startIdx);
+
+      // Special case for array.length
+      if(curr == null && startIdx == declarationPaths.size() - 1 && name.getLexeme().endsWith(".length")) {
+        output.println("mov eax, [eax + 4]");
+        continue;
+      }
+
+      if(curr instanceof FieldDeclaration) {
+        output.println(String.format("mov eax, [eax + %d]", ((FieldDeclaration) curr).offset));
+      } else if(curr instanceof MethodDeclaration) {
+        if(pushThisOnStackForMethod) {
+          output.println("mov ecx, eax");
+          thisKeptTrack = true;
+        }
+        output.println("mov eax, [eax]");
+        output.println(String.format("mov eax, [eax + %d]", ((MethodDeclaration) curr).methodId * 4 + 4));
+      } else if(curr instanceof AbstractMethodDeclaration) {
+        if(pushThisOnStackForMethod) {
+          output.println("mov ecx, eax");
+          thisKeptTrack = true;
+        }
+        output.println("mov eax, [eax]");
+        output.println("mov eax, [eax]");
+        output.println("mul eax, 4");
+        output.println("mov eax, [__selector_index_table + eax]");
+        output.println(String.format("mov eax, [eax + %d]", ((AbstractMethodDeclaration) curr).interfaceMethodId * 4));
+      }
+    }
+
+    if(pushThisOnStackForMethod) {
+      if (thisKeptTrack) {
+        output.println("push ecx");
+      } else {
+        output.println("push 0");
+      }
+    }
+    output.println("; END: generateNameAccess");
+  }
+
+  private void generateNameAccessForReference(Name name) {
+    output.println("; CODE GENERATION: generateNameAccessForReference");
+    List<Declaration> declarationPaths = name.getDeclarationPath();
+    declarationPaths.add(name.getDeterminedDeclaration());
+    int startIdx = 0;
+    for (; startIdx < declarationPaths.size(); startIdx++) {
+      Declaration curr = declarationPaths.get(startIdx);
+      if(curr instanceof LocalVariableDeclaration) {
+        LocalVariableDeclaration localVariableDeclaration = (LocalVariableDeclaration) curr;
+        output.println(String.format("lea eax, [ebp - %d]", localVariableDeclaration.offset));
+        break;
+      } else if(curr instanceof FormalParameter) {
+        FormalParameter formalParameter = (FormalParameter) curr;
+        output.println(String.format("lea eax, [ebp + %d]", formalParameter.offset));
+        break;
+      } else if(curr instanceof FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = (FieldDeclaration) curr;
+        if(fieldDeclaration.containsModifier("static")) {
+          output.println(String.format("lea eax, [%s]", fieldDeclaration.getAbsolutePath()));
+        } else {
+          output.println(String.format("mov eax, [ebp + %d]", thisOffset));
+          output.println(String.format("lea eax, [eax + %d]", fieldDeclaration.offset));
+        }
+        break;
+      }
+    }
+
+    for(startIdx = startIdx + 1; startIdx < declarationPaths.size(); startIdx++) {
+      // Safe to assume that no static accesses here
+      output.println("mov eax, [eax]");
+      checkForNull("eax");
+
+      Declaration curr = declarationPaths.get(startIdx);
+      if(curr instanceof FieldDeclaration) {
+        output.println(String.format("lea eax, [eax + %d]", ((FieldDeclaration) curr).offset));
+      }
+    }
+
+    output.println("; END: generateNameAccessForReference");
+  }
+
   private boolean isTestMethod(MethodDeclaration token) {
     return token.getIdentifier().equals("test") &&
         token.getParameters().isEmpty() &&
@@ -703,11 +1245,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(AbstractMethodDeclaration token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(MultiplicativeExpression token) throws VisitorException {
     super.visit(token);
   }
 
@@ -725,11 +1262,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(VariableDeclarator token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(AssignmentExpression token) throws VisitorException {
     super.visit(token);
   }
 
@@ -763,16 +1295,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(LeftHandSide token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(Assignment token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(CompilationUnit token) throws VisitorException {
     super.visit(token);
     output.println("section .text");
@@ -782,11 +1304,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(ConstructorDeclarator token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(IntLiteral token) throws VisitorException {
     super.visit(token);
   }
 
@@ -813,11 +1330,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(FieldAccess token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(StatementExpression token) throws VisitorException {
     super.visit(token);
     addComment("StatementExpression " + token.getLexeme());
@@ -838,16 +1350,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(ArrayAccess token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(Expression token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(ImportDeclarations token) throws VisitorException {
     super.visit(token);
     for (ImportDeclaration importDeclaration : token.importDeclarations) {
@@ -859,11 +1361,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(Block token) throws VisitorException {
     super.visit(token);
     visitEveryChild(token);
-  }
-
-  @Override
-  public void visit(StringLiteral token) throws VisitorException {
-    super.visit(token);
   }
 
   @Override
@@ -901,11 +1398,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   @Override
   public void visit(ExtendsInterfaces token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
-  public void visit(EqualityExpression token) throws VisitorException {
     super.visit(token);
   }
 
@@ -973,11 +1465,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   @Override
-  public void visit(BooleanLiteral token) throws VisitorException {
-    super.visit(token);
-  }
-
-  @Override
   public void visit(ArgumentList token) throws VisitorException {
     super.visit(token);
   }
@@ -1000,6 +1487,16 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
       declStack.pop();
     }
+  }
+
+  private void checkForNull(String register) {
+    output.println("; CODE GENERATION: checkForNull");
+    String startLabel = CodeGenUtils.genNextTempLabel();
+    output.println(String.format("cmp %s, 0", register));
+    output.println(String.format("jne %s", startLabel));
+    output.println("call __exception");
+    output.println(startLabel);
+    output.println("; END: checkForNull");
   }
 
   private void ifThenElseVisitHelper(BaseIfThenElse token) throws VisitorException {
@@ -1088,5 +1585,98 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void addComment(String comment) {
     output.println(";" + comment);
+  }
+
+  private void constructString(String value) {
+    constructCharArray(value);
+    output.println("; CODE GENERATION: constructString");
+    CodeGenUtils.genPushRegisters(output, true);
+    output.println("mov ebx, eax");
+    output.println(String.format("mov eax, %d", 8));
+    output.println("call __malloc");
+    // Push "this" on the stack.
+    output.println("push eax");
+    output.println("push ebx");
+    output.println(String.format("mov [eax], %s", "__vtable__java.lang.String"));
+    output.println(String.format("call %s", "java.lang.String.String#char[]"));
+    output.println("pop eax");
+    output.println("pop eax");
+    CodeGenUtils.genPopRegisters(output, true);
+    output.println("; END constructString");
+  }
+
+  private int constructCharArray(String value) {
+    output.println("; CODE GENERATION: constructCharArray");
+    output.println(String.format("mov eax, %d", value.length() * 4 + 8));
+    output.println("call __malloc");
+    // Initialize the array
+    String begin = CodeGenUtils.genUniqueLabel();
+    String end = CodeGenUtils.genUniqueLabel();
+    for (int a = 0; a < value.length(); a++) {
+      output.println(String.format("mov [eax + %d], '%c'", a * 4 + 8, value.charAt(a)));
+    }
+    // Move the address of the vtable as 0th index.
+    output.println("lea [eax], __vtable__char_array");
+    // Move length as 1st index.
+    output.println(String.format("mov [eax + 4], %d", value.length()));
+    output.println("; END constructCharArray");
+    return value.length() * 4 + 8;
+  }
+
+  // Do not use EAX or EDX
+  // Results are in EAX
+  private void concat(String leftRegister, String rightRegister, AdditiveExpression token) {
+    boolean isLeftString = token.isLeftString();
+    boolean isRightString = token.isRightString();
+
+    output.println("; CODE GENERATION: concat");
+    if(!isLeftString || !isRightString) {
+      String registerToConvert = isLeftString ? rightRegister : leftRegister;
+      TypeCheckToken type = isLeftString ? token.rightType : token.leftType;
+      String typeSuffix = type.isPrimitiveType() ? type.tokenType.toString() : "Object";
+
+      // static call
+      methodInvocation("java.lang.String.valueOf#" + typeSuffix, -1, null, registerToConvert);
+
+      // check if toString returned null, if so convert null to null string
+      String label = CodeGenUtils.genNextTempLabel();
+      output.println("cmp eax, 0");
+      output.println(String.format("jne %s", label));
+      methodInvocation("java.lang.String.valueOf#Object", -1, null, "eax");
+      output.println(label);
+      output.println(String.format("mov %s, eax", registerToConvert));
+    }
+
+    List<Token> declarations = this.table.findWithPrefixOfAnyType("java.lang.String.concat", new Class [] {MethodDeclaration.class});
+    int concatMethodId = ((MethodDeclaration) declarations.get(0)).methodId;
+    methodInvocation(null, concatMethodId, leftRegister, rightRegister);
+    output.println("; END: concat");
+  }
+
+  // Uses EDX, make sure to not use this as one of the input registers
+  private void methodInvocation(String methodName, int methodId, String thisRegister, String parameterRegister) {
+    output.println("; CODE GENERATION: CustomMethodInvocation");
+    CodeGenUtils.genPushRegisters(output, true);
+
+    // if null static call, else instance call
+    if(thisRegister == null) {
+      output.println(String.format("mov edx, %s", methodName));
+      output.println("push 0");
+    } else {
+      output.println(String.format("push %s", thisRegister));
+      output.println(String.format("mov edx, [%s]", thisRegister));
+      output.println(String.format("mov edx, [edx + %d]", methodId * 4 + 4));
+    }
+
+    output.println(String.format("push %s", parameterRegister));
+    output.println("call edx");
+
+    // pop off arguments
+    output.println("pop edx");
+    output.println("pop edx");
+
+    CodeGenUtils.genPopRegisters(output, true);
+    // eax should have return value
+    output.println("; END: CustomMethodInvocation");
   }
 }

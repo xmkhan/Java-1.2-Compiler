@@ -7,8 +7,31 @@ import java.util.ArrayList;
 
 public class EqualityExpression extends Token {
 
+  public EqualityExpression leftExpr;
+  public RelationalExpression rightExpr;
+
   public EqualityExpression(ArrayList<Token> children) {
     super("", TokenType.EqualityExpression, children);
+
+    for(Token token : children) {
+      assignType(token);
+    }
+  }
+
+  private void assignType(Token token) {
+    if (token instanceof EqualityExpression) {
+      leftExpr = (EqualityExpression) token;
+    } else if (token instanceof RelationalExpression) {
+      rightExpr = (RelationalExpression) token;
+    }
+  }
+
+  public boolean isDefined() {
+    return leftExpr != null && rightExpr != null;
+  }
+
+  public boolean isEqualCheck() {
+    return isDefined() ? children.get(1).getTokenType() == TokenType.EQUALITY_OP : false;
   }
 
   @Override

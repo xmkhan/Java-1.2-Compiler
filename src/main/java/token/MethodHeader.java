@@ -37,6 +37,10 @@ public class MethodHeader extends Token {
     return voidType != null;
   }
 
+  public boolean containsModifier(String modifier) {
+    return modifiers != null && modifiers.containsModifier(modifier);
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     v.visit(modifiers);

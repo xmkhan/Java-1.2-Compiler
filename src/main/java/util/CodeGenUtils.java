@@ -16,6 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CodeGenUtils {
 
   public static AtomicInteger ifStatementCount = new AtomicInteger(0);
+  public static AtomicInteger tempCount = new AtomicInteger(0);
+
   public static AtomicInteger elseStatementCount = new AtomicInteger(0);
   public static AtomicInteger forStatementCount = new AtomicInteger(0);
   public static AtomicInteger whileStmtCount = new AtomicInteger(0);
@@ -89,6 +91,10 @@ public class CodeGenUtils {
     return String.format("label%d", labelCounter.getAndIncrement());
   }
 
+  public static String genNextTempLabel() {
+    return String.format("temp#%d:", tempCount.getAndIncrement());
+  }
+
   /**
    * used for jumping to the end of if-else-then statements
    */
@@ -118,18 +124,22 @@ public class CodeGenUtils {
     return String.format("while#%d", whileStmtCount.getAndIncrement());
   }
 
-  public static void genPushRegisters(PrintStream output) {
-    output.println("push eax");
+  public static void genPushRegisters(PrintStream output, boolean excludeEax) {
+    if(!excludeEax) {
+      output.println("push eax");
+    }
     output.println("push ebx");
     output.println("push ecx");
     output.println("push edx");
   }
 
-  public static void genPopRegisters(PrintStream output) {
+  public static void genPopRegisters(PrintStream output, boolean excludeEax) {
     output.println("pop edx");
     output.println("pop ecx");
     output.println("pop ebx");
-    output.println("pop eax");
+    if(!excludeEax) {
+      output.println("pop eax");
+    }
   }
 
   /**
@@ -147,6 +157,15 @@ public class CodeGenUtils {
     return 4;
   }
 
+  public static int getActualSize(String type) {
+    if (type.equals("boolean")) return 1;
+    else if (type.equals("int")) return 4;
+    else if (type.equals("char")) return 1;
+    else if (type.equals("byte")) return 1;
+    else if (type.equals("short")) return 2;
+    return 4;
+  }
+
   public static String getReserveSize(int size) {
     switch (size) {
       case 1:
@@ -159,4 +178,12 @@ public class CodeGenUtils {
     }
   }
 
+  public static int getArrayPrimitiveClassId(int numUnits, String type) {
+    if (type.equals("boolean")) return 2 * numUnits;
+    else if (type.equals("int")) return 2 * numUnits + 1;
+    else if (type.equals("char")) return 2 * numUnits + 2;
+    else if (type.equals("byte")) return 2 * numUnits + 3;
+    else if (type.equals("short")) return 2 * numUnits + 4;
+    return -1;
+  }
 }

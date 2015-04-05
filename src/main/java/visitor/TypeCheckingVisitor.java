@@ -219,6 +219,9 @@ public class TypeCheckingVisitor extends BaseVisitor {
     TypeCheckToken rightSide = tokenStack.pop();
     TypeCheckToken leftSide = tokenStack.pop();
 
+    token.setLeftType(leftSide);
+    token.setRightType(rightSide);
+
     // These types could be used with the '+' and '-' operators and the result is an int
     TokenType[]  validMinusPlusTypes = {TokenType.SHORT, TokenType.INT, TokenType.BYTE, TokenType.CHAR};
 
@@ -394,7 +397,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
         if(determinedDecl.type.isArray() && originalPathArr[originalPathArr.length - 1].equals("length") &&
                 originalPathArr[originalPathArr.length - 2].equals(determinedAbsolutePathArr[determinedAbsolutePathArr.length - 1])) {
           tokenStack.push(new TypeCheckToken(TokenType.INT));
-          name.setDeterminedDeclaration(determinedDecl);
+          //TODO: test this out
+          name.setDeterminedDeclaration(null);
 
         } else {
           throw new TypeCheckingVisitorException("Accessing undefined variable found: " + determinedAbsolutePath + " but had " + originalPath, token);
@@ -802,7 +806,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       }
     } else {
       Name name = (Name) token.name;
-      matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class});
+      matchingDeclarations = getAllMatchinDeclarations(name, new Class [] {MethodDeclaration.class, AbstractMethodDeclaration.class});
     }
 
     Declaration methodDeclaration = matchCall(matchingDeclarations, true, arguments, token.name == null ? token.identifier : token.name);
