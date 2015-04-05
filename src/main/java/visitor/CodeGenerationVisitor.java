@@ -1640,7 +1640,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Push "this" on the stack.
     output.println("push eax");
     output.println("push ebx");
-    genUniqueImport("__vtable__java.lang.String");
+    if (!clazzDecclaration.getAbsolutePath().equals("java.lang.String")) {
+      genUniqueImport("__vtable__java.lang.String");
+    }
     output.println(String.format("mov dword [eax], %s", "__vtable__java.lang.String"));
     genUniqueImport("java.lang.String.String#char@");
     output.println(String.format("call %s", "java.lang.String.String#char@"));
