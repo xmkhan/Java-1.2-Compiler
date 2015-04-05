@@ -283,7 +283,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
       for (FieldDeclaration field : classDeclaration.fields) {
         if (field.containsModifier("static")) {
           String label = CodeGenUtils.genLabel(field);
-          output.println(String.format("extern %s", field.getAbsolutePath()));
           if (!importSet.contains(label)) {
             output.println(String.format("extern %s", label));
             importSet.add(label);
@@ -1394,7 +1393,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
       for (FieldDeclaration field : classDeclaration.fields) {
         if (field.containsModifier("static")) {
           String label = CodeGenUtils.genLabel(field);
-          output.println(String.format("extern %s", field.getAbsolutePath()));
           if (!importSet.contains(label)) {
             output.println(String.format("extern %s", label));
             importSet.add(label);
