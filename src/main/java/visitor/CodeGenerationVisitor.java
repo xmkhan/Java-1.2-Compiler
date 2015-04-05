@@ -10,6 +10,7 @@ import util.CodeGenUtils;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
@@ -1009,7 +1010,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     addComment("rtn statement " + token.getLexeme());
     // Executed the return expression
-    if (token.children.size() == 2) token.children.get(1).traverse(this);
+    if (token.children.size() == 3) token.children.get(1).traverse(this);
     output.println("mov esp, ebp");
     output.println("pop ebp");
     output.println("ret");
@@ -1104,6 +1105,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("; CODE GENERATION: generateNameAccess");
     boolean thisKeptTrack = false;
     List<Declaration> declarationPaths = name.getDeclarationPath();
+    if(declarationPaths == null) declarationPaths = new ArrayList<Declaration>();
     declarationPaths.add(name.getDeterminedDeclaration());
     int startIdx = 0;
     for (; startIdx < declarationPaths.size(); startIdx++) {
