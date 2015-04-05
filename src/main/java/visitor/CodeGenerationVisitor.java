@@ -31,6 +31,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private int offset;
   private PrintStream output;
   private HashSet<String> importSet;
+  private ClassDeclaration clazzDecclaration;
   private Stack<Stack<LocalVariableDeclaration>> declStack;
   private MethodDeclaration[][] selectorIndexTable;
   private MethodDeclaration testMainMethod;
@@ -1468,8 +1469,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassDeclaration token) throws VisitorException {
     super.visit(token);
+    clazzDecclaration = token;
     output.println("; CODE GENERATION: ClassDeclaration");
-
     token.classBody.traverse(this);
 
     // After generating code for the class subtree, at the end we create the vtable entry.
@@ -1636,9 +1637,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Push "this" on the stack.
     output.println("push eax");
     output.println("push ebx");
-    genUniqueImport("__vtable__java.lang.String");
+    if (!clazzDecclaration.getAbsolutePath().equals("java.lang.String")) {
+      genUniqueImport("__vtable__java.lang.String");
+    }
     output.println(String.format("mov dword [eax], %s", "__vtable__java.lang.String"));
-    genUniqueImport("java.lang.String.String#char@");
+    if (!clazzDecclaration.getAbsolutePath().equals("java.lang.String")) {
+      genUniqueImport("java.lang.String.String#char@");
+    }
     output.println(String.format("call %s", "java.lang.String.String#char@"));
     output.println("pop eax");
     output.println("pop eax");
