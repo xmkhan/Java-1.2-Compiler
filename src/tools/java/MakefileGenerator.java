@@ -44,7 +44,7 @@ public class MakefileGenerator {
 
     writer.println("JFLAGS = -J-Xmx256M -cp");
     writer.println("JC = javac");
-    writer.println("default: clean classesdir cs444");
+    writer.println("default: clean classesdir outputdir cs444");
     writer.println("cs444:");
     writer.print("\t$(JC) $(JFLAGS) src/main/java:. -d classes/");
     for (int i = 0; i < files.size(); ++i) {
@@ -53,6 +53,9 @@ public class MakefileGenerator {
     writer.println();
     writer.println("classesdir:");
     writer.println("\tmkdir classes");
+    writer.println();
+    writer.println("outputdir:");
+    writer.println("\tmkdir output");
     writer.println("clean:");
     writer.println("\trm -rf *.class classes output");
     writer.close();

@@ -57,6 +57,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Initialize stack variables.
     offset = 0;
     declStack = new Stack<Stack<LocalVariableDeclaration>>();
+    testMainMethod = null;
 
     // Find the Object declaration that is used by Arrays.
     for (CompilationUnit unit : units) {
@@ -66,10 +67,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
 
     for (CompilationUnit unit : units) {
-      output = new PrintStream(new FileOutputStream(String.format("output/%s.o",unit.typeDeclaration.getDeclaration().getIdentifier())));
+      output = new PrintStream(new FileOutputStream(String.format("output/%s.s",unit.typeDeclaration.getDeclaration().getIdentifier())));
       unit.traverse(this);
+      output.close();
     }
-    output = new PrintStream(new FileOutputStream("output/__program.o"));
+    output = new PrintStream(new FileOutputStream("output/__program.s"));
     genSubtypeTable();
     genSelectorIndexTable();
     genPrimitiveArrayVTable();
@@ -88,6 +90,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
     }
     output.println(String.format("call %s", testMainMethod.getAbsolutePath()));
+    output.close();
   }
 
   private void genSubtypeTable() {
@@ -1241,7 +1244,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         token.getParameters().isEmpty() &&
         token.methodHeader.type.getType().getLexeme().equals("int") &&
         token.methodHeader.modifiers.containsModifier("static") &&
-        token.methodHeader.modifiers.getModifiers().size() == 1;
+        token.methodHeader.modifiers.getModifiers().size() == 2;
   }
 
   @Override
