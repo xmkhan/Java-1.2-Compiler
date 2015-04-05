@@ -251,4 +251,26 @@ public class TypeCheckingVisitorTest {
     visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
     visitor.typeCheckUnits(bundle.units);
   }
+
+  @Test
+  public void TestArrayStoreLoad() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+            "src/test/resources/typechecking/J1_A_ArrayStoreLoad.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
+    visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
+    visitor.typeCheckUnits(bundle.units);
+  }
+
+  @Test
+  public void TestObjectToArray() throws IOException, CompilerException {
+    List<String> files = CompilationUnitGenerator.getStdlibFiles();
+    files.addAll(Arrays.asList(
+            "src/test/resources/typechecking/J1e_A_CastToArray.java"
+    ));
+    bundle = CompilationUnitGenerator.makeUpToDisambiguity(files);
+    visitor = new TypeCheckingVisitor(bundle.symbolTable, bundle.graph, bundle.compilationUnitToNode);
+    visitor.typeCheckUnits(bundle.units);
+  }
 }
