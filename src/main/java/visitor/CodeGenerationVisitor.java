@@ -76,10 +76,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.close();
     }
     output = new PrintStream(new FileOutputStream("output/__program.s"));
+    output.println("section .text");
+    output.println("extern __malloc");
     genSubtypeTable();
     genSelectorIndexTable();
     genPrimitiveArrayVTable();
-    output.println(".section data");
+    output.println("section .data");
     output.println("global _start");
     output.println("_start:");
     // Initialization code for all static methods.
@@ -93,7 +95,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
         }
       }
     }
-    output.println(String.format("call %s", testMainMethod.getAbsolutePath()));
+    output.println(String.format("extern %s", testMainMethod.getAbsolutePath() + "#void"));
+    output.println(String.format("call %s", testMainMethod.getAbsolutePath() + "#void"));
     output.close();
   }
 
@@ -103,14 +106,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("__subtype_table: dd");
     output.println(String.format("mov eax, %d",(4 * subclassTable.length)));
     output.println("call __malloc");
-    output.println("mov __subtype_table, eax");
+    output.println("mov [__subtype_table], eax");
     for(int i = 0; i < subclassTable.length; ++i) {
       output.println(String.format("mov eax, %d", (4 * subclassTable[i].length)));
       output.println("call __malloc");
       output.println(String.format("mov [__subtype_table + %d], eax", 4 * i));
       output.println(String.format("mov ebx, [__subtype_table + %d]", 4 * i));
       for (int j = 0; j < subclassTable[i].length; ++j) {
-        output.println(String.format("mov [ebx + %d], %d", 4 * j, subclassTable[i][j] ? 1 : 0));
+        output.println(String.format("mov dword [ebx + %d], %d", 4 * j, subclassTable[i][j] ? 1 : 0));
       }
     }
     output.println("; END genSubtypeTable");
@@ -122,14 +125,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("__selector_index_table: dd");
     output.println(String.format("mov eax, %d",(4 * selectorIndexTable.length)));
     output.println("call __malloc");
-    output.println("mov __selector_index_table, eax");
+    output.println("mov [__selector_index_table], eax");
     for(int i = 0; i < selectorIndexTable.length; ++i) {
       output.println(String.format("mov eax, %d", (4 * selectorIndexTable.length)));
       output.println("call __malloc");
       output.println(String.format("mov [__selector_index_table + %d], eax", 4 * i));
       output.println(String.format("mov ebx, [__selector_index_table + %d]", 4 * i));
       for (int j = 0; j < selectorIndexTable[i].length; ++j) {
-        if (selectorIndexTable[i][j] == null) output.println(String.format("mov [ebx + %d], 0", 4 * j));
+        if (selectorIndexTable[i][j] == null) output.println(String.format("mov dword [ebx + %d], 0", 4 * j));
         else output.println(String.format("lea [ebx + %d], %s", 4 * j, CodeGenUtils.genLabel(selectorIndexTable[i][j])));
       }
     }
@@ -146,8 +149,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println(String.format("__vtable__%s_array: dd", name));
         output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
         output.println("call __malloc");
-        output.println(String.format("mov __vtable__%s_array, eax", name));
-        output.println(String.format("mov [__vtable__%s_array], %d", name, numUnits + i));
+        output.println(String.format("mov [__vtable__%s_array], eax", name));
+        output.println(String.format("mov dword [__vtable__%s_array], %d", name, numUnits + i));
         for (int j = 0; j < objectDeclaration.methods.size(); ++j) {
           output.println(String.format("lea [__vtable__%s_array + %d], %s", name, 4 * (j+1),
               CodeGenUtils.genLabel(objectDeclaration.methods.get(j))));
@@ -851,7 +854,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("%s:", begin));
     output.println("cmp ecx, ebx");
     output.println(String.format("jge %s", end));
-    output.println("mov [eax + ecx * 4], 0");
+    output.println("mov dword [eax + ecx * 4], 0");
     output.println("inc ecx");
     output.println(String.format("jmp %s", begin));
     output.println(String.format("%s:", end));
@@ -990,7 +993,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     // Set the vtpr and classId
     output.println(String.format("mov eax, __vtable__%s", classDeclaration.getAbsolutePath()));
-    output.println(String.format("mov [eax], %d", classDeclaration.classId));
+    output.println(String.format("mov dword [eax], %d", classDeclaration.classId));
     offset = 0;
     token.newScope.traverse(this);
     token.body.traverse(this);
@@ -1316,6 +1319,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(CompilationUnit token) throws VisitorException {
     super.visit(token);
     output.println("section .text");
+    output.println("extern __malloc");
+    output.println("extern __exception");
+    output.println("extern NATIVEjava.io.OutputStream.nativeWrite");
+
     if (token.importDeclarations != null) token.importDeclarations.traverse(this);
     token.typeDeclaration.traverse(this);
   }
@@ -1468,8 +1475,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("__vtable__%s: dd", token.getAbsolutePath()));
     output.println(String.format("mov eax, %d", token.vTableSize));
     output.println("call __malloc");
-    output.println(String.format("mov __vtable__%s, eax", token.getAbsolutePath()));
-    output.println(String.format("mov [__vtable__%s], %d", token.getAbsolutePath(), token.classId));
+    output.println(String.format("mov [_vtable__%s], eax", token.getAbsolutePath()));
+    output.println(String.format("mov dword [__vtable__%s], %d", token.getAbsolutePath(), token.classId));
     for (int i = 0; i < token.methods.size(); ++i) {
       output.println(String.format("; Loading address of method decl: %s", token.methods.get(i).getAbsolutePath()));
       output.println(String.format("lea [__vtable__%s + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
@@ -1482,9 +1489,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("__vtable__%s_array: dd", token.getAbsolutePath()));
       output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
       output.println("call __malloc");
-      output.println(String.format("mov __vtable__%s_array, eax", token.getAbsolutePath()));
+      output.println(String.format("mov [__vtable__%s_array], eax", token.getAbsolutePath()));
 
-      output.println(String.format("mov [__vtable__%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
+      output.println(String.format("mov dword [__vtable__%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
       for (int i = 0; i < objectDeclaration.methods.size(); ++i) {
         output.println(String.format("lea [__vtable__%s_array + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
             CodeGenUtils.genLabel(objectDeclaration.methods.get(i))));
@@ -1638,7 +1645,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Push "this" on the stack.
     output.println("push eax");
     output.println("push ebx");
-    output.println(String.format("mov [eax], %s", "__vtable__java.lang.String"));
+    output.println(String.format("mov dword [eax], %s", "__vtable__java.lang.String"));
     output.println(String.format("call %s", "java.lang.String.String#char[]"));
     output.println("pop eax");
     output.println("pop eax");
@@ -1654,12 +1661,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
     String begin = CodeGenUtils.genUniqueLabel();
     String end = CodeGenUtils.genUniqueLabel();
     for (int a = 0; a < value.length(); a++) {
-      output.println(String.format("mov [eax + %d], '%c'", a * 4 + 8, value.charAt(a)));
+      output.println(String.format("mov dword [eax + %d], '%c'", a * 4 + 8, value.charAt(a)));
     }
     // Move the address of the vtable as 0th index.
     output.println("lea [eax], __vtable__char_array");
     // Move length as 1st index.
-    output.println(String.format("mov [eax + 4], %d", value.length()));
+    output.println(String.format("mov dword [eax + 4], %d", value.length()));
     output.println("; END constructCharArray");
     return value.length() * 4 + 8;
   }
