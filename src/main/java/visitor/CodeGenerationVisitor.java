@@ -1361,6 +1361,19 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for (ImportDeclaration importDeclaration : token.importDeclarations) {
       importDeclaration.traverse(this);
     }
+    // Extern all java.lang.* explicitly
+    List<Token> javaLangClasses = table.findWithPrefixOfAnyType(token.getLexeme(), new Class[] {ClassDeclaration.class});
+    for (Token javaLangClass : javaLangClasses) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
+      for (MethodDeclaration method : classDeclaration.methods) {
+        output.println(String.format("extern %s", method.getAbsolutePath()));
+      }
+      for (FieldDeclaration field : classDeclaration.fields) {
+        if (field.containsModifier("static")) {
+          output.println(String.format("extern %s", field.getAbsolutePath()));
+        }
+      }
+    }
   }
 
   @Override
