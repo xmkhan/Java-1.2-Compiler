@@ -181,7 +181,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     int fieldSize = CodeGenUtils.getSize(token.type.getType().getLexeme());
     if (token.containsModifier("static")) {
       output.println(String.format("global %s", token.getAbsolutePath()));
-      output.println(String.format("%s: %s", token.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
+      output.println(String.format("%s: %s 0", token.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
       if (token.expr != null) token.expr.traverse(this);
       else output.println("mov eax, 0");
       output.println(String.format("mov [%s], eax", token.getAbsolutePath()));
@@ -243,7 +243,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     visit(token.expression);
 
-    output.println("cmp eax 0");
+    output.println("cmp eax, 0");
     output.println("je " + ifLabel);
 
     visit(token.statement);
@@ -376,7 +376,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       constructString(literal.getLexeme());
     } else if(token.isCharLiteral()) {
       char value = token.getLexeme().charAt(0);
-      output.println(String.format("mov eax, %c", value));
+      output.println(String.format("mov eax, %d", (int) value));
     } else {
       int value = 0;
       switch (literal.getTokenType()) {
@@ -910,10 +910,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
       int size = CodeGenUtils.getActualSize(token.primitiveType.getType().getLexeme());
       switch (size) {
         case 2:
-          output.println("movs eax, ax");
+          output.println("movsx eax, ax");
           break;
         case 1:
-          output.println("movs eax, al");
+          output.println("movsx eax, al");
           break;
       }
     }
