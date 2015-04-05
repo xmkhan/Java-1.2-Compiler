@@ -163,6 +163,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void genUniqueImport(Declaration declaration) {
     String label = CodeGenUtils.genLabel(declaration);
+    if (label.startsWith(clazzDecclaration.getAbsolutePath())) return;
     if (!importSet.contains(label)) {
       output.println(String.format("extern %s", label));
       importSet.add(label);
@@ -170,6 +171,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   private void genUniqueImport(String label) {
+    if (label.startsWith(clazzDecclaration.getAbsolutePath())) return;
     if (!importSet.contains(label)) {
       output.println(String.format("extern %s", label));
       importSet.add(label);
@@ -1081,6 +1083,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println("push eax");
       }
     }
+
     genUniqueImport(constructorDeclaration);
     output.println(String.format("call %s", CodeGenUtils.genLabel(constructorDeclaration)));
     // Pop off arguments.
@@ -1637,13 +1640,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Push "this" on the stack.
     output.println("push eax");
     output.println("push ebx");
-    if (!clazzDecclaration.getAbsolutePath().equals("java.lang.String")) {
-      genUniqueImport("__vtable__java.lang.String");
-    }
+    genUniqueImport("__vtable__java.lang.String");
     output.println(String.format("mov dword [eax], %s", "__vtable__java.lang.String"));
-    if (!clazzDecclaration.getAbsolutePath().equals("java.lang.String")) {
-      genUniqueImport("java.lang.String.String#char@");
-    }
+    genUniqueImport("java.lang.String.String#char@");
     output.println(String.format("call %s", "java.lang.String.String#char@"));
     output.println("pop eax");
     output.println("pop eax");
