@@ -29,6 +29,10 @@ public class CompilationUnit extends Token {
     }
   }
 
+  public boolean isClass() {
+    return typeDeclaration.getDeclaration() instanceof ClassDeclaration;
+  }
+
   @Override
   public void accept(Visitor v) throws VisitorException {
     for (Token token : children) {
