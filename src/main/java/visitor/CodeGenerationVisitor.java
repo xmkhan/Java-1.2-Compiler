@@ -1006,7 +1006,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     addComment("rtn statement " + token.getLexeme());
     // Executed the return expression
-    if (token.children.size() == 2) visit(token.children.get(1));
+    if (token.children.size() == 2) token.children.get(1).traverse(this);
     output.println("mov esp, ebp");
     output.println("pop ebp");
     output.println("ret");
@@ -1016,7 +1016,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(StatementNoShortIf token) throws VisitorException {
     super.visit(token);
     addComment("StatementNoShortIf " + token.getLexeme());
-    visit(token);
+    visitEveryChild(token);
   }
 
   @Override
