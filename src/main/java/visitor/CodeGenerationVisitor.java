@@ -376,7 +376,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       constructString(literal.getLexeme());
     } else if(token.isCharLiteral()) {
       char value = token.getLexeme().charAt(0);
-      output.println(String.format("mov eax, '%c'", value));
+      output.println(String.format("mov eax, %c", value));
     } else {
       int value = 0;
       switch (literal.getTokenType()) {
