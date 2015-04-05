@@ -91,8 +91,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
     }
 
-    output.println("section .data");
-    output.println("extern __malloc");
     // Declare all global tables.
     declareSubtypeTable();
     declareSelectorIndexTable();
@@ -110,6 +108,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
 
     output.println("section .text");
+    output.println("extern __malloc");
     output.println("global _start");
     output.println("_start:");
     // Initialization code of global tables.
