@@ -506,9 +506,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println(String.format("je %s", endLabel));
         output.println("mov ecx, [ecx]");
         output.println("mov ecx, [ecx]");
-        output.println("mul ecx, 4");
-        output.println("add ecx, __subtype_table");
-        output.println("mov ecx, [ecx]");
+        output.println("mov ecx, [ecx *4 + __subtype_table]");
         output.println(String.format("mov ecx, [ecx + %d]", classId * 4));
         output.println("cmp ecx, 0");
         output.println(String.format("je %s", endLabel));
@@ -726,8 +724,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         AbstractMethodDeclaration methodDecl = (AbstractMethodDeclaration) token.getDeterminedDeclaration();
         output.println("mov eax, [eax]");
         output.println("mov eax, [eax]");
-        output.println("mul eax, 4");
-        output.println("mov eax, [__selector_index_table + eax]");
+        output.println("mov eax, [__selector_index_table + eax * 4]");
         output.println(String.format("mov eax, [eax + %d]", methodDecl.interfaceMethodId * 4));
       } else {
         MethodDeclaration methodDecl = (MethodDeclaration) token.getDeterminedDeclaration();
@@ -898,8 +895,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("je %s", endLabel));
       output.println("mov ebx, [eax]");
       output.println("mov ebx, [ebx]");
-      output.println("mul ebx, 4");
-      output.println("add ebx, __subtype_table");
+      output.println("lea ebx, [ebx * 4 + __subtype_table]");
       output.println("mov ebx, [ebx]");
       output.println(String.format("mov ebx, [ebx + %d]", classId * 4));
       output.println("cmp ebx, 1");
@@ -1170,8 +1166,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         }
         output.println("mov eax, [eax]");
         output.println("mov eax, [eax]");
-        output.println("mul eax, 4");
-        output.println("mov eax, [__selector_index_table + eax]");
+        output.println("mov eax, [__selector_index_table + eax * 4]");
         output.println(String.format("mov eax, [eax + %d]", methodDeclaration.interfaceMethodId * 4));
       }
     }
@@ -1204,8 +1199,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         }
         output.println("mov eax, [eax]");
         output.println("mov eax, [eax]");
-        output.println("mul eax, 4");
-        output.println("mov eax, [__selector_index_table + eax]");
+        output.println("mov eax, [__selector_index_table + eax * 4]");
         output.println(String.format("mov eax, [eax + %d]", ((AbstractMethodDeclaration) curr).interfaceMethodId * 4));
       }
     }
