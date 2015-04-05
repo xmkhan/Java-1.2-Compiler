@@ -31,8 +31,7 @@ public class EqualityExpression extends Token {
   }
 
   public boolean isEqualCheck() {
-    assert(isDefined());
-    return children.get(1).getTokenType() == TokenType.EQUALITY_OP;
+    return isDefined() ? children.get(1).getTokenType() == TokenType.EQUALITY_OP : false;
   }
 
   @Override
