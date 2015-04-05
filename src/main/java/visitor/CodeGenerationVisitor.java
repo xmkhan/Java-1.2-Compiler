@@ -992,7 +992,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if(token.isNeg()) {
       output.println("; UnaryExpressionNotMinus");
       token.unaryExpression.traverse(this);
-      output.println("not eax");
+      output.println("neg eax");
+      output.println("add eax, 1");
       output.println("; END: UnaryExpressionNotMinus");
     } else if(token.name != null) {
       output.println("; UnaryExpressionNotMinus");
