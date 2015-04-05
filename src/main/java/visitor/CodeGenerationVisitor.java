@@ -168,6 +168,13 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
   }
 
+  private void genUniqueImport(String label) {
+    if (!importSet.contains(label)) {
+      output.println(String.format("extern %s", label));
+      importSet.add(label);
+    }
+  }
+
   @Override
   public void visit(ExpressionStatement token) throws VisitorException {
     super.visit(token);
@@ -1631,7 +1638,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // Push "this" on the stack.
     output.println("push eax");
     output.println("push ebx");
+    genUniqueImport("__vtable__java.lang.String");
     output.println(String.format("mov dword [eax], %s", "__vtable__java.lang.String"));
+    genUniqueImport("java.lang.String.String#char@");
     output.println(String.format("call %s", "java.lang.String.String#char@"));
     output.println("pop eax");
     output.println("pop eax");
@@ -1650,6 +1659,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("mov dword [eax + %d], '%c'", a * 4 + 8, value.charAt(a)));
     }
     // Move the address of the vtable as 0th index.
+    genUniqueImport("__vtable__char_array");
     output.println("lea [eax], __vtable__char_array");
     // Move length as 1st index.
     output.println(String.format("mov dword [eax + 4], %d", value.length()));
@@ -1670,12 +1680,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
       String typeSuffix = type.isPrimitiveType() ? type.tokenType.toString() : "Object";
 
       // static call
+      genUniqueImport("java.lang.String.valueOf#" + typeSuffix);
       methodInvocation("java.lang.String.valueOf#" + typeSuffix, -1, null, registerToConvert);
 
       // check if toString returned null, if so convert null to null string
       String label = CodeGenUtils.genNextTempLabel();
       output.println("cmp eax, 0");
       output.println(String.format("jne %s", label));
+      genUniqueImport("java.lang.String.valueOf#Object");
       methodInvocation("java.lang.String.valueOf#Object", -1, null, "eax");
       output.println(label + ":");
       output.println(String.format("mov %s, eax", registerToConvert));
