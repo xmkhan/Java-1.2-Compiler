@@ -103,7 +103,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private void genSubtypeTable() {
     output.println("; CODE GENERATION: genSubtypeTable");
     output.println("global __subtype_table");
-    output.println("__subtype_table: dd");
+    output.println("__subtype_table: dd 0");
     output.println(String.format("mov eax, %d",(4 * subclassTable.length)));
     output.println("call __malloc");
     output.println("mov [__subtype_table], eax");
@@ -122,7 +122,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private void genSelectorIndexTable() {
     output.println("; CODE GENERATION: genSelectorIndexTable");
     output.println("global __selector_index_table");
-    output.println("__selector_index_table: dd");
+    output.println("__selector_index_table: dd 0");
     output.println(String.format("mov eax, %d",(4 * selectorIndexTable.length)));
     output.println("call __malloc");
     output.println("mov [__selector_index_table], eax");
@@ -146,7 +146,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       for (int i = 0; i < primitiveNames.length; ++i) {
         String name = primitiveNames[i];
         output.println(String.format("global __vtable__%s_array", name));
-        output.println(String.format("__vtable__%s_array: dd", name));
+        output.println(String.format("__vtable__%s_array: dd 0", name));
         output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
         output.println("call __malloc");
         output.println(String.format("mov [__vtable__%s_array], eax", name));
@@ -1462,7 +1462,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // After generating code for the class subtree, at the end we create the vtable entry.
     output.println(String.format("; Generating code for %s vtable", token.getAbsolutePath()));
     output.println(String.format("global __vtable__%s", token.getAbsolutePath()));
-    output.println(String.format("__vtable__%s: dd", token.getAbsolutePath()));
+    output.println(String.format("__vtable__%s: dd 0", token.getAbsolutePath()));
     output.println(String.format("mov eax, %d", token.vTableSize));
     output.println("call __malloc");
     output.println(String.format("mov [_vtable__%s], eax", token.getAbsolutePath()));
@@ -1476,7 +1476,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (objectDeclaration != null) {
       output.println(String.format("; Generating code for the %s array vtable", token.getAbsolutePath()));
       output.println(String.format("global __vtable__%s_array", token.getAbsolutePath()));
-      output.println(String.format("__vtable__%s_array: dd", token.getAbsolutePath()));
+      output.println(String.format("__vtable__%s_array: dd 0", token.getAbsolutePath()));
       output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
       output.println("call __malloc");
       output.println(String.format("mov [__vtable__%s_array], eax", token.getAbsolutePath()));
