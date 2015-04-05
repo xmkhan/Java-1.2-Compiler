@@ -197,6 +197,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassMemberDeclaration token) throws VisitorException {
     super.visit(token);
+    if (token.children.get(0) instanceof FieldDeclaration) {
+      FieldDeclaration field = (FieldDeclaration) token.children.get(0);
+      if (field.containsModifier("static")) {
+        field.traverse(this);
+      }
+    } else {
+      token.children.get(0).traverse(this);
+    }
   }
 
   @Override
@@ -269,14 +277,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassBodyDeclaration token) throws VisitorException {
     super.visit(token);
-    if (token.declaration instanceof FieldDeclaration) {
-      FieldDeclaration field = (FieldDeclaration) token.declaration;
-      if (field.containsModifier("static")) {
-        field.traverse(this);
-      }
-    } else {
-      token.declaration.traverse(this);
-    }
+    token.declaration.traverse(this);
   }
 
   @Override
