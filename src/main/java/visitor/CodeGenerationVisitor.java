@@ -1048,7 +1048,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     // Set the vtpr and classId
     output.println("pop eax");
-    output.println(String.format("mov [eax], __vtable__%s", classDeclaration.getAbsolutePath()));
+    output.println(String.format("mov dword [eax], __vtable__%s", classDeclaration.getAbsolutePath()));
     output.println("mov eax, [eax]");
     output.println(String.format("mov dword [eax], %d", classDeclaration.classId));
     offset = 0;
