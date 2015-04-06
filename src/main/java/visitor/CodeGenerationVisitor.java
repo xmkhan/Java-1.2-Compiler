@@ -236,7 +236,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void genUniqueImport(Declaration declaration) {
     String label = CodeGenUtils.genLabel(declaration);
-    if (label.startsWith(clazzDecclaration.getAbsolutePath()) && !(declaration instanceof FieldDeclaration)) return;
+    if (clazzDecclaration != null && label.startsWith(clazzDecclaration.getAbsolutePath()) && !(declaration instanceof FieldDeclaration)) return;
     if (!importSet.contains(label)) {
       output.println(String.format("extern %s", label));
       importSet.add(label);
@@ -244,7 +244,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   private void genUniqueImport(String label) {
-    if (label.startsWith(clazzDecclaration.getAbsolutePath())) return;
+    if (clazzDecclaration != null && label.startsWith(clazzDecclaration.getAbsolutePath())) return;
     if (!importSet.contains(label)) {
       output.println(String.format("extern %s", label));
       importSet.add(label);
