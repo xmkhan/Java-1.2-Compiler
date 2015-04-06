@@ -195,10 +195,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("mov eax, %d", token.vTableSize));
     output.println("call __malloc");
     output.println(String.format("mov [__vtable__%s], eax", token.getAbsolutePath()));
-    output.println(String.format("mov dword [__vtable__%s], %d", token.getAbsolutePath(), token.classId));
+    output.println(String.format("mov dword [eax], %d", token.classId));
     for (int i = 0; i < token.methods.size(); ++i) {
       output.println(String.format("; Loading address of method decl: %s", token.methods.get(i).getAbsolutePath()));
-      output.println(String.format("lea [__vtable__%s + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
+      output.println(String.format("lea [eax + %d], %s", 4 * (i + 1),
           CodeGenUtils.genLabel(token.methods.get(i))));
     }
     // Additionally, we generate the vtable for the Array type.
@@ -208,9 +208,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("call __malloc");
       output.println(String.format("mov [__vtable__%s_array], eax", token.getAbsolutePath()));
 
-      output.println(String.format("mov dword [__vtable__%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
+      output.println(String.format("mov dword [eax], %d", token.classId + numUnits));
       for (int i = 0; i < objectDeclaration.methods.size(); ++i) {
-        output.println(String.format("lea [__vtable__%s_array + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
+        output.println(String.format("lea [eax + %d], %s", 4 * (i + 1),
             CodeGenUtils.genLabel(objectDeclaration.methods.get(i))));
       }
     }
@@ -224,9 +224,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
         output.println("call __malloc");
         output.println(String.format("mov [__vtable__%s_array], eax", name));
-        output.println(String.format("mov dword [__vtable__%s_array], %d", name, 2 * numUnits + i));
+        output.println(String.format("mov dword [eax], %d", 2 * numUnits + i));
         for (int j = 0; j < objectDeclaration.methods.size(); ++j) {
-          output.println(String.format("lea [__vtable__%s_array + %d], %s", name, 4 * (j+1),
+          output.println(String.format("lea [eax + %d], %s", 4 * (j+1),
               CodeGenUtils.genLabel(objectDeclaration.methods.get(j))));
         }
       }
