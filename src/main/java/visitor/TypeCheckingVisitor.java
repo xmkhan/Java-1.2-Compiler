@@ -63,7 +63,8 @@ public class TypeCheckingVisitor extends BaseVisitor {
         break;
       case INT_LITERAL:
         literalToken = new TypeCheckToken(TokenType.INT);
-        literalToken.isIntLiteral = true;
+        if(!literal.getLexeme().startsWith("-"))
+          literalToken.isPositiveIntLiteral = true;
         break;
       case BooleanLiteral:
         literalToken = new TypeCheckToken(TokenType.BOOLEAN);
@@ -295,7 +296,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       throw new TypeCheckingVisitorException("Unary operator '- UnaryExpression' was expecting UnaryExpression to be of type short|int|byte|char but found " + type, token);
     } else {
       // we just peeked the stack so no need to push the type back on the stack again
-      if(typeCheck.isIntLiteral && token.children.size() == 2) {
+      if(typeCheck.isPositiveIntLiteral && token.children.size() == 2) {
         if(token.exp.posExp != null && token.exp.posExp.primary != null && token.exp.posExp.primary.children.get(0) instanceof Literal) {
           token.posExp = token.exp.posExp;
           token.exp = null;
@@ -304,6 +305,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
           String value = literal.getLiteral().getLexeme();
           literal.getLiteral().setLexeme("-" + value);
           literal.setLexeme("-" + value);
+          typeCheck.isPositiveIntLiteral = false;
         }
       }
     }

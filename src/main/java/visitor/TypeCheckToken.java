@@ -8,7 +8,7 @@ public class TypeCheckToken {
   public boolean isArray;
   public Declaration declaration;
   public String absolutePath;
-  public boolean isIntLiteral;
+  public boolean isPositiveIntLiteral;
 
   public TypeCheckToken(TokenType type) {
     this.tokenType = type;
