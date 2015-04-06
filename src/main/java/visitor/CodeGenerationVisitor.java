@@ -145,11 +145,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private void genSubtypeTable() {
     output.println("; CODE GENERATION: genSubtypeTable");
     output.println(String.format("mov eax, %d",(4 * subclassTable.length)));
-    output.println("call __malloc");
+    CodeGenUtils.malloc(output);
     output.println("mov [__subtype_table], eax");
     for(int i = 0; i < subclassTable.length; ++i) {
       output.println(String.format("mov eax, %d", (4 * subclassTable[i].length)));
-      output.println("call __malloc");
+      CodeGenUtils.malloc(output);
       output.println(String.format("mov [__subtype_table + %d], eax", 4 * i));
       output.println(String.format("mov ebx, [__subtype_table + %d]", 4 * i));
       for (int j = 0; j < subclassTable[i].length; ++j) {
@@ -167,11 +167,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private void genSelectorIndexTable() {
     output.println("; CODE GENERATION: genSelectorIndexTable");
     output.println(String.format("mov eax, %d",(4 * selectorIndexTable.length)));
-    output.println("call __malloc");
+    CodeGenUtils.malloc(output);
     output.println("mov [__selector_index_table], eax");
     for(int i = 0; i < selectorIndexTable.length; ++i) {
       output.println(String.format("mov eax, %d", (4 * selectorIndexTable.length)));
-      output.println("call __malloc");
+      CodeGenUtils.malloc(output);
       output.println(String.format("mov [__selector_index_table + %d], eax", 4 * i));
       output.println(String.format("mov ebx, [__selector_index_table + %d]", 4 * i));
       for (int j = 0; j < selectorIndexTable[i].length; ++j) {
@@ -193,7 +193,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     // After generating code for the class subtree, at the end we create the vtable entry.
     output.println(String.format("; Generating code for %s vtable", token.getAbsolutePath()));
     output.println(String.format("mov eax, %d", token.vTableSize));
-    output.println("call __malloc");
+    CodeGenUtils.malloc(output);
     output.println(String.format("mov [__vtable__%s], eax", token.getAbsolutePath()));
     output.println(String.format("mov dword [eax], %d", token.classId));
     for (int i = 0; i < token.methods.size(); ++i) {
@@ -205,7 +205,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (objectDeclaration != null) {
       output.println(String.format("; Generating code for the %s array vtable", token.getAbsolutePath()));
       output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
-      output.println("call __malloc");
+      CodeGenUtils.malloc(output);
       output.println(String.format("mov [__vtable__%s_array], eax", token.getAbsolutePath()));
 
       output.println(String.format("mov dword [eax], %d", token.classId + numUnits));
@@ -222,7 +222,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       for (int i = 0; i < primitiveNames.length; ++i) {
         String name = primitiveNames[i];
         output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
-        output.println("call __malloc");
+        CodeGenUtils.malloc(output);
         output.println(String.format("mov [__vtable__%s_array], eax", name));
         output.println(String.format("mov dword [eax], %d", 2 * numUnits + i));
         for (int j = 0; j < objectDeclaration.methods.size(); ++j) {
@@ -236,7 +236,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void genUniqueImport(Declaration declaration) {
     String label = CodeGenUtils.genLabel(declaration);
-    if (label.startsWith(clazzDecclaration.getAbsolutePath()) && !(declaration instanceof FieldDeclaration)) return;
+    if (clazzDecclaration != null && label.startsWith(clazzDecclaration.getAbsolutePath()) && !(declaration instanceof FieldDeclaration)) return;
     if (!importSet.contains(label)) {
       output.println(String.format("extern %s", label));
       importSet.add(label);
@@ -244,7 +244,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   }
 
   private void genUniqueImport(String label) {
-    if (label.startsWith(clazzDecclaration.getAbsolutePath())) return;
+    if (clazzDecclaration != null && label.startsWith(clazzDecclaration.getAbsolutePath())) return;
     if (!importSet.contains(label)) {
       output.println(String.format("extern %s", label));
       importSet.add(label);
@@ -923,7 +923,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("lea ebx, [ebx + 2]");
     // Expression should have returned an integer for the size, we add 8 for the vtable_ptr and length.
     output.println("lea eax, [eax * 4 + 8]");
-    output.println("call __malloc");
+    CodeGenUtils.malloc(output);
     // Initialize the array to default values.
     String begin = CodeGenUtils.genUniqueLabel();
     String end = CodeGenUtils.genUniqueLabel();
@@ -936,8 +936,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("jmp %s", begin));
     output.println(String.format("%s:", end));
     // Move the address of the vtable as 0th index.
-    output.println(String.format("mov ecx, [__vtable__%s_array]", vTableName));
-    output.println("mov [eax], ecx");
+    output.println(String.format("mov dword ecx, [__vtable__%s_array]", vTableName));
+    output.println(String.format("mov [eax], ecx", vTableName));
     // Move length as 1st index.
     output.println("lea ebx, [ebx - 2]");
     output.println("mov [eax + 4], ebx");
@@ -977,7 +977,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("je %s", endLabel));
       output.println("mov ebx, [eax]");
       output.println("mov ebx, [ebx]");
-      output.println("lea ebx, [ebx * 4 + __subtype_table]");
+      output.println("mov ecx, [__subtype_table]");
+      output.println("lea ebx, [ebx * 4 + ecx]");
       output.println("mov ebx, [ebx]");
       output.println(String.format("mov ebx, [ebx + %d]", classId * 4));
       output.println("cmp ebx, 1");
@@ -1148,7 +1149,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     ClassDeclaration classDeclaration =  (ClassDeclaration) table.getClass(constructorDeclaration);
     CodeGenUtils.genPushRegisters(output, true);
     output.println(String.format("mov eax, %d", classDeclaration.classSize));
-    output.println("call __malloc");
+    CodeGenUtils.malloc(output);
     // Push "this" on the stack.
     output.println("push eax");
     // Push on arguments.
@@ -1420,6 +1421,20 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("extern __selector_index_table");
 
     if (token.importDeclarations != null) token.importDeclarations.traverse(this);
+    // Extern all java.lang.* explicitly
+    List<Token> javaLangClasses = table.findWithPrefixOfAnyType("java.lang.", new Class[] {ClassDeclaration.class});
+    for (Token javaLangClass : javaLangClasses) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
+      genUniqueImport(String.format("__vtable__%s_array", classDeclaration.getAbsolutePath()));
+      for (MethodDeclaration method : classDeclaration.methods) {
+        genUniqueImport(method);
+      }
+      for (FieldDeclaration field : classDeclaration.fields) {
+        if (field.containsModifier("static")) {
+          genUniqueImport(field);
+        }
+      }
+    }
     token.typeDeclaration.traverse(this);
   }
 
@@ -1475,20 +1490,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     for (ImportDeclaration importDeclaration : token.importDeclarations) {
       importDeclaration.traverse(this);
-    }
-    // Extern all java.lang.* explicitly
-    List<Token> javaLangClasses = table.findWithPrefixOfAnyType(token.getLexeme(), new Class[] {ClassDeclaration.class});
-    for (Token javaLangClass : javaLangClasses) {
-      ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
-      genUniqueImport(String.format("__vtable__%s_array", classDeclaration.getAbsolutePath()));
-      for (MethodDeclaration method : classDeclaration.methods) {
-        genUniqueImport(method);
-      }
-      for (FieldDeclaration field : classDeclaration.fields) {
-        if (field.containsModifier("static")) {
-          genUniqueImport(field);
-        }
-      }
     }
   }
 
@@ -1683,7 +1684,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     CodeGenUtils.genPushRegisters(output, true);
     output.println("mov ebx, eax");
     output.println(String.format("mov eax, %d", 8));
-    output.println("call __malloc");
+    CodeGenUtils.malloc(output);
     // Push "this" on the stack.
     output.println("push eax");
     output.println("push ebx");
@@ -1701,7 +1702,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   private int constructCharArray(String value) {
     output.println("; CODE GENERATION: constructCharArray");
     output.println(String.format("mov eax, %d", value.length() * 4 + 8));
-    output.println("call __malloc");
+    CodeGenUtils.malloc(output);
     // Initialize the array
     String begin = CodeGenUtils.genUniqueLabel();
     String end = CodeGenUtils.genUniqueLabel();
