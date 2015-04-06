@@ -1448,6 +1448,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     List<Token> javaLangClasses = table.findWithPrefixOfAnyType(token.getLexeme(), new Class[] {ClassDeclaration.class});
     for (Token javaLangClass : javaLangClasses) {
       ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
+      genUniqueImport(String.format("__vtable__%s_array", classDeclaration.getAbsolutePath()));
       for (MethodDeclaration method : classDeclaration.methods) {
         genUniqueImport(method);
       }
