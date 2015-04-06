@@ -454,9 +454,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
     Token literal = token.getLiteral();
 
     if(token.isStringLiteral()) {
-      constructString(literal.getLexeme());
+      String str = literal.getLexeme();
+      constructString(str.substring(1, str.length() - 1));
     } else if(token.isCharLiteral()) {
-      char value = token.getLexeme().charAt(0);
+      char value = token.getLexeme().charAt(1);
       output.println(String.format("mov eax, %d", (int) value));
     } else {
       int value = 0;
@@ -806,7 +807,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
         AbstractMethodDeclaration methodDecl = (AbstractMethodDeclaration) token.getDeterminedDeclaration();
         output.println("mov eax, [eax]");
         output.println("mov eax, [eax]");
-        output.println("mov eax, [__selector_index_table + eax * 4]");
+        output.println("mov ebx, [__selector_index_table]");
+        output.println("mov eax, [ebx + eax * 4]");
         output.println(String.format("mov eax, [eax + %d]", methodDecl.interfaceMethodId * 4));
       } else {
         MethodDeclaration methodDecl = (MethodDeclaration) token.getDeterminedDeclaration();
@@ -1261,7 +1263,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
         }
         output.println("mov eax, [eax]");
         output.println("mov eax, [eax]");
-        output.println("mov eax, [__selector_index_table + eax * 4]");
+        output.println("push edx");
+        output.println("mov edx, [__selector_index_table]");
+        output.println("mov eax, [edx + eax * 4]");
+        output.println("pop edx");
         output.println(String.format("mov eax, [eax + %d]", methodDeclaration.interfaceMethodId * 4));
       }
     }
@@ -1294,7 +1299,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
         }
         output.println("mov eax, [eax]");
         output.println("mov eax, [eax]");
-        output.println("mov eax, [__selector_index_table + eax * 4]");
+        output.println("push edx");
+        output.println("mov edx, [__selector_index_table]");
+        output.println("mov eax, [edx + eax * 4]");
+        output.println("pop edx");
         output.println(String.format("mov eax, [eax + %d]", ((AbstractMethodDeclaration) curr).interfaceMethodId * 4));
       }
     }
@@ -1708,7 +1716,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     String begin = CodeGenUtils.genUniqueLabel();
     String end = CodeGenUtils.genUniqueLabel();
     for (int a = 0; a < value.length(); a++) {
-      output.println(String.format("mov dword [eax + %d], '%c'", a * 4 + 8, value.charAt(a)));
+      output.println(String.format("mov dword [eax + %d], %c", a * 4 + 8, value.charAt(a)));
     }
     // Move the address of the vtable as 0th index.
     genUniqueImport("__vtable__char_array");
