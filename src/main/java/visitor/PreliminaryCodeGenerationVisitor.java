@@ -84,7 +84,7 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
       if (method instanceof MethodDeclaration) {
         MethodDeclaration methodDeclaration = (MethodDeclaration) method;
         String methodLabel = CodeGenUtils.genMethodLabel(methodDeclaration);
-        if (!methodLabel.contains(methodLabel)) {
+        if (!methodLabels.containsKey(methodLabel)) {
           classDeclaration.methods.add(methodDeclaration);
           methodLabels.put(methodLabel, methodDeclaration);
         }
