@@ -1086,7 +1086,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("mov eax, [ebp + %d]", paramOffset));
       output.println("push eax");
       output.println(String.format("call %s", baseLabel));
-      output.print("pop eax");
+      output.println("pop eax");
     }
 
     // Initialize the non-static fields. Firstly, we put 'this' into eax.
