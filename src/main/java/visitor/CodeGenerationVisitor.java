@@ -1771,7 +1771,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     String begin = CodeGenUtils.genUniqueLabel();
     String end = CodeGenUtils.genUniqueLabel();
     for (int a = 0; a < value.length(); a++) {
-      output.println(String.format("mov dword [eax + %d], '%c'", a * 4 + 8, value.charAt(a)));
+      output.println(String.format("mov dword [eax + %d], %d", a * 4 + 8, (int) value.charAt(a)));
     }
     // Move the address of the vtable as 0th index.
     genUniqueImport("__vtable__char_array");

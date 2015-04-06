@@ -72,7 +72,6 @@ public class LiteralDFA implements DFA {
         break;
       case LITERAL:
         if (c == '\\') {
-          builder.append(c);
           state = states.ESCAPE;
         } else if (c <= MAX_ASCII && ((literalType == LiteralType.SINGLE_QUOTE && c != '\'') ||
             (literalType == LiteralType.DOUBLE_QUOTE && c != '"'))) {
@@ -86,12 +85,14 @@ public class LiteralDFA implements DFA {
       case ESCAPE:
         if (escapeCharacters.contains(c)) {
           length++;
-          builder.append(c);
+          builder.append(getUnEscapedChar(c));
           state = states.LITERAL;
         } else if (c >= '0' && c <= '3') {
+          builder.append('\\');
           builder.append(c);
           state = states.ZERO_TO_THREE;
         } else if (c > '3' && c <= '7') {
+          builder.append('\\');
           builder.append(c);
           state = states.ZERO_TO_SEVEN;
         } else {
@@ -143,6 +144,29 @@ public class LiteralDFA implements DFA {
       state = states.ACCEPT;
     } else {
       state = states.ERROR;
+    }
+  }
+
+  private static char getUnEscapedChar(char c) {
+    switch(c) {
+      case 'b':
+        return '\b';
+      case 't':
+        return '\t';
+      case 'n':
+        return '\n';
+      case 'f':
+        return '\f';
+      case 'r':
+        return '\r';
+      case '\'':
+        return '\'';
+      case '"':
+        return '"';
+      case '\\':
+        return '\\';
+      default:
+        return ' ';
     }
   }
 
