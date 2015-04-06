@@ -1076,6 +1076,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         field.traverse(this);
       }
     }
+
     // Set the vtpr and classId
     output.println("pop eax");
     output.println(String.format("mov ebx, [__vtable__%s]", classDeclaration.getAbsolutePath()));
@@ -1690,7 +1691,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (!clazzDecclaration.getAbsolutePath().equals("java.lang.String")) {
       genUniqueImport("__vtable__java.lang.String");
     }
-    output.println(String.format("mov dword [eax], %s", "__vtable__java.lang.String"));
     genUniqueImport("java.lang.String.String#char@");
     output.println(String.format("call %s", "java.lang.String.String#char@"));
     output.println("pop eax");
@@ -1711,7 +1711,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     // Move the address of the vtable as 0th index.
     genUniqueImport("__vtable__char_array");
-    output.println("mov dword [eax], __vtable__char_array");
+    output.println("mov dword ebx, [__vtable__char_array]");
+    output.println("mov [eax], ebx");
     // Move length as 1st index.
     output.println(String.format("mov dword [eax + 4], %d", value.length()));
     output.println("; END constructCharArray");
