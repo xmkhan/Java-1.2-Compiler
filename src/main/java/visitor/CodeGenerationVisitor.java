@@ -1115,6 +1115,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     token.offset = offset;
     token.expression.traverse(this);
     output.println("push eax");
+    declStack.peek().add(token);
     output.println("; END LocalVariableDeclaration");
   }
 
@@ -1712,7 +1713,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     String endLabel = "end#" + startLabel;
     token.newScope.traverse(this);
     output.println(String.format("%s:", startLabel));
-    token.newScope.traverse(this);    token.expression.traverse(this);
+    token.expression.traverse(this);
     output.println("cmp eax, 0");
     output.println(String.format("je %s", endLabel));
     if(token.statement != null) {
