@@ -149,6 +149,12 @@ public class CodeGenUtils {
     }
   }
 
+  public static void malloc(PrintStream output) {
+    genPushRegisters(output, true);
+    output.println("call __malloc");
+    genPopRegisters(output, true);
+  }
+
   /**
    * Currently, we assume that the size of all data types is 4 bytes. However, this method is invoked so that in the
    * feature, we may support data types of different sizes: 1, 2, or 4 bytes with the appropriate mov/registers.
