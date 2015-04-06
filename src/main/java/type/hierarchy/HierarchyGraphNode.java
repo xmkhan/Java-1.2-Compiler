@@ -135,6 +135,15 @@ public class HierarchyGraphNode {
     return allFields;
   }
 
+  public List<FieldDeclaration> getAllFieldsReverse() {
+    List<FieldDeclaration> allFields = new ArrayList<FieldDeclaration>();
+    for (HierarchyGraphNode node : extendsList) {
+      allFields.addAll(node.getAllFieldsReverse());
+    }
+    allFields.addAll(fields);
+    return allFields;
+  }
+
   public List<FieldDeclaration> getAllBaseFields() {
     List<FieldDeclaration> baseFields = new ArrayList<FieldDeclaration>();
     for (HierarchyGraphNode node : extendsList) {
