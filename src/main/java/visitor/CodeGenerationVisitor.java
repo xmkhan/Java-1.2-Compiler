@@ -936,7 +936,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("jmp %s", begin));
     output.println(String.format("%s:", end));
     // Move the address of the vtable as 0th index.
-    output.println(String.format("mov dword [eax], __vtable__%s_array", vTableName));
+    output.println(String.format("mov dword ecx, [__vtable__%s_array]", vTableName));
+    output.println(String.format("mov [eax], ecx", vTableName));
     // Move length as 1st index.
     output.println("lea ebx, [ebx - 2]");
     output.println("mov [eax + 4], ebx");
@@ -976,7 +977,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("je %s", endLabel));
       output.println("mov ebx, [eax]");
       output.println("mov ebx, [ebx]");
-      output.println("lea ebx, [ebx * 4 + __subtype_table]");
+      output.println("mov ecx, [__subtype_table]");
+      output.println("lea ebx, [ebx * 4 + ecx]");
       output.println("mov ebx, [ebx]");
       output.println(String.format("mov ebx, [ebx + %d]", classId * 4));
       output.println("cmp ebx, 1");
