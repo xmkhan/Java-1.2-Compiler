@@ -843,21 +843,27 @@ public class TypeCheckingVisitor extends BaseVisitor {
       token.name.setDeterminedDeclaration(methodDeclaration);
     }
 
-    if (token.name != null && token.name.classifiedType == Name.ClassifiedType.Type &&
-      !((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
-      throw new TypeCheckingVisitorException("Non static method " + ((MethodDeclaration) methodDeclaration).methodHeader.identifier.getLexeme() +
-        " of class " + clazz.identifier.getLexeme() + " is used as static", token);
+    // header will not be null
+    MethodHeader header = getMethodHeader(methodDeclaration);
 
-    } else if (token.name != null && token.name.classifiedType == Name.ClassifiedType.NonStaticExpr &&
-      ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
-      throw new TypeCheckingVisitorException("static method " + ((MethodDeclaration) methodDeclaration).methodHeader.identifier.getLexeme() +
-        " of class " + clazz.identifier.getLexeme() + " is used as non static", token);
-    } else if (token.name != null && token.name.simpleName != null && token.name.classifiedType == Name.ClassifiedType.Ambiguous &&
-      ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic()) {
-      throw new TypeCheckingVisitorException("Calls a static method without naming the class. ", token);
+    if (token.name != null) {
+      if (token.name.classifiedType == Name.ClassifiedType.Type &&
+        !header.modifiers.isStatic()) {
+        throw new TypeCheckingVisitorException("Non static method " + header.identifier.getLexeme() +
+          " of class " + clazz.identifier.getLexeme() + " is used as static", token);
+
+      } else if (token.name.classifiedType == Name.ClassifiedType.NonStaticExpr &&
+        header.modifiers.isStatic()) {
+        throw new TypeCheckingVisitorException("static method " + header.identifier.getLexeme() +
+          " of class " + clazz.identifier.getLexeme() + " is used as non static", token);
+      } else if (token.name.simpleName != null && token.name.classifiedType == Name.ClassifiedType.Ambiguous &&
+        header.modifiers.isStatic()) {
+        throw new TypeCheckingVisitorException("Calls a static method without naming the class. ", token);
+      }
     }
 
-    if (clazz.getAbsolutePath().equals(node.getFullname()) && !((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isStatic() && token.primary == null && token.name.qualifiedName == null) {
+
+    if (clazz.getAbsolutePath().equals(node.getFullname()) && !header.modifiers.isStatic() && token.primary == null && token.name.qualifiedName == null) {
       explicitThisUsedInContext = true;
     }
 
@@ -865,7 +871,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       HierarchyGraphNode parent = hierarchyGraph.get(token.name.getDeclarationPath().get(token.name.getDeclarationPath().size() - 1).type.getType().getLexeme());
       // Case where an instance is not used (e.g. static protected methods, protected methods, ...)
       if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
-        ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isProtected() &&
+        header.modifiers.isProtected() &&
         !parent.getPackageName().equals(node.getPackageName()) &&
         !hierarchyGraph.nodeAIsParentOfNodeB(node, parent) &&
         ((Name)token.children.get(0)).qualifiedName != null) {
@@ -879,7 +885,7 @@ public class TypeCheckingVisitor extends BaseVisitor {
       if (parent != null && !parent.getFullname().equals(node.getFullname()) &&
         (!hierarchyGraph.nodeAIsParentOfNodeB(parent, node) &&
           !parent.getPackageName().equals(node.getPackageName())) &&
-        ((MethodDeclaration) methodDeclaration).methodHeader.modifiers.isProtected()) {
+          header.modifiers.isProtected()) {
         throw new TypeCheckingVisitorException("Protected method " +
           methodDeclaration.getLexeme() +
           "accessed from outside of package or class hierarchy. Violating class: " +
@@ -1092,6 +1098,15 @@ public class TypeCheckingVisitor extends BaseVisitor {
     }
 
     return declarations;
+  }
+
+  private MethodHeader getMethodHeader (Declaration method) {
+    if (method instanceof MethodDeclaration) {
+      return ((MethodDeclaration)method).methodHeader;
+    } else if (method instanceof AbstractMethodDeclaration) {
+      return ((AbstractMethodDeclaration)method).methodHeader;
+    }
+    return null;
   }
 
   private Declaration matchCall(List<Token> matchingDeclarations, boolean isMethod, List<TypeCheckToken> argumentsToMethod, Token context) throws VisitorException {
