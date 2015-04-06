@@ -214,6 +214,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("mov dword [eax + %d], %s", 4 * (i + 1),
           CodeGenUtils.genLabel(token.methods.get(i))));
     }
+
+
     // Additionally, we generate the vtable for the Array type.
     if (objectDeclaration != null) {
       output.println(String.format("; Generating code for the %s array vtable", token.getAbsolutePath()));
@@ -1064,17 +1066,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("push ebp");
     output.println("mov ebp, esp");
 
-    ClassDeclaration classDeclaration = (ClassDeclaration) table.getClass(token);
-    HierarchyGraphNode node = graph.get(classDeclaration.getAbsolutePath());
-    List<Token> classTokens = node.getAllBaseClasses();
-    if (!node.extendsList.isEmpty()) {
-      // Call the default constructor for the base class.
-      ClassDeclaration baseClass = (ClassDeclaration) node.extendsList.get(0).classOrInterface;
-      String baseLabel = String.format("%s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier());
-      genUniqueImport(baseLabel);
-      output.println(String.format("call %s", baseLabel));
-    }
-
     int paramOffset = 8; // Accounts for [ebp, eip] on stack.
     // Setup the offsets for the function parameter offsets.
     List<FormalParameter> parameters = token.getParameters();
@@ -1083,6 +1074,21 @@ public class CodeGenerationVisitor extends BaseVisitor {
       param.offset = paramOffset;
       paramOffset += CodeGenUtils.getSize(param.getType().getLexeme());
     }
+
+    ClassDeclaration classDeclaration = (ClassDeclaration) table.getClass(token);
+    HierarchyGraphNode node = graph.get(classDeclaration.getAbsolutePath());
+    List<Token> classTokens = node.getAllBaseClasses();
+    if (!node.extendsList.isEmpty()) {
+      // Call the default constructor for the base class.
+      ClassDeclaration baseClass = (ClassDeclaration) node.extendsList.get(0).classOrInterface;
+      String baseLabel = String.format("%s.%s#void", baseClass.getAbsolutePath(), baseClass.getIdentifier());
+      genUniqueImport(baseLabel);
+      output.println(String.format("mov eax, [ebp + %d]", paramOffset));
+      output.println("push eax");
+      output.println(String.format("call %s", baseLabel));
+      output.print("pop eax");
+    }
+
     // Initialize the non-static fields. Firstly, we put 'this' into eax.
     output.println(String.format("mov eax, [ebp + %d]", paramOffset));
     output.println("push eax");
