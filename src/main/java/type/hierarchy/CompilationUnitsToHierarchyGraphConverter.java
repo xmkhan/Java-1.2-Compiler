@@ -133,7 +133,9 @@ public class CompilationUnitsToHierarchyGraphConverter {
           node.setFields(fields);
           break;
         case InterfaceBody:
-          addMethodsToNode(extractMethodHeaders((InterfaceBody) token), node);
+          List<BaseMethodDeclaration> allMethodDeclarations = new ArrayList<BaseMethodDeclaration>();
+          addMethodsToNode(extractMethodHeaders((InterfaceBody) token, allMethodDeclarations), node);
+          node.setBaseMethodDeclarations(allMethodDeclarations);
           break;
         case CLASS:
           break;
@@ -247,12 +249,14 @@ public class CompilationUnitsToHierarchyGraphConverter {
   /**
    * Retrieves all MethodHeaders from an InterfaceBody
    * @param interfaceBody
+   * @param allMethodDeclarations
    * @return
    */
-  private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody) {
+  private List<MethodHeader> extractMethodHeaders(InterfaceBody interfaceBody, List<BaseMethodDeclaration> allMethodDeclarations) {
     List<MethodHeader> methodHeaders = new ArrayList<MethodHeader>();
     if (interfaceBody == null || interfaceBody.getInterfaceMemberDeclaration() == null) return methodHeaders;
     for (InterfaceMemberDeclaration interfaceMemberDeclaration : interfaceBody.getInterfaceMemberDeclaration().getMemberDeclarations()) {
+      allMethodDeclarations.add(interfaceMemberDeclaration.abstractMethodDeclaration);
       methodHeaders.add(interfaceMemberDeclaration.getMethodHeader());
     }
     return methodHeaders;
