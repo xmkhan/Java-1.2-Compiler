@@ -29,6 +29,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   // Temporary data structures.
   private int numUnits;
   private int offset;
+  private boolean skipStaticImports;
   private PrintStream output;
   private HashSet<String> importSet;
   private ClassDeclaration clazzDecclaration;
@@ -65,6 +66,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     offset = 0;
     declStack = new Stack<Stack<LocalVariableDeclaration>>();
     testMainMethod = null;
+    skipStaticImports = false;
 
     // Find the Object declaration that is used by Arrays.
     for (CompilationUnit unit : units) {
@@ -80,6 +82,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.close();
     }
     clazzDecclaration = null;
+    skipStaticImports = true;
     output = new PrintStream(new FileOutputStream("output/__program.s"));
     importSet = new HashSet<String>();
     output.println("section .data");
@@ -125,6 +128,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     output.println("section .text");
     output.println("extern __malloc");
+    output.println("extern __exception");
     output.println("global _start");
     output.println("_start:");
     // Initialization code of global tables.
@@ -251,6 +255,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
   private void genUniqueImport(Declaration declaration) {
     String label = CodeGenUtils.genLabel(declaration);
+    if (skipStaticImports && declaration instanceof FieldDeclaration && ((FieldDeclaration) declaration).containsModifier("static")) return;
     if (clazzDecclaration != null && label.startsWith(clazzDecclaration.getAbsolutePath()) && !(declaration instanceof FieldDeclaration)) return;
     if (!importSet.contains(label)) {
       output.println(String.format("extern %s", label));
