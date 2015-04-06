@@ -150,10 +150,10 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for(int i = 0; i < subclassTable.length; ++i) {
       output.println(String.format("mov eax, %d", (4 * subclassTable[i].length)));
       CodeGenUtils.malloc(output);
-      output.println(String.format("mov [__subtype_table + %d], eax", 4 * i));
-      output.println(String.format("mov ebx, [__subtype_table + %d]", 4 * i));
+      output.println("mov ecx, [__subtype_table]");
+      output.println(String.format("mov [ecx + %d], eax", 4 * i));
       for (int j = 0; j < subclassTable[i].length; ++j) {
-        output.println(String.format("mov dword [ebx + %d], %d", 4 * j, subclassTable[i][j] ? 1 : 0));
+        output.println(String.format("mov dword [eax + %d], %d", 4 * j, subclassTable[i][j] ? 1 : 0));
       }
     }
     output.println("; END genSubtypeTable");
@@ -172,11 +172,11 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for(int i = 0; i < selectorIndexTable.length; ++i) {
       output.println(String.format("mov eax, %d", (4 * selectorIndexTable.length)));
       CodeGenUtils.malloc(output);
-      output.println(String.format("mov [__selector_index_table + %d], eax", 4 * i));
-      output.println(String.format("mov ebx, [__selector_index_table + %d]", 4 * i));
+      output.println("mov ecx, [__selector_index_table]");
+      output.println(String.format("mov [ecx + %d], eax", 4 * i));
       for (int j = 0; j < selectorIndexTable[i].length; ++j) {
-        if (selectorIndexTable[i][j] == null) output.println(String.format("mov dword [ebx + %d], 0", 4 * j));
-        else output.println(String.format("lea [ebx + %d], %s", 4 * j, CodeGenUtils.genLabel(selectorIndexTable[i][j])));
+        if (selectorIndexTable[i][j] == null) output.println(String.format("mov dword [eax + %d], 0", 4 * j));
+        else output.println(String.format("lea [eax + %d], %s", 4 * j, CodeGenUtils.genLabel(selectorIndexTable[i][j])));
       }
     }
     output.println("; END genSelectorIndexTable");
