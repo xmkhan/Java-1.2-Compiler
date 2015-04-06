@@ -1418,6 +1418,20 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("extern __selector_index_table");
 
     if (token.importDeclarations != null) token.importDeclarations.traverse(this);
+    // Extern all java.lang.* explicitly
+    List<Token> javaLangClasses = table.findWithPrefixOfAnyType(token.getLexeme(), new Class[] {ClassDeclaration.class});
+    for (Token javaLangClass : javaLangClasses) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
+      genUniqueImport(String.format("__vtable__%s_array", classDeclaration.getAbsolutePath()));
+      for (MethodDeclaration method : classDeclaration.methods) {
+        genUniqueImport(method);
+      }
+      for (FieldDeclaration field : classDeclaration.fields) {
+        if (field.containsModifier("static")) {
+          genUniqueImport(field);
+        }
+      }
+    }
     token.typeDeclaration.traverse(this);
   }
 
@@ -1473,20 +1487,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     for (ImportDeclaration importDeclaration : token.importDeclarations) {
       importDeclaration.traverse(this);
-    }
-    // Extern all java.lang.* explicitly
-    List<Token> javaLangClasses = table.findWithPrefixOfAnyType(token.getLexeme(), new Class[] {ClassDeclaration.class});
-    for (Token javaLangClass : javaLangClasses) {
-      ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
-      genUniqueImport(String.format("__vtable__%s_array", classDeclaration.getAbsolutePath()));
-      for (MethodDeclaration method : classDeclaration.methods) {
-        genUniqueImport(method);
-      }
-      for (FieldDeclaration field : classDeclaration.fields) {
-        if (field.containsModifier("static")) {
-          genUniqueImport(field);
-        }
-      }
     }
   }
 
