@@ -103,6 +103,9 @@ public class HierarchyGraphNode {
     for (HierarchyGraphNode node : extendsList) {
       allBaseClasses.addAll(node.getAllBaseClasses());
     }
+    for (HierarchyGraphNode node : implementsList) {
+      allBaseClasses.addAll(node.getAllBaseClasses());
+    }
     allBaseClasses.add(classOrInterface);
     return allBaseClasses;
   }
