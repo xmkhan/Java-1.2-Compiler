@@ -57,7 +57,7 @@ public class MakefileGenerator {
     writer.println("outputdir:");
     writer.println("\tmkdir output");
     writer.println("clean:");
-    writer.println("\trm -rf *.class classes output");
+    writer.println("\trm -rf *.class main classes output");
     writer.close();
   }
 

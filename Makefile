@@ -9,4 +9,4 @@ classesdir:
 outputdir:
 	mkdir output
 clean:
-	rm -rf *.class classes output
+	rm -rf *.class main classes output

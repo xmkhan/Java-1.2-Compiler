@@ -79,6 +79,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       unit.traverse(this);
       output.close();
     }
+    clazzDecclaration = null;
     output = new PrintStream(new FileOutputStream("output/__program.s"));
     importSet = new HashSet<String>();
     output.println("section .data");
