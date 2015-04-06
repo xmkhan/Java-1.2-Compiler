@@ -665,7 +665,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println("push eax");
       token.rightExpr.traverse(this);
       output.println("pop ebx");
-      output.println("and eax ebx");
+      output.println("and eax, ebx");
 //      output.println("add ebx, eax");
 //      output.println("mov eax, 0");
 //      output.println("cmp ebx, 2");
