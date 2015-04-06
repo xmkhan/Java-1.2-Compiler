@@ -238,7 +238,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println(String.format("mov [__vtable__%s_array], eax", name));
         output.println(String.format("mov dword [eax], %d", 2 * numUnits + i));
         for (int j = 0; j < objectDeclaration.methods.size(); ++j) {
-          output.println(String.format("lea [eax + %d], %s", 4 * (j+1),
+          output.println(String.format("mov dword [eax + %d], %s", 4 * (j+1),
               CodeGenUtils.genLabel(objectDeclaration.methods.get(j))));
         }
       }
