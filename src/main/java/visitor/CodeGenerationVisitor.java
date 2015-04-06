@@ -587,7 +587,8 @@ public class CodeGenerationVisitor extends BaseVisitor {
         output.println(String.format("je %s", endLabel));
         output.println("mov ecx, [ecx]");
         output.println("mov ecx, [ecx]");
-        output.println("mov ecx, [ecx *4 + __subtype_table]");
+        output.println("mov edx, [__subtype_table]");
+        output.println("mov ecx, [ecx *4 + edx]");
         output.println(String.format("mov ecx, [ecx + %d]", classId * 4));
         output.println("cmp ecx, 0");
         output.println(String.format("je %s", endLabel));
