@@ -126,6 +126,7 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
 
     // Add # of bytes based on type for all fields for the class.
     for (FieldDeclaration field : classDeclaration.fields) {
+      if (field.containsModifier("static")) continue;
       field.offset = classDeclaration.classSize;
       if (field.type.isPrimitiveType() && !field.type.isArray()) {
         classDeclaration.classSize += CodeGenUtils.getSize(field.type.getType().getLexeme());
