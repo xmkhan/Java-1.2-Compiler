@@ -127,6 +127,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
             field.traverse(this);
           }
         }
+        genClassVTables(classDeclaration);
       }
     }
     output.println(String.format("extern %s", CodeGenUtils.genLabel(testMainMethod)));
@@ -185,6 +186,33 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for (String name : primitiveNames) {
       output.println(String.format("global __vtable__%s_array", name));
       output.println(String.format("__vtable__%s_array: dd 0", name));
+    }
+  }
+
+  private void genClassVTables(ClassDeclaration token) {
+    // After generating code for the class subtree, at the end we create the vtable entry.
+    output.println(String.format("; Generating code for %s vtable", token.getAbsolutePath()));
+    output.println(String.format("mov eax, %d", token.vTableSize));
+    output.println("call __malloc");
+    output.println(String.format("mov [__vtable__%s], eax", token.getAbsolutePath()));
+    output.println(String.format("mov dword [__vtable__%s], %d", token.getAbsolutePath(), token.classId));
+    for (int i = 0; i < token.methods.size(); ++i) {
+      output.println(String.format("; Loading address of method decl: %s", token.methods.get(i).getAbsolutePath()));
+      output.println(String.format("lea [__vtable__%s + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
+          CodeGenUtils.genLabel(token.methods.get(i))));
+    }
+    // Additionally, we generate the vtable for the Array type.
+    if (objectDeclaration != null) {
+      output.println(String.format("; Generating code for the %s array vtable", token.getAbsolutePath()));
+      output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
+      output.println("call __malloc");
+      output.println(String.format("mov [__vtable__%s_array], eax", token.getAbsolutePath()));
+
+      output.println(String.format("mov dword [__vtable__%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
+      for (int i = 0; i < objectDeclaration.methods.size(); ++i) {
+        output.println(String.format("lea [__vtable__%s_array + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
+            CodeGenUtils.genLabel(objectDeclaration.methods.get(i))));
+      }
     }
   }
 
@@ -1534,31 +1562,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
 
     token.classBody.traverse(this);
-
-    // After generating code for the class subtree, at the end we create the vtable entry.
-    output.println(String.format("; Generating code for %s vtable", token.getAbsolutePath()));
-    output.println(String.format("mov eax, %d", token.vTableSize));
-    output.println("call __malloc");
-    output.println(String.format("mov [__vtable__%s], eax", token.getAbsolutePath()));
-    output.println(String.format("mov dword [__vtable__%s], %d", token.getAbsolutePath(), token.classId));
-    for (int i = 0; i < token.methods.size(); ++i) {
-      output.println(String.format("; Loading address of method decl: %s", token.methods.get(i).getAbsolutePath()));
-      output.println(String.format("lea [__vtable__%s + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
-          CodeGenUtils.genLabel(token.methods.get(i))));
-    }
-    // Additionally, we generate the vtable for the Array type.
-    if (objectDeclaration != null) {
-      output.println(String.format("; Generating code for the %s array vtable", token.getAbsolutePath()));
-      output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
-      output.println("call __malloc");
-      output.println(String.format("mov [__vtable__%s_array], eax", token.getAbsolutePath()));
-
-      output.println(String.format("mov dword [__vtable__%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
-      for (int i = 0; i < objectDeclaration.methods.size(); ++i) {
-        output.println(String.format("lea [__vtable__%s_array + %d], %s", token.getAbsolutePath(), 4 * (i + 1),
-            CodeGenUtils.genLabel(objectDeclaration.methods.get(i))));
-      }
-    }
     output.println("; END ClassDeclaration");
   }
 
