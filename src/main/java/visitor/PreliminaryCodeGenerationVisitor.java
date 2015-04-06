@@ -114,14 +114,13 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
     classDeclaration.vTableSize += (4 * classDeclaration.methods.size());
 
     // Create array of field labels.
+    // We want to be sorted from baseParent to derived.
     List<FieldDeclaration> fields = node.getAllFieldsReverse();
     HashMap<String, FieldDeclaration> fieldLabels = new HashMap<String, FieldDeclaration>();
     for (FieldDeclaration field : fields) {
       fieldLabels.put(field.getIdentifier(), field);
     }
     classDeclaration.fields = new ArrayList<FieldDeclaration>(fieldLabels.values());
-    // We want to be sorted from baseParent to derived.
-    // Collections.reverse(classDeclaration.fields);
 
     // Add # of bytes based on type for all fields for the class.
     for (FieldDeclaration field : classDeclaration.fields) {
