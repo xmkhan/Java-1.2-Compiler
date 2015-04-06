@@ -310,12 +310,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ClassMemberDeclaration token) throws VisitorException {
     super.visit(token);
-    if (token.children.get(0) instanceof FieldDeclaration) {
-      FieldDeclaration field = (FieldDeclaration) token.children.get(0);
-      if (!field.containsModifier("static")) {
-        field.traverse(this);
-      }
-    } else {
+    if (!(token.children.get(0) instanceof FieldDeclaration)) {
       token.children.get(0).traverse(this);
     }
   }
@@ -1096,9 +1091,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
         field.traverse(this);
-        output.println("pop ebx");
-        output.println(String.format("mov [ebx + %d], eax", field.offset));
-        output.println("push ebx");
       }
     }
 
