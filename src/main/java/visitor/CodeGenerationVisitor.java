@@ -98,6 +98,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     declareSubtypeTable();
     declareSelectorIndexTable();
     declarePrimitiveArrayVTable();
+
     // Declare code for all Class VTable, Array VTable.
     for (CompilationUnit unit : units) {
       if (unit.isClass()) {
@@ -1430,12 +1431,16 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("extern __selector_index_table");
 
     if (token.importDeclarations != null) token.importDeclarations.traverse(this);
+    token.typeDeclaration.traverse(this);
+  }
+
+  private void genJavaLangImports(ClassDeclaration excludeToken) {
     // Extern all java.lang.* explicitly
     List<Token> javaLangClasses = table.findWithPrefixOfAnyType("java.lang.", new Class[] {ClassDeclaration.class});
     for (Token javaLangClass : javaLangClasses) {
       ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
-      if (classDeclaration == token.typeDeclaration.getDeclaration()) continue;
-      if (classDeclaration.getAbsolutePath().equals(token.typeDeclaration.getDeclaration().getAbsolutePath())) continue;
+      if (classDeclaration == excludeToken ||
+          classDeclaration.getAbsolutePath().equals(excludeToken.getAbsolutePath())) continue;
       genUniqueImport(String.format("__vtable__%s_array", classDeclaration.getAbsolutePath()));
       for (MethodDeclaration method : classDeclaration.methods) {
         genUniqueImport(method);
@@ -1446,7 +1451,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         }
       }
     }
-    token.typeDeclaration.traverse(this);
+
   }
 
   @Override
@@ -1569,6 +1574,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     clazzDecclaration = token;
     output.println("; CODE GENERATION: ClassDeclaration");
+    genJavaLangImports(token);
     // Declare vtable and array vtable.
     genUniqueImport(String.format("__vtable__%s", token.getAbsolutePath()));
     genUniqueImport(String.format("__vtable__%s_array", token.getAbsolutePath()));
