@@ -194,7 +194,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("; Generating code for %s vtable", token.getAbsolutePath()));
     output.println(String.format("mov eax, %d", token.vTableSize));
     output.println("call __malloc");
-    output.println(String.format("mov __vtable__%s, eax", token.getAbsolutePath()));
+    output.println(String.format("mov [__vtable__%s], eax", token.getAbsolutePath()));
     output.println(String.format("mov dword [__vtable__%s], %d", token.getAbsolutePath(), token.classId));
     for (int i = 0; i < token.methods.size(); ++i) {
       output.println(String.format("; Loading address of method decl: %s", token.methods.get(i).getAbsolutePath()));
@@ -206,7 +206,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.println(String.format("; Generating code for the %s array vtable", token.getAbsolutePath()));
       output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
       output.println("call __malloc");
-      output.println(String.format("mov __vtable__%s_array, eax", token.getAbsolutePath()));
+      output.println(String.format("mov [__vtable__%s_array], eax", token.getAbsolutePath()));
 
       output.println(String.format("mov dword [__vtable__%s_array], %d", token.getAbsolutePath(), token.classId + numUnits));
       for (int i = 0; i < objectDeclaration.methods.size(); ++i) {
@@ -223,7 +223,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
         String name = primitiveNames[i];
         output.println(String.format("mov eax, %d", objectDeclaration.vTableSize));
         output.println("call __malloc");
-        output.println(String.format("mov __vtable__%s_array, eax", name));
+        output.println(String.format("mov [__vtable__%s_array], eax", name));
         output.println(String.format("mov dword [__vtable__%s_array], %d", name, 2 * numUnits + i));
         for (int j = 0; j < objectDeclaration.methods.size(); ++j) {
           output.println(String.format("lea [__vtable__%s_array + %d], %s", name, 4 * (j+1),
@@ -1076,7 +1076,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     // Set the vtpr and classId
     output.println("pop eax");
-    output.println(String.format("mov dword [eax], __vtable__%s", classDeclaration.getAbsolutePath()));
+    output.println(String.format("mov dword [eax], [__vtable__%s]", classDeclaration.getAbsolutePath()));
     output.println("mov eax, [eax]");
     output.println(String.format("mov dword [eax], %d", classDeclaration.classId));
     offset = 0;
