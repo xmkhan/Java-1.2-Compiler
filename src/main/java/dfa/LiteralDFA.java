@@ -12,6 +12,7 @@ import java.util.Set;
  */
 public class LiteralDFA implements DFA {
   private StringBuilder builder;
+  private StringBuilder octalBuilder;
   private Token token = null;
 
   private enum LiteralType {SINGLE_QUOTE, DOUBLE_QUOTE}
@@ -88,12 +89,12 @@ public class LiteralDFA implements DFA {
           builder.append(getUnEscapedChar(c));
           state = states.LITERAL;
         } else if (c >= '0' && c <= '3') {
-          builder.append('\\');
-          builder.append(c);
+          octalBuilder = new StringBuilder();
+          octalBuilder.append(c);
           state = states.ZERO_TO_THREE;
         } else if (c > '3' && c <= '7') {
-          builder.append('\\');
-          builder.append(c);
+          octalBuilder = new StringBuilder();
+          octalBuilder.append(c);
           state = states.ZERO_TO_SEVEN;
         } else {
           state = states.ERROR;
@@ -101,28 +102,35 @@ public class LiteralDFA implements DFA {
         break;
       case ZERO_TO_THREE:
         if (c >= '0' && c <= '7') {
-          builder.append(c);
+          octalBuilder.append(c);
           state = states.ZERO_TO_SEVEN;
         } else if (c < MAX_ASCII) {
+          builder.append(getUnEscapedOctal(octalBuilder.toString()));
           builder.append(c);
           // \38 is the same as \3 followed by digit 8, so they count as 2 characters.
           length += 2;
           state = states.LITERAL;
         } else {
+          builder.append(getUnEscapedOctal(octalBuilder.toString()));
+          length += 1;
           endLiteral(c);
         }
         break;
       case ZERO_TO_SEVEN:
         if (c >= '0' && c <= '7') {
           length++;
-          builder.append(c);
+          octalBuilder.append(c);
+          builder.append(getUnEscapedOctal(octalBuilder.toString()));
           state = states.LITERAL;
         } else if (c < MAX_ASCII) {
+          builder.append(getUnEscapedOctal(octalBuilder.toString()));
           builder.append(c);
           // \379 is the same as \37 followed by digit 9, so they count as 2 characters.
           length += 2;
           state = states.LITERAL;
         } else {
+          builder.append(getUnEscapedOctal(octalBuilder.toString()));
+          length += 1;
           endLiteral(c);
         }
         break;
@@ -167,6 +175,15 @@ public class LiteralDFA implements DFA {
         return '\\';
       default:
         return ' ';
+    }
+  }
+
+  private static char getUnEscapedOctal(String octal) {
+    try {
+      int value = Integer.parseInt(octal, 8);
+      return (char) value;
+    } catch(NumberFormatException e) {
+      return ' ';
     }
   }
 
