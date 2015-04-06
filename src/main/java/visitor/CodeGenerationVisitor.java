@@ -936,7 +936,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       classId = clazz.classId;
     } else {
       vTableName = token.primitiveType.getType().getLexeme();
-      classId = Arrays.asList(primitiveNames).indexOf(vTableName);
+      classId = 2 * numUnits + Arrays.asList(primitiveNames).indexOf(vTableName);
     }
 
     output.println("; CODE GENERATION: ArrayCreationExpression");
