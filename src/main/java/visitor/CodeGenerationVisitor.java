@@ -1078,8 +1078,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("pop eax");
     output.println(String.format("mov ebx, [__vtable__%s]", classDeclaration.getAbsolutePath()));
     output.println("mov [eax], ebx");
-    output.println("mov eax, [eax]");
-    output.println(String.format("mov dword [eax], %d", classDeclaration.classId));
     offset = 0;
     token.newScope.traverse(this);
     token.body.traverse(this);
