@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
@@ -928,10 +929,14 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     // Determine the label for the vtable.
     String vTableName;
+    int classId;
     if (token.name != null) {
       vTableName = token.name.getDeterminedDeclaration().getAbsolutePath();
+      ClassDeclaration clazz = (ClassDeclaration) table.findWithType(vTableName, new Class[] {ClassDeclaration.class});
+      classId = clazz.classId;
     } else {
       vTableName = token.primitiveType.getType().getLexeme();
+      classId = Arrays.asList(primitiveNames).indexOf(vTableName);
     }
 
     output.println("; CODE GENERATION: ArrayCreationExpression");
@@ -955,6 +960,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println(String.format("%s:", end));
     // Move the address of the vtable as 0th index.
     output.println(String.format("mov dword ecx, [__vtable__%s_array]", vTableName));
+    output.print(String.format("mov dword [ecx], %d", classId);
     output.println("mov [eax], ecx");
     // Move length as 1st index.
     output.println("lea ebx, [ebx - 2]");
