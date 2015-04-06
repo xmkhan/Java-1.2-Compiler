@@ -14,6 +14,7 @@ import type.hierarchy.HierarchyGraph;
 import type.hierarchy.HierarchyGraphNode;
 import util.CodeGenUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -113,16 +114,13 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
     classDeclaration.vTableSize += (4 * classDeclaration.methods.size());
 
     // Create array of field labels.
-    List<FieldDeclaration> fields = node.getAllFields();
-    Set<String> fieldLabels = new HashSet<String>();
-    for (FieldDeclaration field : fields) {
-      if (!fieldLabels.contains(field.getIdentifier())) {
-        classDeclaration.fields.add(field);
-        fieldLabels.add(field.getIdentifier());
-      }
-    }
     // We want to be sorted from baseParent to derived.
-    Collections.reverse(classDeclaration.fields);
+    List<FieldDeclaration> fields = node.getAllFieldsReverse();
+    HashMap<String, FieldDeclaration> fieldLabels = new HashMap<String, FieldDeclaration>();
+    for (FieldDeclaration field : fields) {
+      fieldLabels.put(field.getIdentifier(), field);
+    }
+    classDeclaration.fields = new ArrayList<FieldDeclaration>(fieldLabels.values());
 
     // Add # of bytes based on type for all fields for the class.
     for (FieldDeclaration field : classDeclaration.fields) {

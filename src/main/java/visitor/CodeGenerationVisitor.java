@@ -1167,6 +1167,20 @@ public class CodeGenerationVisitor extends BaseVisitor {
     CodeGenUtils.genPushRegisters(output, true);
     output.println(String.format("mov eax, %d", classDeclaration.classSize));
     CodeGenUtils.malloc(output);
+
+    // Clear contents of memory.
+    String startLabel = CodeGenUtils.genUniqueLabel();
+    String endLabel = CodeGenUtils.genUniqueLabel();
+    output.println("mov ecx, 0");
+    output.println(String.format("mov ebx, %d", classDeclaration.classSize / 4));
+    output.println(String.format("%s:", startLabel));
+    output.println("cmp ecx, ebx");
+    output.println(String.format("jge %s", endLabel));
+    output.println("mov dword [eax + 4 * ecx], 0");
+    output.println("inc ecx");
+    output.println(String.format("jmp %s", startLabel));
+    output.println(String.format("%s:", endLabel));
+
     // Push "this" on the stack.
     output.println("push eax");
     // Push on arguments.
