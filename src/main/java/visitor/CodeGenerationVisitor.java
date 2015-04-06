@@ -1090,7 +1090,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
         field.traverse(this);
-        output.print("pop ebx");
+        output.println("pop ebx");
         output.println(String.format("mov [ebx + %d], eax", field.offset));
         output.println("push ebx");
       }
