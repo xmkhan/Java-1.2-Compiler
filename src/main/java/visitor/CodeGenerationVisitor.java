@@ -1642,13 +1642,19 @@ public class CodeGenerationVisitor extends BaseVisitor {
     String startLabel = CodeGenUtils.genNextForStatementLabel();
     String endForLabel = "end#" + startLabel;
     token.newScope.traverse(this);
-    if (token.forInit != null) visit(token.forInit);
+    if (token.forInit != null) token.forInit.traverse(this);
     output.println(String.format("%s:", startLabel));
+    output.println("push eax");
     if (token.expression != null) token.expression.traverse(this);
     output.println("cmp eax, 0");
     output.println(String.format("je %s", endForLabel));
-    if (token.getStatement() != null) visit(token.getStatement());
-    if (token.forUpdate != null) visit(token.forUpdate);
+    if (token.getStatement() != null) {
+      token.getStatement().traverse(this);
+    }
+    output.print("pop eax");
+    if (token.forUpdate != null) {
+      token.forUpdate.traverse(this);
+    }
     output.println("jmp " + startLabel);
     output.println(String.format("%s:", endForLabel));
     token.closeScope.traverse(this);
@@ -1663,7 +1669,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.children.get(2) != null) token.children.get(2).traverse(this);
     output.println("cmp eax, 0");
     output.println(String.format("je %s", endLabel));
-    visit(token.children.get(4));
+    if (token.children.get(4) != null) token.children.get(4).traverse(this);
     output.println(String.format("jmp %s", startLabel));
     output.println(String.format("%s:", endLabel));
     output.println("; END: whileStatementHelper");
