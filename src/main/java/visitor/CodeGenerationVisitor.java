@@ -933,7 +933,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.name != null) {
       vTableName = token.name.getDeterminedDeclaration().getAbsolutePath();
       ClassDeclaration clazz = (ClassDeclaration) table.findWithType(vTableName, new Class[] {ClassDeclaration.class});
-      classId = clazz.classId;
+      classId = clazz.classId + numUnits;
     } else {
       vTableName = token.primitiveType.getType().getLexeme();
       classId = 2 * numUnits + Arrays.asList(primitiveNames).indexOf(vTableName);
