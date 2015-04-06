@@ -1,7 +1,6 @@
 package visitor;
 
 import exception.VisitorException;
-import token.AbstractMethodDeclaration;
 import token.BaseMethodDeclaration;
 import token.ClassDeclaration;
 import token.CompilationUnit;
@@ -17,9 +16,8 @@ import util.CodeGenUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Responsible for performing final calculations
@@ -116,10 +114,11 @@ public class PreliminaryCodeGenerationVisitor extends BaseVisitor {
     // Create array of field labels.
     // We want to be sorted from baseParent to derived.
     List<FieldDeclaration> fields = node.getAllFieldsReverse();
-    HashMap<String, FieldDeclaration> fieldLabels = new HashMap<String, FieldDeclaration>();
+    LinkedHashMap<String, FieldDeclaration> fieldLabels = new LinkedHashMap<String, FieldDeclaration>();
     for (FieldDeclaration field : fields) {
       fieldLabels.put(field.getIdentifier(), field);
     }
+
     classDeclaration.fields = new ArrayList<FieldDeclaration>(fieldLabels.values());
 
     // Add # of bytes based on type for all fields for the class.
