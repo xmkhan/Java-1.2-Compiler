@@ -77,8 +77,8 @@ public class ReachabilityVisitor extends BaseVisitor {
   @Override
   public void visit(WhileStatement stmt1) throws VisitorException {
     super.visit(stmt1);
-    BaseStatement stmt2 = (BaseStatement) stmt1.children.get(4);
-    Token evaluatedToken = stmt1.children.get(2);
+    BaseStatement stmt2 = stmt1.statement != null ? stmt1.statement : stmt1.statementNoShortIf;
+    Token evaluatedToken = stmt1.expression;
 
     CheckLoopReachable(evaluatedToken, stmt1, stmt2);
   }
