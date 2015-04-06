@@ -1419,7 +1419,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     if (token.importDeclarations != null) token.importDeclarations.traverse(this);
     // Extern all java.lang.* explicitly
-    List<Token> javaLangClasses = table.findWithPrefixOfAnyType(token.getLexeme(), new Class[] {ClassDeclaration.class});
+    List<Token> javaLangClasses = table.findWithPrefixOfAnyType("java.lang.", new Class[] {ClassDeclaration.class});
     for (Token javaLangClass : javaLangClasses) {
       ClassDeclaration classDeclaration = (ClassDeclaration) javaLangClass;
       genUniqueImport(String.format("__vtable__%s_array", classDeclaration.getAbsolutePath()));
