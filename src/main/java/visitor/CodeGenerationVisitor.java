@@ -1039,6 +1039,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     // Initialize the non-static fields. Firstly, we put 'this' into eax.
     output.println(String.format("mov eax, [ebp + %d]", paramOffset));
+    output.println("push eax");
     thisOffset = paramOffset;
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
@@ -1046,7 +1047,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
       }
     }
     // Set the vtpr and classId
-    output.println(String.format("mov eax, __vtable__%s", classDeclaration.getAbsolutePath()));
+    output.println("pop eax");
+    output.println(String.format("mov [eax], __vtable__%s", classDeclaration.getAbsolutePath()));
+    output.println("mov eax, [eax]");
     output.println(String.format("mov dword [eax], %d", classDeclaration.classId));
     offset = 0;
     token.newScope.traverse(this);
