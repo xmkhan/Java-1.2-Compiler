@@ -28,7 +28,13 @@ public class ClassBodyDeclarations extends Token {
     Collections.sort(bodyDeclarations, new Comparator<ClassBodyDeclaration>() {
       @Override
       public int compare(ClassBodyDeclaration o1, ClassBodyDeclaration o2) {
-          return new Integer(memberScore(o1)).compareTo(memberScore(o2));
+          int score1 = memberScore(o1);
+          int score2 = memberScore(o2);
+          if (score1 == score2) {
+            return new Integer(bodyDeclarations.indexOf(o1)).compareTo(bodyDeclarations.indexOf(o2));
+          } else {
+            return new Integer(score1).compareTo(score2);
+          }
       }
     });
 }
