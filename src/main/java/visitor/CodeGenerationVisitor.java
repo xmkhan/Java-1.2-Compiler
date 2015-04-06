@@ -333,6 +333,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     }
     for (Token clazz : classWithPrefixes) {
       ClassDeclaration classDeclaration = (ClassDeclaration) clazz;
+      genUniqueImport(String.format("__vtable__%s_array", classDeclaration.getAbsolutePath()));
       for (MethodDeclaration method : classDeclaration.methods) {
         genUniqueImport(method);
       }
