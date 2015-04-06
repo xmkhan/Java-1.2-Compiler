@@ -1659,7 +1659,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
     if (token.getStatement() != null) {
       token.getStatement().traverse(this);
     }
-    output.print("pop eax");
+    output.println("pop eax");
     if (token.forUpdate != null) {
       token.forUpdate.traverse(this);
     }
