@@ -1090,12 +1090,15 @@ public class CodeGenerationVisitor extends BaseVisitor {
     for (FieldDeclaration field : classDeclaration.fields) {
       if (!field.containsModifier("static")) {
         field.traverse(this);
+        output.print("pop ebx");
+        output.println(String.format("mov [ebx + %d], eax", field.offset));
+        output.println("push ebx");
       }
     }
 
-    // Set the vtpr and classId
+    // Set the vtpr.
     output.println("pop eax");
-    output.println(String.format("mov ebx, [__vtable__%s]", classDeclaration.getAbsolutePath()));
+    output.println(String.format("mov dword ebx, [__vtable__%s]", classDeclaration.getAbsolutePath()));
     output.println("mov [eax], ebx");
     offset = 0;
     token.newScope.traverse(this);
