@@ -80,6 +80,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
       output.close();
     }
     output = new PrintStream(new FileOutputStream("output/__program.s"));
+    importSet = new HashSet<String>();
     output.println("section .data");
     for (CompilationUnit unit : units) {
       if (unit.typeDeclaration.getDeclaration() instanceof ClassDeclaration) {
@@ -90,6 +91,16 @@ public class CodeGenerationVisitor extends BaseVisitor {
             output.println(String.format("global %s", field.getAbsolutePath()));
             output.println(String.format("%s: %s 0", field.getAbsolutePath(), CodeGenUtils.getReserveSize(fieldSize)));
           }
+        }
+      }
+    }
+
+    // Declare all fields and methods in the program.
+    for (CompilationUnit unit : units) {
+      if (unit.isClass()) {
+        ClassDeclaration token = (ClassDeclaration) unit.typeDeclaration.getDeclaration();
+        for (MethodDeclaration method : token.methods) {
+          genUniqueImport(method);
         }
       }
     }
