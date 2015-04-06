@@ -1072,7 +1072,6 @@ public class CodeGenerationVisitor extends BaseVisitor {
 
     ClassDeclaration classDeclaration = (ClassDeclaration) table.getClass(token);
     HierarchyGraphNode node = graph.get(classDeclaration.getAbsolutePath());
-    List<Token> classTokens = node.getAllBaseClasses();
     if (!node.extendsList.isEmpty()) {
       // Call the default constructor for the base class.
       ClassDeclaration baseClass = (ClassDeclaration) node.extendsList.get(0).classOrInterface;
