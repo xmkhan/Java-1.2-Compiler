@@ -321,12 +321,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
     super.visit(token);
     String ifLabel = CodeGenUtils.genNextIfStatementLabel();
 
-    visit(token.expression);
+    token.expression.traverse(this);
 
     output.println("cmp eax, 0");
     output.println("je " + ifLabel);
 
-    visit(token.statement);
+    token.statement.traverse(this);
 
     output.println(String.format("%s:", ifLabel));
   }
@@ -1471,7 +1471,9 @@ public class CodeGenerationVisitor extends BaseVisitor {
   public void visit(BlockStatements token) throws VisitorException {
     super.visit(token);
     addComment("BlockStatement " + token.getLexeme());
-    visitEveryChild(token);
+    for (BlockStatement stmt : token.getStatements()) {
+      stmt.traverse(this);
+    }
   }
 
   @Override
@@ -1484,7 +1486,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForInit token) throws VisitorException {
     super.visit(token);
-    visit(token.children.get(0));
+    token.children.get(0).traverse(this);
   }
 
   @Override
@@ -1521,7 +1523,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(ForUpdate token) throws VisitorException {
     super.visit(token);
-    visit(token.children.get(0));
+    token.children.get(0).traverse(this);
   }
 
   @Override
@@ -1596,7 +1598,7 @@ public class CodeGenerationVisitor extends BaseVisitor {
   @Override
   public void visit(MethodBody token) throws VisitorException {
     super.visit(token);
-    if (token.block != null) visit(token.block);
+    if (token.block != null) token.block.traverse(this);
   }
 
   @Override
@@ -1633,12 +1635,12 @@ public class CodeGenerationVisitor extends BaseVisitor {
     output.println("cmp eax, 0");
     output.println("je " + ifLabel);
 
-    visit(token.statementNoShortIf);
+    token.statementNoShortIf.traverse(this);
     output.println(String.format("jmp %s", CodeGenUtils.getCurrentElseStmtLabel()));
 
     // else
     output.println(String.format("%s:", ifLabel));
-    visit(token.getElseStatement());
+    if (token.getElseStatement() != null) token.getElseStatement().traverse(this);
     if (!(token.getElseStatement() instanceof BaseIfThenElse)) {
       output.println(String.format("%s:", CodeGenUtils.genNextElseStmtLabel()));
     }
