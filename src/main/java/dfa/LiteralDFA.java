@@ -104,7 +104,8 @@ public class LiteralDFA implements DFA {
         if (c >= '0' && c <= '7') {
           octalBuilder.append(c);
           state = states.ZERO_TO_SEVEN;
-        } else if (c < MAX_ASCII) {
+        } else if (c < MAX_ASCII && ((literalType == LiteralType.SINGLE_QUOTE && c != '\'') ||
+                (literalType == LiteralType.DOUBLE_QUOTE && c != '"'))) {
           builder.append(getUnEscapedOctal(octalBuilder.toString()));
           builder.append(c);
           // \38 is the same as \3 followed by digit 8, so they count as 2 characters.
@@ -122,7 +123,8 @@ public class LiteralDFA implements DFA {
           octalBuilder.append(c);
           builder.append(getUnEscapedOctal(octalBuilder.toString()));
           state = states.LITERAL;
-        } else if (c < MAX_ASCII) {
+        } else if (c < MAX_ASCII && ((literalType == LiteralType.SINGLE_QUOTE && c != '\'') ||
+                (literalType == LiteralType.DOUBLE_QUOTE && c != '"'))) {
           builder.append(getUnEscapedOctal(octalBuilder.toString()));
           builder.append(c);
           // \379 is the same as \37 followed by digit 9, so they count as 2 characters.
